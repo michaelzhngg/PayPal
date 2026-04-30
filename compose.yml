@@ -32,16 +32,26 @@ services:
       - /app/.venv
     ports:
       - "8000:8000"
-    env_file:
-      - ./backend/.env
     environment:
       - WATCHFILES_FORCE_POLLING=true
-      - DATABASE_URL=postgresql://admin:password@db:5432/smart_reimburse
+      - DATABASE_URL=${DATABASE_URL}
+      - SECRET_KEY=${SECRET_KEY}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - CHAT_MODEL=${CHAT_MODEL}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL}
+      - VISION_MODEL=${VISION_MODEL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
+      - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
     depends_on:
       db:
         condition: service_healthy
-    command: bash -c "python -c 'from core.database import init_db; init_db()' && alembic stamp head && exec uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
-    # command: bash -c "python -c 'from core.database import init_db; init_db()' && alembic stamp head && python seed_demo_employees.py && python seed_mock_policy.py && python seed_mock_data.py && exec uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    # command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: bash -c "python -c 'from core.database import init_db; init_db()' && alembic stamp head && python seed_demo_employees.py && python seed_mock_policy.py && python seed_mock_data.py && exec uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
     healthcheck:
       # test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
       test: [ "CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
