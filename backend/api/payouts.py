@@ -65,7 +65,7 @@ def ledger_row(payout: Payout, reim: Reimbursement, employee: User) -> PayoutLed
     return PayoutLedgerRow(
         payout_id=payout.payout_id,
         reim_id=payout.reim_id,
-        claim_ref=f"RC-{str(payout.reim_id)[:8]}",
+        claim_ref=f"RC-{str(payout.reim_id)[:8].upper()}",
         employee_name=employee.name,
         amount=float(payout.amount),
         currency=payout.currency,

@@ -59,7 +59,7 @@ export default function MoneyFlow({ reimId, claimStatus, tier }: MoneyFlowProps)
       payee && !payee.linked ? (
         <>
           Connect PayPal to receive this payment.{" "}
-          <Link href="/employee/settings" className="font-semibold text-primary underline underline-offset-2">
+          <Link href="/employee/settings#paypal" className="font-semibold text-primary underline underline-offset-2">
             Go to settings
           </Link>
         </>

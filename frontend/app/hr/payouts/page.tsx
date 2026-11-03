@@ -16,14 +16,6 @@ import {
 
 const POLL_MS = 5000;
 
-// Audit queue, Recoveries and Agent log wait on the recovery and action-log endpoints.
-const TABS = [
-  { id: "ledger", label: "Ledger", ready: true },
-  { id: "audit", label: "Audit queue", ready: false },
-  { id: "recoveries", label: "Recoveries", ready: false },
-  { id: "agent-log", label: "Agent log", ready: false },
-] as const;
-
 const STATUS_OPTIONS = Object.keys(STATUS_META) as PayoutStatus[];
 
 function LedgerSkeleton() {
@@ -76,7 +68,7 @@ export default function HRPayoutsPage() {
   };
 
   return (
-    <div className="min-h-full px-4 py-6 sm:px-6 md:px-10 md:py-10 lg:px-12">
+    <div className="min-h-full px-4 py-6 sm:px-6 md:px-8 md:py-10">
       <header className="mb-6 max-w-3xl">
         <h2 className="font-headline font-extrabold text-on-background text-3xl md:text-4xl tracking-tight">
           Payouts
@@ -86,42 +78,8 @@ export default function HRPayoutsPage() {
         </p>
       </header>
 
-      <div
-        role="tablist"
-        aria-label="Payout views"
-        className="flex gap-1 overflow-x-auto border-b border-outline-variant/30 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0"
-      >
-        {TABS.map((tab) =>
-          tab.ready ? (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected="true"
-              id={`tab-${tab.id}`}
-              aria-controls={`panel-${tab.id}`}
-              className="shrink-0 min-h-[44px] px-4 -mb-px border-b-2 border-primary font-body text-sm font-semibold text-primary focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-[-2px]"
-            >
-              {tab.label}
-            </button>
-          ) : (
-            // TODO: enable once the recovery and action-log endpoints exist.
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected="false"
-              aria-disabled="true"
-              tabIndex={-1}
-              title="Coming soon"
-              className="shrink-0 min-h-[44px] px-4 -mb-px border-b-2 border-transparent font-body text-sm text-on-surface-variant cursor-not-allowed"
-            >
-              {tab.label}
-              <span className="ml-1.5 text-xs">(coming soon)</span>
-            </button>
-          ),
-        )}
-      </div>
-
-      <section id="panel-ledger" role="tabpanel" aria-labelledby="tab-ledger">
+      {/* Audit queue, Recoveries and Agent log return as tabs one at a time, once each is built (UX QA Q5). */}
+      <section aria-label="Payout ledger">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
           <p className="text-sm text-on-surface-variant" aria-live="polite">
             {isLoading ? (

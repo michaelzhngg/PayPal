@@ -7,7 +7,11 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { apiGet, apiPatch, apiPost, apiPostMultipart, API_PREFIX } from "@/lib/api/client";
+import { withFixture } from "@/lib/api/fixtures";
 import type { ReimbursementRaw, Claim, ClaimBundle, PayoutInfo, AiStatus } from "@/lib/api/types";
+import { triageRows, type TriageRow, type TriageSource } from "@/components/hr-grid/rows";
+import { triageReimbursements } from "@/src/mocks/triageFixtures";
+import { formatClaimRef, formatMoney } from "@/lib/format";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -35,10 +39,10 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString("en-MY", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function formatCurrency(amount: number, currency = "MYR"): string {
-  const symbols: Record<string, string> = { MYR: "MYR ", USD: "$", EUR: "€", GBP: "£" };
-  const sym = symbols[currency] ?? `${currency} `;
-  return `${sym}${amount.toLocaleString("en-MY", { minimumFractionDigits: 2 })}`;
+/** "3 Nov": short enough for a table column. */
+function formatShortDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 /** Map a raw reimbursement to the HR dashboard list row shape. */
@@ -53,7 +57,7 @@ function mapToClaim(r: ReimbursementRaw): Claim {
       initials: getInitials(employeeName),
     },
     date: formatDate(r.created_at),
-    amount: formatCurrency(r.total_claimed_amount ?? 0, r.currency),
+    amount: formatMoney(r.currency ?? "MYR", r.total_claimed_amount ?? 0),
     category: r.main_category ?? "General",
     status: aiStatus,
     note: r.summary ? r.summary.split(".")[0] : undefined,
@@ -92,7 +96,8 @@ function mapToBundle(r: ReimbursementRaw): ClaimBundle {
     employee: {
       name: employeeName,
       initials: getInitials(employeeName),
-      employee_no: r.user_id ?? "",
+      // The staff number, never the user UUID. Empty hides the field.
+      employee_no: r.employee_code ?? "",
       position: "",
       department: deptName,
       location: "",
@@ -100,10 +105,11 @@ function mapToBundle(r: ReimbursementRaw): ClaimBundle {
       email: "",
     },
     submitted_at: r.created_at ?? new Date().toISOString(),
-    travel_destination: "",
-    travel_purpose: r.summary?.split(".")[0] ?? "",
-    departure_date: "",
-    arrival_date: "",
+    travel_destination: r.destination ?? "",
+    // The settlement's stated purpose. r.summary is the AI's risk summary and belongs in the AI panel only.
+    travel_purpose: r.purpose ?? "",
+    departure_date: r.departure_date ?? "",
+    arrival_date: r.arrival_date ?? "",
     is_overseas: false,
     line_items: lineItems,
     totals: {
@@ -128,27 +134,35 @@ function mapToBundle(r: ReimbursementRaw): ClaimBundle {
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
-/**
- * Fetch all reimbursements and bucket them for the HR dashboard.
- *
- * - attention : status=REVIEW (all ages) — HR must act
- * - passed    : auto-approved (reviewed_by=null) within 24 h — informational
- * - flagged   : auto-rejected (reviewed_by=null) within 24 h — informational
- *
- * All buckets sorted most-recent first.
- */
-export async function getHRClaims(): Promise<{
+export interface HRClaims {
   attention: Claim[];
   passed: Claim[];
   flagged: Claim[];
   allReims: ReimbursementRaw[];
-}> {
-  const result = await apiGet<ReimbursementRaw[]>(`${API_PREFIX}/reimbursements/`);
+  /** Triage queue rows: claims waiting on HR plus the last 24 hours of auto-pays. */
+  rows: TriageRow[];
+  error: string | null;
+}
 
-  if (!result.data || result.data.length === 0) {
-    return { attention: [], passed: [], flagged: [], allReims: [] };
-  }
+/**
+ * Fetch all reimbursements and bucket them for the HR dashboard.
+ *
+ * - attention : status=REVIEW (all ages), HR must act
+ * - passed    : auto-approved (reviewed_by=null) within 24 h, informational
+ * - flagged   : auto-rejected (reviewed_by=null) within 24 h, informational
+ * - rows      : the triage grid, with the tier fields from the autonomy engine
+ *
+ * All buckets sorted most-recent first.
+ */
+export async function getHRClaims(): Promise<HRClaims> {
+  return withFixture(bucketClaims(triageReimbursements), async () => {
+    const result = await apiGet<TriageSource[]>(`${API_PREFIX}/reimbursements/`);
+    if (result.error) return { ...bucketClaims([]), error: result.error };
+    return bucketClaims(result.data ?? []);
+  });
+}
 
+function bucketClaims(reims: TriageSource[]): HRClaims {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const byRecent = (a: ReimbursementRaw, b: ReimbursementRaw) =>
     new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
@@ -157,7 +171,7 @@ export async function getHRClaims(): Promise<{
   const passed: Claim[] = [];
   const flagged: Claim[] = [];
 
-  const sorted = [...result.data].sort(byRecent);
+  const sorted = [...reims].sort(byRecent);
 
   for (const r of sorted) {
     const isAutoProcessed = r.reviewed_by == null;
@@ -177,7 +191,7 @@ export async function getHRClaims(): Promise<{
     }
   }
 
-  return { attention, passed, flagged, allReims: result.data };
+  return { attention, passed, flagged, allReims: reims, rows: triageRows(reims), error: null };
 }
 
 export interface HistoryClaim {
@@ -192,6 +206,28 @@ export interface HistoryClaim {
   dateSubmitted: string;
   dateResolved: string;
   status: "Approved" | "Rejected" | "Paid";
+  /** Where the money is. null for rejected claims, which never pay out. */
+  payout: PayoutState | null;
+}
+
+export type PayoutState =
+  | { kind: "paid" }
+  | { kind: "sending" }
+  | { kind: "waiting_link" }
+  | { kind: "not_sent" }
+  | { kind: "failed"; reason: string | null };
+
+/** Payout state for an approved claim, from the claim status, its latest payout and the payee link. */
+function payoutStateOf(r: ReimbursementRaw): PayoutState | null {
+  if (r.status === "REJECTED") return null;
+  const p = r.payout?.status;
+  if (r.status === "PAID" || p === "SUCCEEDED") return { kind: "paid" };
+  if (r.status === "DISBURSEMENT_FAILED" || p === "FAILED" || p === "CANCELLED" || p === "REVERSED") {
+    return { kind: "failed", reason: r.payout?.failure_code ?? null };
+  }
+  if (r.status === "DISBURSING" || p === "ACCEPTED" || p === "REQUESTED") return { kind: "sending" };
+  if (r.payee_linked === false) return { kind: "waiting_link" };
+  return { kind: "not_sent" };
 }
 
 /**
@@ -212,7 +248,8 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
     DISBURSING: "Approved",
     PAID: "Paid",
     REJECTED: "Rejected",
-    DISBURSEMENT_FAILED: "Rejected",
+    // A failed payout is still an approved claim. The payout column shows the failure.
+    DISBURSEMENT_FAILED: "Approved",
   };
 
   return result.data
@@ -221,7 +258,7 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
       const isAutoProcessed = r.reviewed_by == null;
       const createdAt = r.created_at ? new Date(r.created_at) : null;
       const isRecent = createdAt != null && createdAt >= cutoff;
-      const isResolved = ["APPROVED", "DISBURSING", "PAID", "REJECTED"].includes(r.status);
+      const isResolved = ["APPROVED", "DISBURSING", "PAID", "REJECTED", "DISBURSEMENT_FAILED"].includes(r.status);
       if (isAutoProcessed && isRecent && !isResolved) return false; // exclude only unresolved
       return statusMap[r.status] != null;
     })
@@ -233,7 +270,7 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
       const name = r.employee_name ?? "Unknown";
       const resolvedDate = r.reviewed_at ?? r.updated_at ?? r.created_at;
       return {
-        id: `RC-${r.reim_id.slice(0, 8).toUpperCase()}`,
+        id: formatClaimRef(r.reim_id),
         reim_id: r.reim_id,
         employeeName: name,
         employeeInitial: name.charAt(0).toUpperCase(),
@@ -241,9 +278,10 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
         policyName: r.policy_name ?? r.main_category ?? "General",
         amount: r.total_claimed_amount ?? 0,
         currency: r.currency ?? "MYR",
-        dateSubmitted: formatDate(r.created_at),
-        dateResolved: formatDate(resolvedDate ?? null),
+        dateSubmitted: formatShortDate(r.created_at),
+        dateResolved: formatShortDate(resolvedDate ?? null),
         status: statusMap[r.status] as "Approved" | "Rejected" | "Paid",
+        payout: payoutStateOf(r),
       };
     });
 }

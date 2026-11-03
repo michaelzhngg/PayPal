@@ -27,36 +27,39 @@ export const viewport: Viewport = {
   themeColor: "#f5f7f9",
 };
 
+const DESCRIPTION =
+  "An AI agent checks each expense claim against policy, pays clean low-risk claims to the employee's PayPal in seconds, and sends everything else to HR with the evidence. Automation where it's safe, judgment where it matters.";
+
 export const metadata: Metadata = {
-  title: "Reclaim",
-  description: "From receipt to reimbursement — in minutes, not days Smart Reimbursement Automation System",
+  title: "Reclaim Pay",
+  description: DESCRIPTION,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Reclaim",
+    title: "Reclaim Pay",
   },
   icons: {
     icon: "/images/logo.svg",
     apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Reclaim",
-    description: "From receipt to reimbursement — in minutes, not days Smart Reimbursement Automation System",
+    title: "Reclaim Pay",
+    description: DESCRIPTION,
     images: [
       {
         url: "/images/logo.svg",
         width: 800,
         height: 600,
-        alt: "Reclaim Logo",
+        alt: "Reclaim Pay logo",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Reclaim",
-    description: "From receipt to reimbursement — in minutes, not days Smart Reimbursement Automation System",
+    title: "Reclaim Pay",
+    description: DESCRIPTION,
     images: ["/images/logo.svg"],
   },
 };

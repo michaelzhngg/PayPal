@@ -82,14 +82,14 @@ Priorities:
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
 | [ ] | Sandbox app, a business account (sender) and two personal accounts (receivers); one payout made by hand with curl; decide MYR or USD | Must | 0 |
-| [ ] | PayPal client: login token, payout, payout status, webhook signature check, "Log in with PayPal" exchange, with tests | Must | 1 |
-| [ ] | Payouts that can't be sent twice (`sender_batch_id = RC-{claim}-{attempt}`) | Must | 1 |
-| [ ] | Replace the Xendit mock with PayPal in `payout_service` | Must | 1–2 |
-| [ ] | Signed webhook endpoint, plus a status refresh as a fallback | Must | 2 |
-| [ ] | "Log in with PayPal" to verify the employee's account; 72-hour pause after the account changes | Must | 2 |
-| [ ] | Payout ledger endpoint for HR | Should | 2 |
+| [x] | PayPal client: login token, payout, payout status, webhook signature check, "Log in with PayPal" exchange, with tests _(built and unit-tested against mock mode; not yet run against live sandbox keys)_ | Must | 1 |
+| [x] | Payouts that can't be sent twice (`sender_batch_id = RC-{claim}-{attempt}`) | Must | 1 |
+| [x] | Replace the Xendit mock with PayPal in `payout_service` | Must | 1–2 |
+| [x] | Signed webhook endpoint, plus a status refresh as a fallback _(signature check is skipped only when `PAYPAL_MOCK_MODE=true`)_ | Must | 2 |
+| [x] | "Log in with PayPal" to verify the employee's account; 72-hour pause after the account changes | Must | 2 |
+| [x] | Payout ledger endpoint for HR | Should | 2 |
 | [ ] | "Sign in with PayPal" on the login page, next to the password: employees only, matched by an already-linked and verified `paypal_payer_id` (never by email), and a PayPal sign-in starts the 72-hour pause before payout details can change. HR stays on password | Should | 3 |
-| [ ] | Mock mode, so the frontend can work without sandbox keys | Must | 1 |
+| [x] | Mock mode, so the frontend can work without sandbox keys | Must | 1 |
 | [ ] | Reconcile payouts against the company's PayPal ledger (PayPal Server SDK) | Could | 3 |
 
 ### 4.2 Data, autonomy API, approvals, recovery — Chingiz (session B)
@@ -120,10 +120,10 @@ Priorities:
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
-| [ ] | Frontend types, sample data and action functions; AG Grid and vitest installed | Must (blocks frontend) | 0 |
-| [ ] | Live agent timeline while a claim is checked, plus a preview page that replays sample data | Must | 1 |
-| [ ] | Money-flow strip ending in "MYR 48.00 in your PayPal" | Must | 2 |
-| [ ] | "Connect PayPal" card in settings (replaces the bank details form) | Must | 2 |
+| [x] | Frontend types, sample data and action functions; AG Grid and vitest installed | Must (blocks frontend) | 0 |
+| [x] | Live agent timeline while a claim is checked, plus a preview page that replays sample data _(frontend done; waits for the backend timeline events in 4.3)_ | Must | 1 |
+| [x] | Money-flow strip ending in "MYR 48.00 in your PayPal" | Must | 2 |
+| [x] | "Connect PayPal" card in settings (replaces the bank details form) | Must | 2 |
 | [ ] | Trust card ("instant payouts up to MYR 100"), plus an overpayment notice with a dispute form | Should | 2–3 |
 | [ ] | Bryntum calendar of claims and payouts | Could | 3 |
 
@@ -134,7 +134,7 @@ Priorities:
 | [ ] | AG Grid triage queue with tier tabs, risk bar, signal chips, batch approve | Must | 1 |
 | [ ] | Evidence panel on the review page (why the claim was routed, evidence for each signal, two-person approval progress) | Must | 2 |
 | [ ] | Autonomy Dial page: limits form, back-test chart (AG Charts), KPI tiles, kill switch | Should | 2 |
-| [ ] | Payouts page: ledger, audit queue, recoveries (invoice preview → send), action log with an "intact" badge | Should | 2–3 |
+| [ ] | Payouts page: ledger, audit queue, recoveries (invoice preview → send), action log with an "intact" badge _(ledger done; the other three tabs are disabled placeholders)_ | Should | 2–3 |
 | [ ] | Landing page refresh with a "Built with" strip (only tools that appear in the demo) | Should | 3 |
 
 ### 4.6 Staging, data, QA, demo — Darrell

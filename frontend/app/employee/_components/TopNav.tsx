@@ -75,7 +75,7 @@ export default function TopNav() {
         <div className="lg:hidden flex items-center gap-2">
           <Image src="/images/logo.svg" alt="Reclaim Logo" width={24} height={24} className="w-6 h-6 object-contain" />
           <span className="text-xl font-extrabold bg-linear-to-r from-primary to-tertiary bg-clip-text text-transparent font-headline tracking-tight">
-            Reclaim
+            Reclaim Pay
           </span>
         </div>
 

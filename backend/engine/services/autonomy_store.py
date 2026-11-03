@@ -1,0 +1,287 @@
+"""
+Autonomy settings, kill switch, circuit breaker and the inputs `decide()` reads from the DB.
+
+The pure `*_from_rows` helpers hold the counting rules; the DB functions only fetch rows.
+"Today" and "month" are UTC calendar boundaries.
+"""
+import logging
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+from uuid import UUID
+
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session, select
+
+from core.config import settings
+from core.enums import AgentActionType, RecoveryStatus, ReimbursementStatus, UserRole
+from core.models import AutonomySettings, Recovery, Reimbursement, User
+from engine.services.action_log import record_action
+from engine.services.risk_contract import (
+    AUTONOMY_TIERS,
+    AgentLedger,
+    AutonomyConfig,
+    AutonomyDecision,
+    EmployeeHistory,
+    PayeeStatus,
+)
+
+logger = logging.getLogger(__name__)
+
+SETTINGS_ID = 1
+AUTO_PAID_STATUSES = {
+    ReimbursementStatus.APPROVED.value,
+    ReimbursementStatus.DISBURSING.value,
+    ReimbursementStatus.PAID.value,
+}
+# Fields on AutonomyConfig the server owns: `enabled` moves only through the kill switch.
+SERVER_OWNED_FIELDS = {"enabled", "version"}
+
+
+def _utc(dt: datetime) -> datetime:
+    return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt.astimezone(timezone.utc)
+
+
+def _day_start(now: datetime) -> datetime:
+    return _utc(now).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def _month_start(now: datetime) -> datetime:
+    return _day_start(now).replace(day=1)
+
+
+def _is_auto_paid(row: dict) -> bool:
+    return row.get("tier") == "AUTO_PAY" and str(row.get("status")) in AUTO_PAID_STATUSES
+
+
+def _status_str(status) -> str:
+    return status.value if hasattr(status, "value") else str(status)
+
+
+def history_from_rows(rows: list[dict], issue_dates: list[datetime], now: datetime) -> EmployeeHistory:
+    """rows: one employee's claims with `status`, `tier`, `amount`, `updated_at`."""
+    today, month = _day_start(now), _month_start(now)
+    auto = [r for r in rows if _is_auto_paid(r)]
+    issues = [_utc(d) for d in issue_dates]
+    now = _utc(now)
+    return EmployeeHistory(
+        paid_claims=sum(1 for r in rows if str(r.get("status")) == ReimbursementStatus.PAID.value),
+        confirmed_issues_90d=sum(1 for d in issues if d >= now - timedelta(days=90)),
+        confirmed_issues_180d=sum(1 for d in issues if d >= now - timedelta(days=180)),
+        auto_paid_today=float(sum(Decimal(str(r["amount"])) for r in auto if _utc(r["updated_at"]) >= today)),
+        auto_paid_month=float(sum(Decimal(str(r["amount"])) for r in auto if _utc(r["updated_at"]) >= month)),
+    )
+
+
+def ledger_from_rows(rows: list[dict], now: datetime, breaker_until: datetime | None) -> AgentLedger:
+    """rows: company-wide claims with `status`, `tier`, `amount`, `updated_at`."""
+    now = _utc(now)
+    today, hour_ago = _day_start(now), now - timedelta(hours=1)
+    auto = [r for r in rows if _is_auto_paid(r)]
+    return AgentLedger(
+        auto_paid_today=float(sum(Decimal(str(r["amount"])) for r in auto if _utc(r["updated_at"]) >= today)),
+        auto_paid_last_hour=float(sum(Decimal(str(r["amount"])) for r in auto if _utc(r["updated_at"]) >= hour_ago)),
+        breaker_active=breaker_until is not None and _utc(breaker_until) > now,
+    )
+
+
+def payee_from_user(user: User) -> PayeeStatus:
+    return PayeeStatus(
+        verified=bool(user.paypal_verified and user.paypal_payer_id),
+        linked_at=user.paypal_linked_at,
+        changed_at=user.payout_destination_changed_at,
+    )
+
+
+def _claim_row(r: Reimbursement) -> dict:
+    amount = r.total_approved_amount if r.total_approved_amount is not None else r.total_claimed_amount
+    return {
+        "status": _status_str(r.status),
+        "tier": r.tier,
+        "amount": amount or 0,
+        "updated_at": r.updated_at or r.created_at,
+    }
+
+
+def _has_high_signal(autonomy: dict | None) -> bool:
+    return any((s or {}).get("severity") == "HIGH" for s in (autonomy or {}).get("signals", []))
+
+
+def settings_row(db: Session, for_update: bool = False) -> AutonomySettings:
+    """Return the single settings row, creating it from AutonomyConfig defaults on first read."""
+    stmt = select(AutonomySettings).where(AutonomySettings.id == SETTINGS_ID)
+    if for_update:
+        stmt = stmt.with_for_update()
+    row = db.exec(stmt).first()
+    if row:
+        return row
+    defaults = AutonomyConfig().model_dump(mode="json")
+    row = AutonomySettings(id=SETTINGS_ID, config=defaults, enabled=defaults["enabled"], version=defaults["version"])
+    db.add(row)
+    try:
+        db.commit()
+    except IntegrityError:
+        # Another request created it first.
+        db.rollback()
+        return db.exec(stmt).one()
+    db.refresh(row)
+    return row
+
+
+def config_from_row(row: AutonomySettings) -> AutonomyConfig:
+    data = {**(row.config or {}), "enabled": bool(row.enabled), "version": row.version}
+    return AutonomyConfig.model_validate(data)
+
+
+def get_config(db: Session) -> AutonomyConfig:
+    """The config decide() uses; `enabled` already reflects the env kill switch."""
+    cfg = config_from_row(settings_row(db))
+    if not settings.AUTO_REIMBURSE_ENABLED:
+        cfg = cfg.model_copy(update={"enabled": False})
+    return cfg
+
+
+def is_enabled(db: Session) -> bool:
+    return bool(settings.AUTO_REIMBURSE_ENABLED and settings_row(db).enabled)
+
+
+def active_breaker_until(row: AutonomySettings, now: datetime) -> datetime | None:
+    if row.breaker_until and _utc(row.breaker_until) > _utc(now):
+        return row.breaker_until
+    return None
+
+
+def breaker_active(db: Session, now: datetime) -> bool:
+    return active_breaker_until(settings_row(db), now) is not None
+
+
+def update_config(db: Session, new: AutonomyConfig, actor_id: UUID, now: datetime) -> AutonomySettings:
+    row = settings_row(db, for_update=True)
+    old_cfg = row.config or {}
+    new_cfg = new.model_dump(mode="json", exclude=SERVER_OWNED_FIELDS)
+    merged = {**old_cfg, **new_cfg}
+    changed = sorted(k for k in merged if old_cfg.get(k) != merged.get(k))
+    row.config = merged
+    row.version = (row.version or 1) + 1
+    row.updated_by = actor_id
+    row.updated_at = now
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    record_action(db, AgentActionType.CONFIG_CHANGED, str(actor_id), None, {
+        "version": row.version,
+        "changed": changed,
+        "old": {k: old_cfg.get(k) for k in changed},
+        "new": {k: merged.get(k) for k in changed},
+    })
+    return row
+
+
+def set_enabled(db: Session, enabled: bool, reason: str, actor_id: UUID, now: datetime) -> AutonomySettings:
+    row = settings_row(db, for_update=True)
+    previous = bool(row.enabled)
+    row.enabled = enabled
+    row.updated_by = actor_id
+    row.updated_at = now
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    record_action(db, AgentActionType.KILL_SWITCH, str(actor_id), None, {
+        "enabled": enabled,
+        "previous": previous,
+        "reason": reason,
+        "env_enabled": settings.AUTO_REIMBURSE_ENABLED,
+    })
+    return row
+
+
+def trip_breaker(db: Session, reason: str, now: datetime) -> datetime:
+    """Pause AUTO_PAY for `breaker_pause_minutes`, log it and notify every HR user."""
+    from engine.services.payout_service import notify
+
+    row = settings_row(db, for_update=True)
+    cfg = config_from_row(row)
+    until = _utc(now) + timedelta(minutes=cfg.breaker_pause_minutes)
+    row.breaker_until = until
+    row.updated_at = now
+    db.add(row)
+    db.commit()
+    record_action(db, AgentActionType.BREAKER_TRIPPED, "agent", None, {
+        "reason": reason,
+        "until": until.isoformat(),
+    })
+    hr_ids = db.exec(select(User.user_id).where(User.role == UserRole.HR.value, User.is_active == True)).all()  # noqa: E712
+    for hr_id in hr_ids:
+        notify(
+            db, hr_id, "warning", "Auto-pay paused by the circuit breaker",
+            f"{reason} Claims that would auto-pay go to quick review until {until:%H:%M} UTC.",
+            link="/hr/autonomy",
+        )
+    logger.warning("[BREAKER] Tripped until %s: %s", until.isoformat(), reason)
+    return until
+
+
+def _confirmed_issue_dates(db: Session, user_id: UUID) -> list[datetime]:
+    recoveries = db.exec(
+        select(Recovery.created_at).where(
+            Recovery.user_id == user_id, Recovery.status != RecoveryStatus.WAIVED.value
+        )
+    ).all()
+    rejected = db.exec(
+        select(Reimbursement).where(
+            Reimbursement.user_id == user_id,
+            Reimbursement.status == ReimbursementStatus.REJECTED.value,
+            Reimbursement.reviewed_by.is_not(None),
+        )
+    ).all()
+    dates = [d for d in recoveries if d]
+    dates += [r.reviewed_at or r.updated_at for r in rejected if _has_high_signal(r.autonomy)]
+    return [d for d in dates if d]
+
+
+def employee_history(db: Session, user_id: UUID, now: datetime) -> EmployeeHistory:
+    claims = db.exec(select(Reimbursement).where(Reimbursement.user_id == user_id)).all()
+    return history_from_rows([_claim_row(r) for r in claims], _confirmed_issue_dates(db, user_id), now)
+
+
+def payee_status(db: Session, user_id: UUID) -> PayeeStatus:
+    user = db.get(User, user_id)
+    if not user:
+        return PayeeStatus(verified=False, linked_at=None, changed_at=None)
+    return payee_from_user(user)
+
+
+def ledger_snapshot(db: Session, now: datetime) -> AgentLedger:
+    claims = db.exec(
+        select(Reimbursement).where(
+            Reimbursement.tier == "AUTO_PAY",
+            Reimbursement.status.in_(AUTO_PAID_STATUSES),
+            Reimbursement.updated_at >= _day_start(now),
+        )
+    ).all()
+    return ledger_from_rows([_claim_row(r) for r in claims], now, settings_row(db).breaker_until)
+
+
+def recent_decisions(db: Session, n: int) -> list:
+    """Newest first. AutonomyDecision models once engine.risk exists, stored dicts until then."""
+    rows = db.exec(
+        select(Reimbursement.autonomy)
+        .where(Reimbursement.tier.is_not(None))
+        .order_by(Reimbursement.created_at.desc())
+        .limit(n)
+    ).all()
+    stored = [a for a in rows if a]
+    if AutonomyDecision is None:
+        return stored
+    return [AutonomyDecision.model_validate(a) for a in stored]
+
+
+def decisions_today_by_tier(db: Session, now: datetime) -> dict[str, int]:
+    tiers = db.exec(
+        select(Reimbursement.tier).where(
+            Reimbursement.tier.is_not(None), Reimbursement.created_at >= _day_start(now)
+        )
+    ).all()
+    counts = {t: 0 for t in AUTONOMY_TIERS}
+    for t in tiers:
+        counts[t] = counts.get(t, 0) + 1
+    return counts

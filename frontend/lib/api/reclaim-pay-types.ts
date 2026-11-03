@@ -167,6 +167,31 @@ export interface LedgerFilters {
   to?: string;
 }
 
+// ─── Triage and batch approval ───────────────────────────────────────────────
+
+/** One HR approval recorded on a claim. DUAL_REVIEW claims need two. */
+export interface Approval {
+  hr_id: string;
+  at: string;
+}
+
+/** Fields GET /reimbursements/ adds to each item once the autonomy engine runs. Older rows leave them empty. */
+export interface ReimbursementAutonomyFields {
+  tier?: AutonomyTier | null;
+  risk_score?: number | null;
+  autonomy?: Partial<AutonomyDecision> | null;
+  audit_selected?: boolean | null;
+  approvals?: Approval[] | null;
+}
+
+export type BatchSkipReason = "NOT_HR_QUICK" | "NOT_IN_REVIEW" | "SELF_APPROVAL";
+
+/** POST /reimbursements/batch-approve */
+export interface BatchApproveResult {
+  approved: string[];
+  skipped: { reim_id: string; reason: BatchSkipReason }[];
+}
+
 /** Formats an amount the way the backend writes it in notifications, e.g. "MYR 48.00". */
 export function formatMoney(currency: string, amount: number): string {
   return `${currency} ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

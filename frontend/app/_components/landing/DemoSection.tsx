@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { motion, type Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Check, Copy, KeyRound, ShieldCheck } from "lucide-react";
+import { revealGroup, revealItem, revealViewport } from "./motion";
 
 interface DemoAccount {
   role: "HR" | "Employee";
@@ -21,7 +22,7 @@ const ACCOUNTS: DemoAccount[] = [
     slug: "hr",
     email: "hr@example.com",
     password: "password",
-    description: "Manage policy, monitor autonomous approvals, focus on edge cases.",
+    description: "Review risky claims with the evidence, and track every payout.",
     iconBg: "bg-primary/10",
     iconText: "text-primary",
   },
@@ -30,7 +31,7 @@ const ACCOUNTS: DemoAccount[] = [
     slug: "employee",
     email: "employee@example.com",
     password: "password",
-    description: "Submit a multi-receipt claim, verify the AI pre-fill, watch the pipeline run.",
+    description: "Submit a multi-receipt claim, check what the AI read, and watch it get decided.",
     iconBg: "bg-tertiary/10",
     iconText: "text-tertiary",
   },
@@ -45,7 +46,7 @@ function CopyField({ value }: { value: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // older browsers — silently no-op
+      // Clipboard API unavailable (older browsers): do nothing.
     }
   };
 
@@ -71,24 +72,6 @@ function CopyField({ value }: { value: string }) {
   );
 }
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.18, delayChildren: 0.1 },
-  },
-} as const;
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 40, scale: 0.96 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.65, ease: "easeOut" },
-  },
-} as const;
-
 export default function DemoSection() {
   return (
     <section
@@ -103,10 +86,10 @@ export default function DemoSection() {
       <div className="relative mx-auto max-w-7xl">
         <motion.div
           className="max-w-2xl"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          variants={revealItem}
+          initial="hidden"
+          whileInView="visible"
+          viewport={revealViewport}
         >
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
             <KeyRound className="w-3 h-3" />
@@ -116,22 +99,22 @@ export default function DemoSection() {
             One click. You&rsquo;re inside.
           </h2>
           <p className="mt-4 text-on-surface-variant text-base sm:text-lg leading-relaxed">
-            Pick a role and we&rsquo;ll sign you straight in with seeded data — no setup, no typing.
-            Credentials are listed below if you want to copy them instead.
+            Pick a role and we&rsquo;ll sign you in with sample data. No setup and no typing.
+            The credentials are below if you&rsquo;d rather copy them.
           </p>
         </motion.div>
 
         <motion.div
           className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6"
-          variants={containerVariants}
+          variants={revealGroup}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={revealViewport}
         >
           {ACCOUNTS.map((acc) => (
             <motion.div
               key={acc.role}
-              variants={cardVariants}
+              variants={revealItem}
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
               className="glass-card relative overflow-hidden rounded-3xl border border-white/50 p-7 lg:p-8 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300"
             >
@@ -185,19 +168,13 @@ export default function DemoSection() {
           ))}
         </motion.div>
 
-        <motion.p
-          className="mt-8 text-center text-xs text-on-surface-variant max-w-xl mx-auto"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
+        <p className="mt-8 text-center text-xs text-on-surface-variant max-w-xl mx-auto">
           These accounts are seeded by{" "}
           <code className="px-1.5 py-0.5 rounded bg-surface-container-high text-[11px]">
             seed_demo_employees.py
           </code>{" "}
           for hackathon evaluation only and are reset on every container rebuild.
-        </motion.p>
+        </p>
       </div>
     </section>
   );

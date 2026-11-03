@@ -117,7 +117,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ user, isLoading, login, logout }}>
-      {isLoading ? <LoadingOverlay show={true} /> : children}
+      {/* The public landing renders straight away so link previews and crawlers see its content. */}
+      {isLoading && pathname !== "/" ? <LoadingOverlay show={true} /> : children}
     </AuthContext.Provider>
   );
 };

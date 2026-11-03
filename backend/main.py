@@ -27,6 +27,7 @@ from api.reimbursements import router as reimbursements_router
 from api.drafts import router as drafts_router
 from api.departments import router as departments_router
 from api.push import router as push_router
+from api.autonomy import router as autonomy_router
 from api import deps
 from core.models import User
 
@@ -83,6 +84,7 @@ app.include_router(employee_router, prefix=f"{settings.API_V1_STR}/employee", ta
 app.include_router(departments_router, prefix=f"{settings.API_V1_STR}/departments", tags=["departments"])
 app.include_router(drafts_router, prefix=f"{settings.API_V1_STR}/drafts", tags=["drafts"])
 app.include_router(push_router, prefix=f"{settings.API_V1_STR}/push", tags=["push"])
+app.include_router(autonomy_router, prefix=f"{settings.API_V1_STR}/autonomy", tags=["autonomy"])
 
 @app.get("/")
 async def root():

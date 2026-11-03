@@ -4,6 +4,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import type { AutonomyTier, PayoutLedgerRow, PayoutStatus } from "@/lib/api/reclaim-pay-types";
+import { TIER_LABEL } from "./rows";
 
 export type StatusTone = "success" | "progress" | "danger" | "neutral";
 
@@ -23,16 +24,14 @@ export const TONE_CLASSES: Record<StatusTone, string> = {
   neutral: "bg-surface-container text-on-surface-variant border-outline-variant/30",
 };
 
-const TIER_LABELS: Record<AutonomyTier, string> = {
-  AUTO_PAY: "Auto-pay",
-  HR_QUICK: "HR quick check",
-  HR_REVIEW: "HR review",
-  DUAL_REVIEW: "Two-person review",
-};
-
 /** The backend leaves `tier` empty until the autonomy engine records one. */
 export function tierLabel(tier: AutonomyTier | null): string {
-  return tier ? TIER_LABELS[tier] : "Not recorded";
+  return tier ? TIER_LABEL[tier] : "Not recorded";
+}
+
+/** The Route column only appears once at least one payout carries a tier. */
+export function hasAnyTier(rows: PayoutLedgerRow[]): boolean {
+  return rows.some((r) => r.tier != null);
 }
 
 export const IN_FLIGHT_STATUSES: readonly PayoutStatus[] = ["ACCEPTED", "REQUESTED"];
