@@ -19,6 +19,8 @@ function mapToHistoryClaim(r: ReimbursementRaw): HistoryClaim {
     PENDING: "Pending",
     REVIEW: "Pending",
     APPEALED: "Pending",
+    DISBURSING: "Approved",
+    DISBURSEMENT_FAILED: "Approved",
     Paid: "Paid",
     PAID: "Paid",
   };
