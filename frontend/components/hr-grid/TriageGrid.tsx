@@ -149,7 +149,7 @@ export default function TriageGrid({ rows, selectable, selfId, selected, onSelec
       {
         field: "amount",
         headerName: "Amount",
-        width: 104,
+        width: 128,
         type: "rightAligned",
         cellClass: "tabular-nums font-semibold",
         valueFormatter: (p) => (p.data ? formatMoney(p.data.currency, p.data.amount) : ""),

@@ -128,7 +128,7 @@ function ClaimFormModal({
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
                   <span className="text-white font-bold text-xs">R</span>
                 </div>
-                <span className="font-bold text-xl text-gray-900 tracking-tight">Reclaim</span>
+                <span className="font-bold text-xl text-gray-900 tracking-tight">Reclaim Pay</span>
               </div>
               <p className="text-gray-500 text-xs">Automated Reimbursement Management System</p>
             </div>

@@ -114,7 +114,7 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
           <div className="flex items-center gap-2.5">
             <Image src="/images/logo.svg" alt="Reclaim Logo" width={28} height={28} className="w-7 h-7 object-contain" />
             <h1 className="font-headline font-black text-xl text-primary tracking-tight">
-              Reclaim
+              Reclaim Pay
             </h1>
           </div>
           <button

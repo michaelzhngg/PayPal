@@ -182,7 +182,7 @@ export default function ErrorPage() {
         {/* Brand */}
         <div className="flex items-center gap-2 mb-10 opacity-60">
           <Image src="/images/logo.svg" alt="Reclaim Logo" width={24} height={24} className="w-6 h-6 object-contain" />
-          <span className="font-headline font-black text-lg text-primary tracking-tight">Reclaim</span>
+          <span className="font-headline font-black text-lg text-primary tracking-tight">Reclaim Pay</span>
         </div>
 
         {/* Astronaut */}

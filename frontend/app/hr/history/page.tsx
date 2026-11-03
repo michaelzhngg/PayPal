@@ -153,7 +153,7 @@ export default function HRHistoryPage() {
               Claim History
             </h2>
             <p className="text-on-surface-variant text-lg font-body">
-              All resolved claims — auto-processed and HR-reviewed, combined.
+              Every resolved claim, paid automatically or decided by HR.
             </p>
           </div>
         </div>
