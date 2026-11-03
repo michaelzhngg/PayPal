@@ -20,6 +20,7 @@ from api.schemas import (
     ReimbursementResponse,
     StatusUpdateRequest,
     AnalyzeReimbursementRequest,
+    BatchApproveRequest,
     LineItemResponse,
 )
 from core.models import (
@@ -27,10 +28,12 @@ from core.models import (
     LineItem, ReimbursementSubCategory,
     Department, Payout, Notification, SettlementReceipt, PolicyReimbursableCategory,
 )
-from core.enums import UserRole, ReimbursementStatus, JudgmentResult, PolicyStatus
+from core.enums import AgentActionType, UserRole, ReimbursementStatus, JudgmentResult, PolicyStatus
 from core.database import engine as db_engine
 from engine.agents.compliance_agent import run_compliance_workflow
 from engine.progress import ProgressTracker
+from engine.services.action_log import record_action
+from engine.services.approvals import register_approval, required_approvals, split_batch
 from engine.services.payout_service import initiate_payout_sync
 from core.push_service import fire_and_forget_push
 
@@ -54,14 +57,52 @@ def _enum_val(field) -> str:
     return field.value if field and hasattr(field, "value") else str(field) if field is not None else None
 
 
+# Decision fields an employee may see. Signals, hard stops, scores and the explanation are HR-only.
+_EMPLOYEE_AUTONOMY_KEYS = ("tier", "trust_tier", "auto_limit", "audit_selected", "config_version")
+
+
+def _employee_autonomy(autonomy: Optional[dict]) -> dict:
+    return {k: autonomy[k] for k in _EMPLOYEE_AUTONOMY_KEYS if autonomy and k in autonomy}
+
+
+def _employee_reasoning(reasoning: Optional[dict]) -> Optional[dict]:
+    if reasoning and reasoning.get("hr_note"):
+        return {"hr_note": reasoning["hr_note"]}
+    return None
+
+
+def _line_item_dict(li: LineItem, viewer_is_hr: bool) -> dict:
+    return {
+        "line_item_id": str(li.line_item_id),
+        "reim_id": str(li.reim_id),
+        "document_id": str(li.document_id) if li.document_id else None,
+        "description": li.description,
+        "category": li.category,
+        "quantity": li.quantity,
+        "unit_price": float(li.unit_price) if li.unit_price else None,
+        "claimed_amount": float(li.claimed_amount) if li.claimed_amount else None,
+        "approved_amount": float(li.approved_amount) if li.approved_amount else None,
+        "currency": li.currency,
+        "expense_date": li.expense_date.isoformat() if li.expense_date else None,
+        "judgment": _enum_val(li.judgment),
+        "rejection_reason": li.rejection_reason if viewer_is_hr else None,
+        "policy_section_ref": str(li.policy_section_ref) if li.policy_section_ref else None,
+    }
+
+
 def _build_reimbursement_response(
     r: Reimbursement,
     db: Session,
     include_line_items: bool = True,
     employee_name: Optional[str] = None,
     department_name: Optional[str] = None,
+    viewer_is_hr: bool = False,
 ) -> dict:
-    """Build a response dict for a Reimbursement row, including joined data."""
+    """Build a response dict for a Reimbursement row, including joined data.
+
+    Non-HR viewers get no AI or HR judgment text: summary, reasoning, signals and the
+    autonomy explanation are left out. The HR note stays, since the employee is notified of it.
+    """
     if include_line_items:
         line_items = db.exec(
             select(LineItem).where(LineItem.reim_id == r.reim_id)
@@ -115,14 +156,19 @@ def _build_reimbursement_response(
         "confidence": r.confidence,
         "judgment": _enum_val(r.judgment),
         "status": _enum_val(r.status),
-        "summary": r.summary,
-        "ai_reasoning": r.ai_reasoning,
+        "summary": r.summary if viewer_is_hr else None,
+        "ai_reasoning": r.ai_reasoning if viewer_is_hr else _employee_reasoning(r.ai_reasoning),
         "reviewed_by": str(r.reviewed_by) if r.reviewed_by else None,
         "reviewed_at": r.reviewed_at.isoformat() if r.reviewed_at else None,
         "created_at": r.created_at.isoformat() if r.created_at else None,
         "updated_at": r.updated_at.isoformat() if r.updated_at else None,
         "sub_categories": [sc.sub_category for sc in sub_cats],
         "receipt_count": receipt_count,
+        "tier": r.tier,
+        "risk_score": r.risk_score,
+        "autonomy": (r.autonomy or {}) if viewer_is_hr else _employee_autonomy(r.autonomy),
+        "audit_selected": bool(r.audit_selected),
+        "approvals": list(r.approvals or []),
         # Display-only fields. These never carry AI or HR judgment text.
         "employee_code": user.user_code if user else None,
         "payee_linked": bool(user and user.paypal_payer_id),
@@ -151,25 +197,7 @@ def _build_reimbursement_response(
                 result["arrival_date"] = settlement.arrival_date.isoformat() if settlement.arrival_date else None
 
     if include_line_items:
-        result["line_items"] = [
-            {
-                "line_item_id": str(li.line_item_id),
-                "reim_id": str(li.reim_id),
-                "document_id": str(li.document_id) if li.document_id else None,
-                "description": li.description,
-                "category": li.category,
-                "quantity": li.quantity,
-                "unit_price": float(li.unit_price) if li.unit_price else None,
-                "claimed_amount": float(li.claimed_amount) if li.claimed_amount else None,
-                "approved_amount": float(li.approved_amount) if li.approved_amount else None,
-                "currency": li.currency,
-                "expense_date": li.expense_date.isoformat() if li.expense_date else None,
-                "judgment": _enum_val(li.judgment),
-                "rejection_reason": li.rejection_reason,
-                "policy_section_ref": str(li.policy_section_ref) if li.policy_section_ref else None,
-            }
-            for li in line_items
-        ]
+        result["line_items"] = [_line_item_dict(li, viewer_is_hr) for li in line_items]
 
     # Include payout info if one exists
     payout = db.exec(
@@ -201,16 +229,23 @@ def list_reimbursements(
     limit: int = 50,
     offset: int = 0,
     status: Optional[str] = None,
+    tier: Optional[str] = None,
+    audit_selected: Optional[bool] = None,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
 ) -> List[dict]:
-    if current_user.role == UserRole.HR:
+    viewer_is_hr = current_user.role == UserRole.HR
+    if viewer_is_hr:
         stmt = select(Reimbursement)
     else:
         stmt = select(Reimbursement).where(Reimbursement.user_id == current_user.user_id)
 
     if status:
         stmt = stmt.where(Reimbursement.status == status)
+    if tier:
+        stmt = stmt.where(Reimbursement.tier == tier)
+    if audit_selected is not None:
+        stmt = stmt.where(Reimbursement.audit_selected == audit_selected)
 
     stmt = stmt.order_by(Reimbursement.created_at.desc()).offset(offset).limit(limit)
     reimbursements = db.exec(stmt).all()
@@ -240,6 +275,7 @@ def list_reimbursements(
             include_line_items=False,
             employee_name=name_map.get(r.user_id, (None, None))[0],
             department_name=name_map.get(r.user_id, (None, None))[1],
+            viewer_is_hr=viewer_is_hr,
         )
         for r in reimbursements
     ]
@@ -263,7 +299,171 @@ def get_reimbursement(
     if current_user.role != UserRole.HR and r.user_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
-    return _build_reimbursement_response(r, db, include_line_items=True)
+    return _build_reimbursement_response(
+        r, db, include_line_items=True, viewer_is_hr=current_user.role == UserRole.HR
+    )
+
+
+def _lock_reimbursement(db: Session, reim_uuid: UUID) -> Optional[Reimbursement]:
+    # Row lock so two HR users approving at once can't both read the same approvals list.
+    return db.exec(
+        select(Reimbursement).where(Reimbursement.reim_id == reim_uuid).with_for_update()
+    ).first()
+
+
+def _apply_status(
+    db: Session,
+    r: Reimbursement,
+    new_status: ReimbursementStatus,
+    hr: User,
+    line_item_overrides: Optional[list] = None,
+    hr_note: Optional[str] = None,
+) -> list[tuple[str, str]]:
+    """Apply an HR decision without committing. Returns (title, message) pushes to send after commit."""
+    line_items = db.exec(
+        select(LineItem).where(LineItem.reim_id == r.reim_id)
+    ).all()
+
+    if line_item_overrides:
+        override_map = {li.line_item_id: li.approved_amount for li in line_item_overrides}
+        for li in line_items:
+            if li.line_item_id in override_map:
+                li.approved_amount = override_map[li.line_item_id]
+                li.judgment = JudgmentResult.APPROVED if override_map[li.line_item_id] > 0 else JudgmentResult.REJECTED
+        db.add_all(line_items)
+        db.flush()
+
+    # When HR approves the whole claim, auto-override any rejected line items
+    if new_status == ReimbursementStatus.APPROVED:
+        for li in line_items:
+            if li.judgment == JudgmentResult.REJECTED:
+                li.judgment = JudgmentResult.APPROVED
+                li.approved_amount = li.claimed_amount
+        db.add_all(line_items)
+        db.flush()
+
+    # Constraint 2: total_approved_amount must equal SUM(line_items.approved_amount)
+    approved_sum = sum(
+        float(li.approved_amount or 0) for li in line_items
+    )
+    if new_status in (ReimbursementStatus.APPROVED, ReimbursementStatus.REJECTED):
+        r.total_approved_amount = approved_sum
+        r.total_rejected_amount = float(r.total_claimed_amount or 0) - approved_sum
+
+    now = datetime.now(timezone.utc)
+    r.status = new_status
+    r.reviewed_by = hr.user_id
+    r.reviewed_at = now
+    r.judgment = _STATUS_TO_JUDGMENT.get(new_status, JudgmentResult.NEEDS_INFO)
+    if hr_note:
+        reasoning = dict(r.ai_reasoning or {})
+        reasoning["hr_note"] = hr_note
+        r.ai_reasoning = reasoning
+    r.updated_at = now
+    db.add(r)
+
+    reim_short = str(r.reim_id)[:8]
+    if new_status == ReimbursementStatus.APPROVED:
+        title = f"Claim RC-{reim_short} approved"
+        message = f"Your claim for MYR {float(r.total_approved_amount or 0):,.2f} has been approved and is ready for payout."
+    elif new_status == ReimbursementStatus.REJECTED:
+        title = f"Claim RC-{reim_short} rejected"
+        message = f"Your claim was rejected. Reason: {(hr_note or 'No reason provided')[:200]}"
+    else:
+        return []
+    db.add(Notification(
+        user_id=r.user_id,
+        type="success" if new_status == ReimbursementStatus.APPROVED else "error",
+        title=title,
+        message=message,
+        link=f"/employee/history?id={r.reim_id}",
+        is_read=False,
+    ))
+    return [(title, message)]
+
+
+def _register_hr_approval(r: Reimbursement, hr: User) -> bool:
+    """Add hr's approval to r.approvals. Returns True once the tier's approval count is met.
+
+    Raises ValueError("SELF_APPROVAL") when hr filed the claim.
+    """
+    approvals, done = register_approval(
+        list(r.approvals or []), str(hr.user_id), str(r.user_id),
+        datetime.now(timezone.utc), required_approvals(r.tier),
+    )
+    r.approvals = approvals
+    return done
+
+
+def _log_approval(db: Session, r: Reimbursement, hr: User, complete: bool, batch: bool) -> None:
+    """Writes the HR_APPROVAL row. record_action commits everything pending in db."""
+    record_action(db, AgentActionType.HR_APPROVAL, str(hr.user_id), r.reim_id, {
+        "tier": r.tier,
+        "approvals": len(r.approvals or []),
+        "required": required_approvals(r.tier),
+        "complete": complete,
+        "batch": batch,
+        "amount": r.total_approved_amount,
+    })
+
+
+def _after_commit(db: Session, r: Reimbursement, pushes: list[tuple[str, str]]) -> None:
+    if r.status == ReimbursementStatus.APPROVED:
+        try:
+            initiate_payout_sync(r.reim_id, db, loop=None)
+            logger.info("[HR_APPROVAL] Auto-payout initiated for reim=%s", r.reim_id)
+        except Exception:
+            logger.exception("[HR_APPROVAL] Auto-payout failed for reim=%s, claim stays APPROVED", r.reim_id)
+    for title, message in pushes:
+        fire_and_forget_push(r.user_id, title, message, link=f"/employee/history?id={r.reim_id}")
+
+
+@router.post("/batch-approve")
+def batch_approve(
+    body: BatchApproveRequest,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_hr_user),
+) -> dict:
+    """Approve HR_QUICK claims in REVIEW. Anything else comes back in `skipped` with a reason."""
+    requested = list(dict.fromkeys(body.reim_ids))
+    parsed: dict[str, UUID] = {}
+    for rid in requested:
+        try:
+            parsed[rid] = UUID(rid)
+        except ValueError:
+            pass
+
+    found = db.exec(
+        select(Reimbursement).where(Reimbursement.reim_id.in_(list(parsed.values())))
+    ).all() if parsed else []
+    by_uuid = {r.reim_id: r for r in found}
+
+    def as_row(rid: str, r: Optional[Reimbursement]) -> dict:
+        # Unknown IDs have no tier, so they are skipped as NOT_HR_QUICK.
+        if r is None:
+            return {"reim_id": rid, "tier": None, "status": None, "user_id": None}
+        return {"reim_id": rid, "tier": r.tier, "status": _enum_val(r.status), "user_id": str(r.user_id)}
+
+    rows = [as_row(rid, by_uuid.get(parsed.get(rid))) for rid in requested]
+    eligible, skipped = split_batch(rows, str(current_user.user_id))
+
+    approved: list[str] = []
+    for rid in eligible:
+        r = _lock_reimbursement(db, parsed[rid])
+        # Re-check under the lock: another reviewer may have acted since the first read.
+        ok, late_skip = split_batch([as_row(rid, r)], str(current_user.user_id))
+        if not ok:
+            db.rollback()
+            skipped.extend(late_skip)
+            continue
+        complete = _register_hr_approval(r, current_user)
+        pushes = _apply_status(db, r, ReimbursementStatus.APPROVED, current_user) if complete else []
+        _log_approval(db, r, current_user, complete=complete, batch=True)
+        db.refresh(r)
+        _after_commit(db, r, pushes)
+        approved.append(rid)
+
+    return {"approved": approved, "skipped": skipped}
 
 
 @router.patch("/{reim_id}/status")
@@ -278,107 +478,43 @@ def update_reimbursement_status(
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid reim_id")
 
-    r = db.get(Reimbursement, reim_uuid)
+    r = _lock_reimbursement(db, reim_uuid)
     if not r:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reimbursement not found")
 
-    # Fetch line items
-    line_items = db.exec(
-        select(LineItem).where(LineItem.reim_id == r.reim_id)
-    ).all()
-
-    # Apply HR line-item amount overrides (if provided)
-    if body.line_items:
-        override_map = {li.line_item_id: li.approved_amount for li in body.line_items}
-        for li in line_items:
-            if li.line_item_id in override_map:
-                li.approved_amount = override_map[li.line_item_id]
-                li.judgment = JudgmentResult.APPROVED if override_map[li.line_item_id] > 0 else JudgmentResult.REJECTED
-        db.add_all(line_items)
-        db.flush()
-
-    # When HR approves the whole claim, auto-override any rejected line items
-    if body.status == ReimbursementStatus.APPROVED:
-        for li in line_items:
-            if li.judgment == JudgmentResult.REJECTED:
-                li.judgment = JudgmentResult.APPROVED
-                li.approved_amount = li.claimed_amount
-        db.add_all(line_items)
-        db.flush()
-
-    # Constraint 2: total_approved_amount must equal SUM(line_items.approved_amount)
-    approved_sum = sum(
-        float(li.approved_amount or 0) for li in line_items
-    )
-    if body.status in (ReimbursementStatus.APPROVED, ReimbursementStatus.REJECTED):
-        r.total_approved_amount = approved_sum
-        r.total_rejected_amount = float(r.total_claimed_amount or 0) - approved_sum
-
-    r.status = body.status
-    r.reviewed_by = current_user.user_id
-    r.reviewed_at = datetime.now(timezone.utc)
-    r.judgment = _STATUS_TO_JUDGMENT.get(body.status, JudgmentResult.NEEDS_INFO)
-    # Store HR note if provided
-    if body.hr_note:
-        reasoning = dict(r.ai_reasoning or {})
-        reasoning["hr_note"] = body.hr_note
-        r.ai_reasoning = reasoning
-    r.updated_at = datetime.now(timezone.utc)
-    db.add(r)
-
-    # Create notification for the employee
-    reim_short = str(r.reim_id)[:8]
-    if body.status == ReimbursementStatus.APPROVED:
-        notif = Notification(
-            user_id=r.user_id,
-            type="success",
-            title=f"Claim RC-{reim_short} approved",
-            message=f"Your claim for MYR {float(r.total_approved_amount or 0):,.2f} has been approved and is ready for payout.",
-            link=f"/employee/history?id={r.reim_id}",
-            is_read=False,
-        )
-        db.add(notif)
-
-        # Trigger automatic payout for HR-approved claims
+    approving = body.status == ReimbursementStatus.APPROVED
+    complete = True
+    if approving:
+        if r.status == ReimbursementStatus.REVIEW and any(
+            a.get("hr_id") == str(current_user.user_id) for a in (r.approvals or [])
+        ):
+            db.rollback()
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="ALREADY_APPROVED")
         try:
-            initiate_payout_sync(r.reim_id, db, loop=None)
-            logger.info("[HR_APPROVAL] Auto-payout initiated for reim=%s", r.reim_id)
-        except Exception:
-            logger.exception("[HR_APPROVAL] Auto-payout failed for reim=%s — claim stays APPROVED", r.reim_id)
-    elif body.status == ReimbursementStatus.REJECTED:
-        hr_note_text = body.hr_note or "No reason provided"
-        notif = Notification(
-            user_id=r.user_id,
-            type="error",
-            title=f"Claim RC-{reim_short} rejected",
-            message=f"Your claim was rejected. Reason: {hr_note_text[:200]}",
-            link=f"/employee/history?id={r.reim_id}",
-            is_read=False,
-        )
-        db.add(notif)
+            complete = _register_hr_approval(r, current_user)
+        except ValueError:
+            db.rollback()
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="SELF_APPROVAL")
 
-    db.commit()
+    if complete:
+        pushes = _apply_status(db, r, body.status, current_user, body.line_items, body.hr_note)
+    else:
+        # First of two DUAL_REVIEW approvals: the claim stays in REVIEW for a second HR user.
+        r.updated_at = datetime.now(timezone.utc)
+        db.add(r)
+        pushes = []
+
+    if approving:
+        _log_approval(db, r, current_user, complete=complete, batch=False)
+    else:
+        db.commit()
     db.refresh(r)
+    _after_commit(db, r, pushes)
 
-    # Send push notification
-    if body.status == ReimbursementStatus.APPROVED:
-        fire_and_forget_push(
-            r.user_id,
-            f"Claim RC-{reim_short} approved",
-            f"Your claim for MYR {float(r.total_approved_amount or 0):,.2f} has been approved and is ready for payout.",
-            link=f"/employee/history?id={r.reim_id}",
-        )
-    elif body.status == ReimbursementStatus.REJECTED:
-        hr_note_text = body.hr_note or "No reason provided"
-        fire_and_forget_push(
-            r.user_id,
-            f"Claim RC-{reim_short} rejected",
-            f"Your claim was rejected. Reason: {hr_note_text[:200]}",
-            link=f"/employee/history?id={r.reim_id}",
-        )
-
-    result = _build_reimbursement_response(r, db, include_line_items=True)
-    result["ready_for_payout"] = body.status == ReimbursementStatus.APPROVED
+    result = _build_reimbursement_response(r, db, include_line_items=True, viewer_is_hr=True)
+    result["ready_for_payout"] = approving and complete
+    if not complete:
+        result["awaiting_second_approval"] = True
     return result
 
 
@@ -404,25 +540,7 @@ def get_reimbursement_line_items(
         select(LineItem).where(LineItem.reim_id == r.reim_id)
     ).all()
 
-    return [
-        {
-            "line_item_id": str(li.line_item_id),
-            "reim_id": str(li.reim_id),
-            "document_id": str(li.document_id) if li.document_id else None,
-            "description": li.description,
-            "category": li.category,
-            "quantity": li.quantity,
-            "unit_price": float(li.unit_price) if li.unit_price else None,
-            "claimed_amount": float(li.claimed_amount) if li.claimed_amount else None,
-            "approved_amount": float(li.approved_amount) if li.approved_amount else None,
-            "currency": li.currency,
-            "expense_date": li.expense_date.isoformat() if li.expense_date else None,
-            "judgment": _enum_val(li.judgment),
-            "rejection_reason": li.rejection_reason,
-            "policy_section_ref": str(li.policy_section_ref) if li.policy_section_ref else None,
-        }
-        for li in line_items
-    ]
+    return [_line_item_dict(li, current_user.role == UserRole.HR) for li in line_items]
 
 
 @router.post("/analyze")
@@ -458,6 +576,8 @@ async def analyze_reimbursement(
             detail="Settlement does not belong to current user",
         )
 
+    viewer_is_hr = current_user.role == UserRole.HR
+
     # Cache check: return cached results if no human edits
     has_edits = bool(
         db.exec(
@@ -474,7 +594,10 @@ async def analyze_reimbursement(
 
     if not has_edits and cached_reims:
         logger.info("[API_ANALYZE] Returning %d cached reimbursements", len(cached_reims))
-        results = [_build_reimbursement_response(r, db, include_line_items=True) for r in cached_reims]
+        results = [
+            _build_reimbursement_response(r, db, include_line_items=True, viewer_is_hr=viewer_is_hr)
+            for r in cached_reims
+        ]
         return {"reimbursements": results}
 
     user_id_str = str(current_user.user_id)
@@ -566,7 +689,7 @@ async def analyze_reimbursement(
                     bg_db.add(unmatched_reim)
                     bg_db.commit()
                     bg_db.refresh(unmatched_reim)
-                    all_results.append(_build_reimbursement_response(unmatched_reim, bg_db, include_line_items=False))
+                    all_results.append(_build_reimbursement_response(unmatched_reim, bg_db, include_line_items=False, viewer_is_hr=viewer_is_hr))
 
                 # 5. Run compliance agent once per matched policy group
                 for i, (policy_id_str, doc_ids) in enumerate(matched_groups):
@@ -605,7 +728,7 @@ async def analyze_reimbursement(
                         reim = bg_db.get(Reimbursement, UUID(reim_id))
                         if not reim:
                             raise ValueError(f"Reimbursement {reim_id} not found in DB after creation")
-                        all_results.append(_build_reimbursement_response(reim, bg_db, include_line_items=True))
+                        all_results.append(_build_reimbursement_response(reim, bg_db, include_line_items=True, viewer_is_hr=viewer_is_hr))
                         logger.info("[API_ANALYZE_BG] Group %d complete: reim_id=%s judgment=%s status=%s", i + 1, reim_id, result.get("judgment"), reim.status)
 
                         # Auto-payout for high-confidence approvals (reviewed_by IS NULL = auto-processed)
@@ -657,7 +780,7 @@ async def analyze_reimbursement(
                             bg_db.add(fail_reim)
                             bg_db.commit()
                             bg_db.refresh(fail_reim)
-                            all_results.append(_build_reimbursement_response(fail_reim, bg_db, include_line_items=False))
+                            all_results.append(_build_reimbursement_response(fail_reim, bg_db, include_line_items=False, viewer_is_hr=viewer_is_hr))
                         except Exception as fallback_err:
                             logger.exception("[API_ANALYZE_BG] Fallback MANUAL_REVIEW failed: %s", fallback_err)
 
