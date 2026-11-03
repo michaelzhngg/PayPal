@@ -30,13 +30,6 @@ class Settings(BaseSettings):
     VISION_MODEL: str = "qwen/qwen3.5-flash-02-23"
     EMBEDDING_MODEL: str = "openai/text-embedding-3-small"
 
-    # Xendit
-    XENDIT_API_KEY: str = ""
-    XENDIT_WEBHOOK_TOKEN: str = ""
-    XENDIT_BASE_URL: str = "https://api.xendit.co"
-    XENDIT_WEBHOOK_URL: str = "https://reclaimai.dev/api/v1/payouts/webhook"
-    XENDIT_MOCK_MODE: bool = True
-
     # PayPal (sandbox by default; mock mode needs no keys)
     PAYPAL_MOCK_MODE: bool = True
     PAYPAL_BASE_URL: str = "https://api-m.sandbox.paypal.com"
