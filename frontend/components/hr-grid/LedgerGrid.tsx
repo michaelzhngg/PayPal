@@ -2,35 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
-import {
-  AllCommunityModule,
-  ModuleRegistry,
-  themeQuartz,
-  type ColDef,
-  type ICellRendererParams,
-} from "ag-grid-community";
+import type { ColDef, ICellRendererParams } from "ag-grid-community";
 import { Check, Copy } from "lucide-react";
 import { formatMoney, type PayoutLedgerRow, type PayoutStatus } from "@/lib/api/reclaim-pay-types";
-import { STATUS_META, TONE_CLASSES, formatUpdated, tierLabel } from "./ledger";
-
-ModuleRegistry.registerModules([AllCommunityModule]);
-
-// Colors from app/globals.css so the grid reads as part of the HR portal.
-const ledgerTheme = themeQuartz.withParams({
-  accentColor: "#4647d3",
-  foregroundColor: "#2c2f31",
-  backgroundColor: "#ffffff",
-  headerBackgroundColor: "#eef1f3",
-  headerTextColor: "#595c5e",
-  borderColor: "#d9dde0",
-  rowHoverColor: "#f5f7f9",
-  fontFamily: "inherit",
-  headerFontWeight: 600,
-  fontSize: 13,
-  rowHeight: 52,
-  headerHeight: 44,
-  wrapperBorderRadius: 12,
-});
+import { formatClaimRef } from "@/lib/format";
+import { STATUS_META, TONE_CLASSES, formatUpdated, hasAnyTier, tierLabel } from "./ledger";
+import { hrGridTheme } from "./theme";
 
 export function StatusPill({ status }: { status: PayoutStatus }) {
   const meta = STATUS_META[status];
@@ -90,7 +67,7 @@ function LedgerCard({ row }: { row: PayoutLedgerRow }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold text-sm text-on-surface truncate">{row.employee_name}</p>
-          <p className="font-mono text-xs text-on-surface-variant mt-0.5">{row.claim_ref}</p>
+          <p className="font-mono text-xs text-on-surface-variant mt-0.5">{formatClaimRef(row.claim_ref)}</p>
         </div>
         <p className="font-headline font-bold text-sm text-on-surface tabular-nums shrink-0">
           {formatMoney(row.currency, row.amount)}
@@ -98,7 +75,7 @@ function LedgerCard({ row }: { row: PayoutLedgerRow }) {
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 text-xs text-on-surface-variant">
         <StatusPill status={row.status} />
-        <span>{tierLabel(row.tier)}</span>
+        {row.tier && <span>{tierLabel(row.tier)}</span>}
         <span>Attempt {row.attempt}</span>
         <span className="ml-auto">{formatUpdated(row.updated_at)}</span>
       </div>
@@ -110,14 +87,25 @@ function LedgerCard({ row }: { row: PayoutLedgerRow }) {
 }
 
 export default function LedgerGrid({ rows }: { rows: PayoutLedgerRow[] }) {
+  // Tiers aren't stored on payouts yet. Until one is, a Route column would say "Not recorded" on every row.
+  const showRoute = hasAnyTier(rows);
+
+  // Minimum widths add up to 956 px with Route and 826 px without, so every column fits the
+  // ~960 px content area at a 1280 px window (sidebar 256 px, page padding 64 px).
   const columnDefs = useMemo<ColDef<PayoutLedgerRow>[]>(
     () => [
-      { field: "claim_ref", headerName: "Claim", width: 130, cellClass: "font-mono text-xs" },
-      { field: "employee_name", headerName: "Employee", flex: 1, minWidth: 150 },
+      {
+        field: "claim_ref",
+        headerName: "Claim",
+        width: 112,
+        cellClass: "font-mono text-xs",
+        valueFormatter: (p) => (p.value ? formatClaimRef(p.value) : ""),
+      },
+      { field: "employee_name", headerName: "Employee", flex: 1, minWidth: 130 },
       {
         field: "amount",
         headerName: "Amount",
-        width: 130,
+        width: 112,
         type: "rightAligned",
         cellClass: "tabular-nums font-semibold",
         valueFormatter: (p) => (p.data ? formatMoney(p.data.currency, p.data.amount) : ""),
@@ -125,22 +113,23 @@ export default function LedgerGrid({ rows }: { rows: PayoutLedgerRow[] }) {
       {
         field: "status",
         headerName: "Status",
-        width: 130,
+        width: 104,
         cellRenderer: (p: ICellRendererParams<PayoutLedgerRow>) =>
           p.data ? <StatusPill status={p.data.status} /> : null,
       },
       {
         field: "tier",
         headerName: "Route",
-        width: 160,
+        width: 130,
+        hide: !showRoute,
         valueFormatter: (p) => tierLabel(p.value ?? null),
       },
-      { field: "attempt", headerName: "Attempt", width: 100, type: "rightAligned" },
+      { field: "attempt", headerName: "Attempt", width: 88, type: "rightAligned" },
       {
         field: "provider_batch_id",
         headerName: "PayPal batch ID",
         flex: 1,
-        minWidth: 200,
+        minWidth: 160,
         sortable: false,
         cellRenderer: (p: ICellRendererParams<PayoutLedgerRow>) => (
           <CopyBatchId value={p.data?.provider_batch_id ?? null} />
@@ -149,12 +138,12 @@ export default function LedgerGrid({ rows }: { rows: PayoutLedgerRow[] }) {
       {
         field: "updated_at",
         headerName: "Updated",
-        width: 140,
+        width: 120,
         sort: "desc",
         valueFormatter: (p) => (p.value ? formatUpdated(p.value) : ""),
       },
     ],
-    [],
+    [showRoute],
   );
 
   const getRowId = useCallback((p: { data: PayoutLedgerRow }) => p.data.payout_id, []);
@@ -163,7 +152,7 @@ export default function LedgerGrid({ rows }: { rows: PayoutLedgerRow[] }) {
     <>
       <div className="hidden sm:block">
         <AgGridReact<PayoutLedgerRow>
-          theme={ledgerTheme}
+          theme={hrGridTheme}
           rowData={rows}
           columnDefs={columnDefs}
           defaultColDef={{ sortable: true, resizable: true, suppressMovable: true }}

@@ -1,38 +1,58 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { TrendingUp, ChevronRight, CheckCircle2, XCircle, Zap } from "lucide-react";
-import type { Claim, ReimbursementRaw } from "@/lib/api/types";
+import { Zap } from "lucide-react";
+import type { ReimbursementRaw } from "@/lib/api/types";
 import { getHRClaims } from "@/lib/actions/hr";
-import { ClaimRow } from "@/components/claims/ClaimRow";
-import { ViewAllModal } from "@/components/claims/ViewAllModal";
-
-type TabKey = "attention" | "passed" | "flagged";
+import { FIXTURES_ON } from "@/lib/api/fixtures";
+import { useAuth } from "@/context/AuthContext";
+import TriageQueue from "@/components/hr-grid/TriageQueue";
+import type { TriageRow } from "@/components/hr-grid/rows";
+import { FIXTURE_HR_USER_ID } from "@/src/mocks/triageFixtures";
 
 export default function HRDashboardPage() {
-  const router = useRouter();
-  const handleNavigate = useCallback((path: string) => router.push(path), [router]);
+  const { user } = useAuth();
+  // Fixture claims belong to fixture users, so fixture mode stands in a matching HR id.
+  const selfId = FIXTURES_ON ? FIXTURE_HR_USER_ID : (user?.user_id ?? null);
 
-  const [activeTab, setActiveTab] = useState<TabKey>("attention");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [attentionClaims, setAttentionClaims] = useState<Claim[]>([]);
-  const [passedClaims, setPassedClaims] = useState<Claim[]>([]);
-  const [flaggedClaims, setFlaggedClaims] = useState<Claim[]>([]);
+  const [rows, setRows] = useState<TriageRow[]>([]);
   const [allReims, setAllReims] = useState<ReimbursementRaw[]>([]);
   const [isLoadingClaims, setIsLoadingClaims] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = useCallback(
+    () =>
+      getHRClaims()
+        .then(({ rows: triage, allReims: reims, error }) => {
+          setRows(triage);
+          setAllReims(reims);
+          setLoadError(error ? "Couldn't load claims. Check your connection and try again." : null);
+        })
+        .catch(() => setLoadError("Couldn't load claims. Check your connection and try again."))
+        .finally(() => setIsLoadingClaims(false)),
+    [],
+  );
 
   useEffect(() => {
-    getHRClaims()
-      .then(({ attention, passed, flagged, allReims: reims }) => {
-        setAttentionClaims(attention);
-        setPassedClaims(passed);
-        setFlaggedClaims(flagged);
-        setAllReims(reims);
-      })
-      .catch(() => {})
-      .finally(() => setIsLoadingClaims(false));
-  }, []);
+    void load();
+  }, [load]);
+
+  const retry = () => {
+    setIsLoadingClaims(true);
+    void load();
+  };
+
+  const handleApproved = useCallback(
+    (approvedIds: string[]) => {
+      const done = new Set(approvedIds);
+      setRows((prev) => prev.filter((r) => !done.has(r.reimId)));
+      // Fixture data would bring the approved rows straight back, so only refetch against the backend.
+      if (!FIXTURES_ON) void load();
+    },
+    [load],
+  );
+
+  const pendingReviews = rows.filter((r) => r.status === "REVIEW").length;
 
   // Auto-solve rate: (auto-approved + auto-rejected) / total
   const { autoSolveRate, autoSolvedCount, totalClaims } = useMemo(() => {
@@ -50,40 +70,8 @@ export default function HRDashboardPage() {
     };
   }, [allReims]);
 
-  const tabs: { key: TabKey; label: string; count: number }[] = [
-    { key: "attention", label: "Required Attention", count: attentionClaims.length },
-    { key: "passed", label: "Passed AI Review", count: passedClaims.length },
-    { key: "flagged", label: "Flagged AI Review", count: flaggedClaims.length },
-  ];
-
-  const activeClaims =
-    activeTab === "attention"
-      ? attentionClaims
-      : activeTab === "passed"
-        ? passedClaims
-        : flaggedClaims;
-
-  const previewClaims = activeClaims.slice(0, activeTab === "attention" ? 5 : 3);
-
-  const actionLabel =
-    activeTab === "attention" ? "Review" : "View";
-
-  const modalTitle =
-    activeTab === "attention"
-      ? "All Pending Requests"
-      : activeTab === "passed"
-        ? "Passed AI Review (last 24 h)"
-        : "Flagged AI Review (last 24 h)";
-
-  const viewAllLabel =
-    activeTab === "attention"
-      ? "View All Pending Requests"
-      : activeTab === "passed"
-        ? "View All Passed Claims"
-        : "View All Flagged Claims";
-
   return (
-    <div className="relative min-h-full p-6 md:p-10 lg:p-12">
+    <div className="relative min-h-full px-4 py-6 sm:px-6 md:px-8 md:py-10">
       {/* Ambient glow */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full bg-primary opacity-[0.07] blur-[80px]" />
@@ -119,7 +107,7 @@ export default function HRDashboardPage() {
             </p>
             <div className="flex items-end gap-3">
               <span className="text-4xl font-extrabold font-headline text-on-surface">
-                {isLoadingClaims ? "—" : `${autoSolveRate.toFixed(1)}%`}
+                {isLoadingClaims ? "…" : `${autoSolveRate.toFixed(1)}%`}
               </span>
               {!isLoadingClaims && totalClaims > 0 && (
                 <span className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md mb-1">
@@ -143,7 +131,7 @@ export default function HRDashboardPage() {
             </p>
             <div className="flex items-end gap-3">
               <span className="text-4xl font-extrabold font-headline text-on-surface">
-                {attentionClaims.length}
+                {isLoadingClaims ? "…" : pendingReviews}
               </span>
               <span className="text-sm text-on-surface-variant font-medium mb-1">
                 total requests
@@ -155,183 +143,17 @@ export default function HRDashboardPage() {
         </div>
       </div>
 
-      {/* Triage Table */}
-      <div className="bg-surface-container-lowest/80 backdrop-blur-xl rounded-xl shadow-[0_12px_60px_-15px_rgba(44,47,49,0.08)] overflow-hidden relative z-10">
-        {/* Tab strip */}
-        <div className="flex border-b border-outline-variant/15 px-6 pt-4 gap-6 overflow-x-auto">
-          {tabs.map(({ key, label, count }) => {
-            const isActive = activeTab === key;
-            const badgeStyle =
-              key === "attention"
-                ? isActive
-                  ? "bg-error/10 text-error-dim"
-                  : "bg-surface-container text-on-surface-variant"
-                : key === "passed"
-                  ? isActive
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-surface-container text-on-surface-variant"
-                  : isActive
-                    ? "bg-amber-50 text-amber-700"
-                    : "bg-surface-container text-on-surface-variant";
-
-            return (
-              <button
-                key={key}
-                onClick={() => setActiveTab(key)}
-                className={`pb-3 text-sm font-headline font-bold transition-all duration-300 ease-out flex items-center gap-2 cursor-pointer hover:-translate-y-0.5 active:scale-95 border-b-2 whitespace-nowrap ${
-                  isActive
-                    ? "text-primary border-primary"
-                    : "text-on-surface-variant border-transparent hover:text-on-surface"
-                }`}
-              >
-                {label}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-label font-semibold transition-colors duration-300 ${badgeStyle}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Informational banner for auto-processed tabs */}
-        {activeTab === "passed" && (
-          <div className="mx-6 mt-4 flex items-center gap-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-2.5">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
-            These claims were automatically approved by Reclaim AI (confidence &gt; 70%) and payment has been initiated. No HR action required.
-          </div>
-        )}
-        {activeTab === "flagged" && (
-          <div className="mx-6 mt-4 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5">
-            <XCircle className="w-3.5 h-3.5 shrink-0" strokeWidth={2.5} />
-            These claims were automatically rejected by Reclaim AI. Employees have been notified. No HR action required.
-          </div>
-        )}
-
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low/50">
-                <th className="py-4 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider">
-                  Employee
-                </th>
-                <th className="py-4 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider hidden sm:table-cell">
-                  Date
-                </th>
-                <th className="py-4 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider">
-                  Amount
-                </th>
-                <th className="py-4 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider hidden md:table-cell">
-                  Category
-                </th>
-                <th className="py-4 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider hidden lg:table-cell">
-                  AI Status
-                </th>
-                <th className="py-4 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider text-right">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/10">
-              {isLoadingClaims ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="py-5 px-6"><div className="flex items-center gap-3"><div className="w-9 h-9 rounded-full bg-surface-container-high shrink-0" /><div className="space-y-1.5"><div className="h-3 w-28 rounded bg-surface-container-high" /><div className="h-2.5 w-20 rounded bg-surface-container-low" /></div></div></td>
-                    <td className="py-5 px-6 hidden sm:table-cell"><div className="h-3 w-20 rounded bg-surface-container-high" /></td>
-                    <td className="py-5 px-6"><div className="h-3 w-16 rounded bg-surface-container-high" /></td>
-                    <td className="py-5 px-6 hidden md:table-cell"><div className="h-3 w-24 rounded bg-surface-container-high" /></td>
-                    <td className="py-5 px-6 hidden lg:table-cell"><div className="h-6 w-28 rounded-full bg-surface-container-high" /></td>
-                    <td className="py-5 px-6 text-right"><div className="h-3 w-12 rounded bg-surface-container-high ml-auto" /></td>
-                  </tr>
-                ))
-              ) : previewClaims.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-sm text-on-surface-variant">
-                    {activeTab === "attention"
-                      ? "No claims require attention right now."
-                      : activeTab === "passed"
-                        ? "No auto-approved claims in the last 24 hours."
-                        : "No auto-rejected claims in the last 24 hours."}
-                  </td>
-                </tr>
-              ) : (
-                previewClaims.map((claim) => (
-                  <ClaimRow
-                    key={claim.id}
-                    claim={claim}
-                    actionLabel={actionLabel}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Card List */}
-        <div className="md:hidden flex flex-col gap-2 p-4">
-          {isLoadingClaims ? (
-            Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10 animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-surface-container-high shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3 w-28 rounded bg-surface-container-high" />
-                    <div className="h-2.5 w-20 rounded bg-surface-container-low" />
-                  </div>
-                  <div className="h-3 w-12 rounded bg-surface-container-high" />
-                </div>
-              </div>
-            ))
-          ) : previewClaims.length === 0 ? (
-            <p className="py-8 text-center text-sm text-on-surface-variant">
-              Nothing here right now.
-            </p>
-          ) : (
-            previewClaims.map((claim) => (
-              <button
-                key={claim.id}
-                onClick={() => {
-                  const path = actionLabel === "View" ? `/hr/view/${claim.id}` : `/hr/review/${claim.id}`;
-                  handleNavigate(path);
-                }}
-                className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10 text-left active:scale-[0.98] transition-all flex items-center gap-3"
-              >
-                <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary-container to-tertiary-container flex items-center justify-center font-bold text-xs text-on-primary-container border-2 border-surface-container-lowest shadow-sm shrink-0">
-                  {claim.employee.initials}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-on-surface truncate">{claim.employee.name}</p>
-                  <p className="text-xs text-on-surface-variant mt-0.5">{claim.date} · {claim.category}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className="font-semibold text-sm text-on-surface">{claim.amount}</span>
-                  <span className="text-primary font-semibold text-xs">{actionLabel}</span>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
-
-        {/* Footer CTA */}
-        <div className="p-5 text-center border-t border-outline-variant/15">
-          <button
-            onClick={() => setModalOpen(true)}
-            className="inline-flex items-center gap-2 text-sm font-semibold font-headline text-primary hover:text-primary-dim transition-all duration-200 active:scale-95 group/cta px-4 py-2 rounded-xl hover:bg-primary/5 cursor-pointer"
-          >
-            {viewAllLabel}
-            <ChevronRight className="w-4 h-4 group-hover/cta:translate-x-0.5 transition-transform duration-150" strokeWidth={2.5} />
-          </button>
-        </div>
+      {/* Triage queue */}
+      <div className="relative z-10">
+        <TriageQueue
+          rows={rows}
+          isLoading={isLoadingClaims}
+          error={loadError}
+          selfId={selfId}
+          onRetry={retry}
+          onApproved={handleApproved}
+        />
       </div>
-
-      {/* View All Modal */}
-      <ViewAllModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={modalTitle}
-        claims={activeClaims}
-        actionLabel={actionLabel}
-      />
     </div>
   );
 }

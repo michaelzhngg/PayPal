@@ -51,9 +51,6 @@ export default function SideNav() {
           <p className="font-body text-xs font-medium text-on-surface-variant mt-1.5 leading-tight">
             Employee Portal
           </p>
-          <p className="font-body text-[10px] text-primary/70 mt-1 font-medium italic">
-            From receipt to reimbursement — in minutes, not days
-          </p>
         </div>
 
         {/* ── Navigation Links ──────────────────────── */}
