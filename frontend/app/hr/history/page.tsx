@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getHRHistory, type HistoryClaim } from "@/lib/actions/hr";
+import { formatMoney } from "@/lib/format";
+import PayoutCell, { payoutDisplay } from "./_components/PayoutCell";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ClaimStatus = "Approved" | "Rejected" | "Paid";
@@ -60,6 +62,7 @@ function SkeletonRow() {
       <td className="py-4 px-6 w-32"><div className="h-4 bg-surface-container rounded-full animate-pulse w-full" /></td>
       <td className="py-4 px-6 w-32"><div className="h-4 bg-surface-container rounded-full animate-pulse w-full" /></td>
       <td className="py-4 px-6 w-28"><div className="h-4 bg-surface-container rounded-full animate-pulse w-full" /></td>
+      <td className="py-4 px-6 w-24"><div className="h-4 bg-surface-container rounded-full animate-pulse w-full" /></td>
       <td className="py-4 px-6 w-24"><div className="h-4 bg-surface-container rounded-full animate-pulse w-full" /></td>
     </tr>
   );
@@ -116,8 +119,7 @@ export default function HRHistoryPage() {
 
   // ── KPI Summary ──
   const kpis = useMemo(() => {
-    const fmt = (v: number) =>
-      `RM ${new Intl.NumberFormat("en-MY", { minimumFractionDigits: 2 }).format(v)}`;
+    const fmt = (v: number) => formatMoney("MYR", v);
     const approved = data.filter((c) => c.status === "Approved" || c.status === "Paid");
     const rejected = data.filter((c) => c.status === "Rejected");
     const totalPaid = data
@@ -267,13 +269,14 @@ export default function HRHistoryPage() {
             <table className="w-full table-fixed text-left border-collapse">
               <thead>
                 <tr className="bg-surface-container-low/50 text-on-surface-variant uppercase tracking-wider text-[10px] font-bold font-headline">
-                  <th className="py-4 px-6 w-32">Claim ID</th>
-                  <th className="py-4 px-6">Employee</th>
-                  <th className="py-4 px-6">Policy / Category</th>
-                  <th className="py-4 px-6 w-32 text-right">Amount</th>
-                  <th className="py-4 px-6 w-32">Resolved</th>
-                  <th className="py-4 px-6 w-28">Status</th>
-                  <th className="py-4 px-6 w-24 text-right">Action</th>
+                  <th className="py-4 px-4 w-32">Claim</th>
+                  <th className="py-4 px-4">Employee</th>
+                  <th className="py-4 px-4">Policy</th>
+                  <th className="py-4 px-4 w-32 text-right">Amount</th>
+                  <th className="py-4 px-4 w-24">Resolved</th>
+                  <th className="py-4 px-4 w-28">Status</th>
+                  <th className="py-4 px-4 w-44">Payout</th>
+                  <th className="py-4 px-4 w-20 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/5">
@@ -286,9 +289,7 @@ export default function HRHistoryPage() {
                   paginated.map((claim) => {
                     const cfg = STATUS_CONFIG[claim.status];
                     const StatusIcon = cfg.icon;
-                    const formatted = `RM ${new Intl.NumberFormat("en-MY", {
-                      minimumFractionDigits: 2,
-                    }).format(claim.amount)}`;
+                    const formatted = formatMoney(claim.currency, claim.amount);
 
                     return (
                       <tr
@@ -296,17 +297,14 @@ export default function HRHistoryPage() {
                         className="hover:bg-surface-container/30 transition-colors group"
                       >
                         {/* Claim ID */}
-                        <td className="py-4 px-6 align-middle whitespace-nowrap">
-                          <span
-                            className="font-mono text-xs font-semibold text-on-surface-variant bg-surface-container px-2 py-1 rounded-lg"
-                            title={claim.id}
-                          >
-                            {claim.id.slice(0, 8)}
+                        <td className="py-4 px-4 align-middle whitespace-nowrap">
+                          <span className="font-mono text-xs font-semibold text-on-surface-variant bg-surface-container px-2 py-1 rounded-lg">
+                            {claim.id}
                           </span>
                         </td>
 
                         {/* Employee */}
-                        <td className="py-4 px-6 align-middle overflow-hidden">
+                        <td className="py-4 px-4 align-middle overflow-hidden">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary-container to-tertiary-container flex items-center justify-center font-bold text-[10px] text-on-primary-container border-2 border-surface-container-lowest shadow-sm shrink-0">
                               {claim.employeeInitial}
@@ -323,14 +321,14 @@ export default function HRHistoryPage() {
                         </td>
 
                         {/* Policy */}
-                        <td className="py-4 px-6 align-middle overflow-hidden">
-                          <p className="text-sm text-on-surface-variant truncate">
+                        <td className="py-4 px-4 align-middle overflow-hidden">
+                          <p className="text-sm text-on-surface-variant line-clamp-2" title={claim.policyName}>
                             {claim.policyName}
                           </p>
                         </td>
 
                         {/* Amount */}
-                        <td className="py-4 px-6 text-right align-middle">
+                        <td className="py-4 px-4 text-right align-middle">
                           <div className="flex items-center justify-end gap-1 whitespace-nowrap">
                             <span className="font-semibold text-sm text-on-surface font-mono tabular-nums">
                               {formatted}
@@ -339,17 +337,17 @@ export default function HRHistoryPage() {
                         </td>
 
                         {/* Resolved Date */}
-                        <td className="py-4 px-6 align-middle whitespace-nowrap overflow-hidden">
-                          <div className="flex items-center gap-1.5 truncate">
+                        <td className="py-4 px-4 align-middle whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
                             <Clock className="w-3 h-3 text-on-surface-variant/50 shrink-0" />
-                            <span className="text-xs text-on-surface-variant truncate">
+                            <span className="text-xs text-on-surface-variant">
                               {claim.dateResolved}
                             </span>
                           </div>
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-4 px-6 align-middle">
+                        <td className="py-4 px-4 align-middle">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.bg} ${cfg.text}`}
                           >
@@ -358,8 +356,13 @@ export default function HRHistoryPage() {
                           </span>
                         </td>
 
+                        {/* Payout: where the money is, and why if it has not moved */}
+                        <td className="py-4 px-4 align-middle">
+                          <PayoutCell state={claim.payout} />
+                        </td>
+
                         {/* View Action */}
-                        <td className="py-4 px-6 text-right align-middle whitespace-nowrap">
+                        <td className="py-4 px-4 text-right align-middle whitespace-nowrap">
                           <Link
                             href={`/hr/view/${claim.reim_id}`}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-on-surface-variant hover:text-primary hover:bg-primary/10 transition-all active:scale-90 cursor-pointer"
@@ -392,9 +395,8 @@ export default function HRHistoryPage() {
             {!isLoading &&
               paginated.map((claim) => {
                 const cfg = STATUS_CONFIG[claim.status];
-                const formatted = `RM ${new Intl.NumberFormat("en-MY", {
-                  minimumFractionDigits: 2,
-                }).format(claim.amount)}`;
+                const formatted = formatMoney(claim.currency, claim.amount);
+                const payout = payoutDisplay(claim.payout);
 
                 return (
                   <Link
@@ -411,7 +413,10 @@ export default function HRHistoryPage() {
                           {claim.employeeName}
                         </h4>
                         <p className="font-body text-xs text-on-surface-variant truncate">
-                          {claim.policyName}
+                          {claim.id} · {claim.policyName}
+                        </p>
+                        <p className={`font-body text-xs font-semibold truncate ${payout.className}`}>
+                          Payout: {payout.label}
                         </p>
                       </div>
                     </div>

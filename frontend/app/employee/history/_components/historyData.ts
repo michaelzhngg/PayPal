@@ -7,11 +7,10 @@
 import {
   Plane,
   UtensilsCrossed,
-  Monitor,
-  FileText,
-  Bus,
+  Laptop,
+  Receipt,
   Car,
-  Hotel,
+  BedDouble,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -47,11 +46,10 @@ export interface HistoryClaim {
   subCategory: string;
   categoryIcon: LucideIcon;
   merchant: string;
-  amount: string;           // pre-formatted, e.g. "RM 1,200.00"
+  amount: string;           // pre-formatted, e.g. "MYR 1,200.00"
   amountNumeric: number;
   approvedAmount: number;
   status: ClaimStatus;
-  aiNote?: string;
   hrNote?: string;
   lineItems: LineItem[];
   receiptCount: number;
@@ -74,6 +72,22 @@ export interface HistoryClaim {
     arrivalDate?: string;
     overseas: boolean;
   };
+}
+
+// ─── Category icons ───────────────────────────────────────────────────────────
+// Matches on the category and sub-category words, so "Ground Transport" gets a car.
+
+const CATEGORY_ICONS: Array<[RegExp, LucideIcon]> = [
+  [/flight|air|plane/i, Plane],
+  [/transport|taxi|grab|car|mileage|fuel|petrol|toll|parking|bus|train/i, Car],
+  [/hotel|accom|lodg|stay/i, BedDouble],
+  [/meal|food|dining|restaurant|lunch|dinner|breakfast|entertain/i, UtensilsCrossed],
+  [/equip|laptop|computer|software|hardware|device/i, Laptop],
+];
+
+export function categoryIcon(...labels: Array<string | null | undefined>): LucideIcon {
+  const text = labels.filter(Boolean).join(" ");
+  return CATEGORY_ICONS.find(([re]) => re.test(text))?.[1] ?? Receipt;
 }
 
 // ─── Status helpers ───────────────────────────────────────────────────────────

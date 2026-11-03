@@ -2,12 +2,13 @@
 
 import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { History, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import HistoryFilterBar, { FilterStatus } from "./_components/HistoryFilterBar";
 import HistoryList from "./_components/HistoryList";
 import ClaimSidebar from "./_components/ClaimSidebar";
-import { type HistoryClaim, type ClaimStatus, type LineItem } from "./_components/historyData";
-import type { ReimbursementRaw } from "@/lib/api/types";
+import { type HistoryClaim, type ClaimStatus, type LineItem, categoryIcon } from "./_components/historyData";
+import { merchantLabel, type ReimbursementRaw } from "@/lib/api/types";
+import { formatClaimRef, formatMoney } from "@/lib/format";
 import { getRawReimbursements, getRawReimbursement } from "@/lib/actions/claims";
 
 // ─── Map backend ReimbursementRaw → HistoryClaim ─────────────────────────────
@@ -26,7 +27,6 @@ function mapToHistoryClaim(r: ReimbursementRaw): HistoryClaim {
   };
   const claimStatus: ClaimStatus = statusMap[r.status] ?? "Pending";
 
-  const sym = ({ MYR: "RM ", USD: "$", EUR: "€", GBP: "£" } as Record<string, string>)[r.currency] ?? `${r.currency} `;
   const net = r.total_approved_amount ?? 0;
   const requested = r.total_claimed_amount ?? 0;
 
@@ -39,9 +39,8 @@ function mapToHistoryClaim(r: ReimbursementRaw): HistoryClaim {
       : li.judgment === "REJECTED" ? "Rejected"
       : (li.claimed_amount ?? 0) > (li.approved_amount ?? 0) ? "Adjusted"
       : "Pending",
-    adjustments: li.rejection_reason?.trim()
-      ? [{ code: "AI_NOTE", description: li.rejection_reason }]
-      : [],
+    // Line-level reasons come from the AI checks. Employees never see which check flagged them.
+    adjustments: [],
   }));
 
   const displayDate = r.created_at
@@ -53,13 +52,13 @@ function mapToHistoryClaim(r: ReimbursementRaw): HistoryClaim {
     date: displayDate,
     category: r.main_category ?? "General",
     subCategory: r.sub_categories?.[0] ?? "",
-    categoryIcon: History as any,
-    merchant: r.summary?.split(".")[0] ?? r.main_category ?? "Claim",
-    amount: `${sym}${requested.toLocaleString("en-MY", { minimumFractionDigits: 2 })}`,
+    categoryIcon: categoryIcon(r.main_category, ...(r.sub_categories ?? [])),
+    // Merchant and category only. r.summary is the AI's verdict and stays out of employee views.
+    merchant: merchantLabel(r) || r.sub_categories?.[0] || r.main_category || "Claim",
+    amount: formatMoney(r.currency ?? "MYR", requested),
     amountNumeric: requested,
     approvedAmount: net,
     status: claimStatus,
-    aiNote: r.summary ?? undefined,
     hrNote: (r.ai_reasoning?.['hr_note'] as string | undefined),
     lineItems,
     receiptCount: lineItems.length,
@@ -70,11 +69,17 @@ function mapToHistoryClaim(r: ReimbursementRaw): HistoryClaim {
       : undefined,
     employee: {
       name: r.employee_name ?? "Unknown",
-      id: r.user_id ?? "",
+      id: r.employee_code ?? "",
       department: r.department_name ?? "",
       position: "",
     },
-    claimContext: { purpose: r.summary?.split(".")[0] ?? "", overseas: false },
+    claimContext: {
+      purpose: r.purpose ?? "",
+      destination: r.destination ?? undefined,
+      departurDate: r.departure_date ?? undefined,
+      arrivalDate: r.arrival_date ?? undefined,
+      overseas: false,
+    },
   };
 }
 
@@ -144,6 +149,7 @@ function HistoryPageContent() {
       result = result.filter(
         (c) =>
           c.merchant.toLowerCase().includes(q) ||
+          formatClaimRef(c.id).toLowerCase().includes(q) ||
           c.category.toLowerCase().includes(q) ||
           c.id.toLowerCase().includes(q)
       );
@@ -154,7 +160,7 @@ function HistoryPageContent() {
 
   // KPI summary
   const summary = useMemo(() => {
-    const fmt = (v: number) => `RM ${new Intl.NumberFormat("en-MY", { minimumFractionDigits: 2 }).format(v)}`;
+    const fmt = (v: number) => formatMoney("MYR", v);
     const reimbursed = claims.filter((c) => c.status === "Approved" || c.status === "Paid").reduce((acc, c) => acc + c.approvedAmount, 0);
     const pending = claims.filter((c) => c.status === "Pending").reduce((acc, c) => acc + c.amountNumeric, 0);
     return { total: fmt(reimbursed), pending: fmt(pending) };

@@ -15,11 +15,12 @@ import {
   Loader2,
 } from "lucide-react";
 import type { DbEmployee, OcrReceiptData, ClaimContext } from "../../../../src/types/claim";
+import { formatMoney } from "@/lib/format";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
-  return `RM ${n.toFixed(2)}`;
+  return formatMoney("MYR", n);
 }
 
 function receiptRowTotal(r: OcrReceiptData) {
@@ -77,7 +78,7 @@ function AmountInput({ label, value, onChange, required }: AmountInputProps) {
       <div className={`relative flex items-center bg-surface-container-lowest border rounded-xl overflow-hidden transition-all ${
         showError ? "border-error/60 ring-2 ring-error/10" : "border-outline-variant/30 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10"
       }`}>
-        <span className="pl-3 pr-1 text-sm text-on-surface-variant font-body shrink-0">RM</span>
+        <span className="pl-3 pr-1 text-sm text-on-surface-variant font-body shrink-0">MYR</span>
         <input
           type="number"
           min={0}

@@ -25,7 +25,6 @@ export default function LoginPage() {
   const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activePortal, setActivePortal] = useState<"employee" | "hr">("employee");
   const [restrictionToast, setRestrictionToast] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [demoBanner, setDemoBanner] = useState<"hr" | "employee" | null>(null);
@@ -41,7 +40,6 @@ export default function LoginPage() {
   async function handleDemoLogin(role: "hr" | "employee") {
     setError(null);
     setDemoBanner(role);
-    setActivePortal(role);
     setIsValidating(true);
     const creds = DEMO_CREDENTIALS[role];
     form.setValue("email", creds.email);
@@ -72,11 +70,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const role = params.get("role");
     const demo = params.get("demo");
-
-    const target = demo === "hr" || role === "hr" ? "hr" : demo === "employee" || role === "employee" ? "employee" : null;
-    if (target) setActivePortal(target);
 
     if (demo === "hr" || demo === "employee") {
       const creds = DEMO_CREDENTIALS[demo];
@@ -115,17 +109,17 @@ export default function LoginPage() {
             className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(147,150,255,0.15),transparent_60%),radial-gradient(circle_at_70%_60%,rgba(158,0,180,0.12),transparent_60%)] opacity-40 mix-blend-overlay"
           ></div>
           <div className="relative z-10 text-on-primary max-w-xl">
-            <span className="inline-flex items-center rounded-full border border-white/35 bg-white/10 px-4 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] shadow-sm backdrop-blur-sm">
-              From receipt to reimbursement — in minutes, not days
-            </span>
-            <div className="flex items-center gap-4 mb-4">
-              <Image src="/images/logo.svg" alt="Reclaim Logo" width={64} height={64} className="w-16 h-16 object-contain brightness-0 invert" priority />
+            <div className="flex items-center gap-4 mb-6">
+              <Image src="/images/logo.svg" alt="" width={64} height={64} className="w-16 h-16 object-contain brightness-0 invert" priority />
               <h1 className="font-headline text-5xl xl:text-6xl font-extrabold tracking-tight leading-tight">
-                Reclaim.
+                Reclaim Pay
               </h1>
             </div>
-            <p className="text-base xl:text-lg opacity-90 font-light leading-relaxed max-w-lg text-justify">
-              An AI expense platform that pairs OCR with an intelligent agent that thinks, evaluates, and proposes decisions for every claim. By enabling HR to operate through &quot;efficiency by exception,&quot; the agent auto-clears valid submissions and isolates only policy violations or suspicious edits for final human review, instantly turning scattered receipts into audit-ready data.
+            <p className="font-headline text-2xl xl:text-3xl font-bold leading-snug mb-4">
+              Paid to your PayPal in seconds when it&apos;s safe.
+            </p>
+            <p className="text-base xl:text-lg opacity-90 leading-relaxed max-w-md text-left">
+              Snap a receipt and we check it against your company&apos;s policy. Safe claims go straight to your PayPal. Anything unusual goes to HR, and a person makes the call.
             </p>
           </div>
           {/* Floating accent blobs */}
@@ -140,14 +134,14 @@ export default function LoginPage() {
             {/* Brand Header (Mobile Only) */}
             <div className="lg:hidden mb-6 flex flex-col items-center justify-center gap-3 text-center">
               <div className="flex items-center gap-2.5">
-                <Image src="/images/logo.svg" alt="Reclaim Logo" width={32} height={32} className="w-8 h-8 object-contain" />
+                <Image src="/images/logo.svg" alt="" width={32} height={32} className="w-8 h-8 object-contain" />
                 <h2 className="font-headline text-2xl font-black tracking-tighter text-primary">
-                  Reclaim
+                  Reclaim Pay
                 </h2>
               </div>
-              <span className="inline-flex items-center rounded-full border border-white/35 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em]">
-                From receipt to reimbursement — in minutes, not days
-              </span>
+              <p className="text-sm text-on-surface-variant">
+                Paid to your PayPal in seconds when it&apos;s safe.
+              </p>
             </div>
 
             <div className="glass-card rounded-[1.75rem] p-6 sm:p-8 shadow-ambient-lg border border-white/40">
@@ -161,21 +155,11 @@ export default function LoginPage() {
 
               <div className="mb-7 text-center">
                 <h2 className="font-headline text-3xl font-bold tracking-tight text-on-surface mb-3">
-                  Welcome to Reclaim
+                  Welcome to Reclaim Pay
                 </h2>
                 <p className="text-on-surface-variant text-sm">
-                  Sign in to continue your session
+                  Pick a demo account, or sign in with your email.
                 </p>
-              </div>
-
-              <div className="flex p-1 bg-surface-container-high rounded-full mb-8 relative overflow-hidden">
-                <div className={`absolute inset-1 w-[calc(50%-8px)] bg-surface-container-lowest rounded-full shadow-sm transition-all duration-250 ease-out ${activePortal === "hr" ? "translate-x-[calc(100%+8px)]" : "translate-x-0"}`} />
-                <button type="button" onClick={() => setActivePortal("employee")} className={`flex-1 py-2.5 text-sm rounded-full relative z-10 transition-colors duration-300 font-medium ${activePortal === "employee" ? "font-semibold text-primary" : "text-on-surface-variant hover:text-on-surface"}`}>
-                  Employee Portal
-                </button>
-                <button type="button" onClick={() => setActivePortal("hr")} className={`flex-1 py-2.5 text-sm rounded-full relative z-10 transition-colors duration-300 font-medium ${activePortal === "hr" ? "font-semibold text-primary" : "text-on-surface-variant hover:text-on-surface"}`}>
-                  HR Dashboard
-                </button>
               </div>
 
               {/* Demo Login Buttons */}
@@ -184,19 +168,19 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => handleDemoLogin("employee")}
                   disabled={isValidating}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-primary/20 bg-primary/5 text-sm font-semibold text-primary hover:bg-primary/10 hover:border-primary/30 disabled:opacity-50 transition-all cursor-pointer"
+                  className="flex-1 min-h-11 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-primary/20 bg-primary/5 text-sm font-semibold text-primary hover:bg-primary/10 hover:border-primary/30 disabled:opacity-50 transition-all cursor-pointer"
                 >
-                  <Users className="w-4 h-4" />
-                  Login as Employee
+                  <Users className="w-4 h-4" aria-hidden />
+                  Sign in as Employee
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDemoLogin("hr")}
                   disabled={isValidating}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-primary/20 bg-primary/5 text-sm font-semibold text-primary hover:bg-primary/10 hover:border-primary/30 disabled:opacity-50 transition-all cursor-pointer"
+                  className="flex-1 min-h-11 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-primary/20 bg-primary/5 text-sm font-semibold text-primary hover:bg-primary/10 hover:border-primary/30 disabled:opacity-50 transition-all cursor-pointer"
                 >
-                  <Users className="w-4 h-4" />
-                  Login as HR
+                  <Users className="w-4 h-4" aria-hidden />
+                  Sign in as HR
                 </button>
               </div>
 
@@ -225,7 +209,7 @@ export default function LoginPage() {
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors w-5 h-5" />
                     <input className="w-full pl-12 pr-12 py-3.5 bg-surface-container-lowest/60 backdrop-blur-md border border-outline/20 rounded-xl text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm" id="password" placeholder="••••••••" type={showPassword ? "text" : "password"} {...form.register("password")} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface transition-colors">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface transition-colors">
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                     {form.formState.errors.password && <p className="text-error text-xs mt-1">{form.formState.errors.password.message}</p>}

@@ -79,9 +79,10 @@ def _build_reimbursement_response(
             select(func.count()).where(LineItem.reim_id == r.reim_id)
         ).one()
 
+    user = db.get(User, r.user_id)
+
     # Use pre-fetched names if provided, otherwise look up
     if employee_name is None or department_name is None:
-        user = db.get(User, r.user_id)
         if user:
             employee_name = user.name
             if user.department_id:
@@ -122,7 +123,32 @@ def _build_reimbursement_response(
         "updated_at": r.updated_at.isoformat() if r.updated_at else None,
         "sub_categories": [sc.sub_category for sc in sub_cats],
         "receipt_count": receipt_count,
+        # Display-only fields. These never carry AI or HR judgment text.
+        "employee_code": user.user_code if user else None,
+        "payee_linked": bool(user and user.paypal_payer_id),
+        "merchant_names": [],
+        "purpose": None,
+        "destination": None,
+        "location": None,
+        "departure_date": None,
+        "arrival_date": None,
     }
+
+    if r.settlement_id:
+        merchants = db.exec(
+            select(SettlementReceipt.merchant_name).where(
+                SettlementReceipt.settlement_id == r.settlement_id
+            )
+        ).all()
+        result["merchant_names"] = list(dict.fromkeys(m.strip() for m in merchants if m and m.strip()))
+        if include_line_items:
+            settlement = db.get(TravelSettlement, r.settlement_id)
+            if settlement:
+                result["purpose"] = settlement.purpose or None
+                result["destination"] = settlement.destination or None
+                result["location"] = settlement.location or None
+                result["departure_date"] = settlement.departure_date.isoformat() if settlement.departure_date else None
+                result["arrival_date"] = settlement.arrival_date.isoformat() if settlement.arrival_date else None
 
     if include_line_items:
         result["line_items"] = [
@@ -147,7 +173,7 @@ def _build_reimbursement_response(
 
     # Include payout info if one exists
     payout = db.exec(
-        select(Payout).where(Payout.reim_id == r.reim_id)
+        select(Payout).where(Payout.reim_id == r.reim_id).order_by(Payout.created_at.desc())
     ).first()
     if payout:
         result["payout"] = {
