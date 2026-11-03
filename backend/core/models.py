@@ -74,6 +74,26 @@ class User(SQLModel, table=True):
         default=None,
         sa_column=Column(String)
     )
+    paypal_payer_id: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String, index=True)
+    )
+    paypal_email: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String)
+    )
+    paypal_verified: bool = Field(
+        default=False,
+        sa_column=Column(Boolean, nullable=False, server_default="false")
+    )
+    paypal_linked_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True))
+    )
+    payout_destination_changed_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True))
+    )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True))
@@ -669,6 +689,22 @@ class Payout(SQLModel, table=True):
     failure_code: Optional[str] = Field(
         default=None,
         sa_column=Column(String)
+    )
+    provider: str = Field(
+        default="PAYPAL",
+        sa_column=Column(String, nullable=False, server_default="PAYPAL")
+    )
+    provider_batch_id: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String, index=True)
+    )
+    provider_item_id: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String, index=True)
+    )
+    attempt: int = Field(
+        default=1,
+        sa_column=Column(Integer, nullable=False, server_default="1")
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),

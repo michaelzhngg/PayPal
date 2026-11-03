@@ -90,6 +90,13 @@ def format_amount(amount: Decimal) -> str:
     return str(Decimal(amount).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
+def mask_email(email: str) -> str:
+    local, _, domain = (email or "").partition("@")
+    if not local or not domain:
+        return "***"
+    return f"{local[0]}***@{domain}"
+
+
 def _payout_body(sender_batch_id: str, payer_id: str, amount: Decimal, currency: str,
                  note: str, sender_item_id: str) -> dict:
     return {
