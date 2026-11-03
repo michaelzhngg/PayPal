@@ -3,7 +3,7 @@
 // These types are used by both server actions and UI components.
 // ──────────────────────────────────────────────────────────────────────────────
 
-import type { AutonomyDecision, AutonomyTier } from "./reclaim-pay-types";
+import { formatMoney, type AutonomyDecision, type AutonomyTier } from "./reclaim-pay-types";
 
 // ─── Generic API Result ──────────────────────────────────────────────────────
 
@@ -119,14 +119,29 @@ export interface ReimbursementRaw {
   updated_at?: string | null;
   sub_categories: string[];
   receipt_count?: number;
+  /** Display-only fields (backend api/reimbursements.py). Never AI or HR judgment text. */
+  employee_code?: string | null;
+  payee_linked?: boolean;
+  merchant_names?: string[];
+  purpose?: string | null;
+  destination?: string | null;
+  location?: string | null;
+  departure_date?: string | null;
+  arrival_date?: string | null;
+}
+
+/** Merchant names for a claim, e.g. "Grab, Hilton +1". Empty when none were read. */
+export function merchantLabel(r: Pick<ReimbursementRaw, "merchant_names">): string {
+  const names = r.merchant_names ?? [];
+  if (names.length === 0) return "";
+  const shown = names.slice(0, 2).join(", ");
+  return names.length > 2 ? `${shown} +${names.length - 2}` : shown;
 }
 
 /** Map a backend ReimbursementRaw into the frontend ClaimSummary shape. */
 export function mapReimbursementToClaim(r: ReimbursementRaw): ClaimSummary {
-  const currencySymbol: Record<string, string> = { USD: "$", MYR: "MYR ", EUR: "€", GBP: "£" };
-  const symbol = currencySymbol[r.currency] ?? `${r.currency} `;
   const amountValue = r.total_claimed_amount ?? 0;
-  const formattedAmount = `${symbol}${amountValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formattedAmount = formatMoney(r.currency ?? "MYR", amountValue);
 
   let displayDate = "";
   if (r.created_at) {
@@ -151,7 +166,8 @@ export function mapReimbursementToClaim(r: ReimbursementRaw): ClaimSummary {
     date: displayDate,
     category: r.policy_name ?? r.main_category ?? "General",
     subCategory: `${r.receipt_count ?? 0} receipts`,
-    merchant: r.summary?.split(".")[0] ?? "",
+    // Never r.summary: that is the AI's verdict, and employees must not see it.
+    merchant: merchantLabel(r),
     amount: formattedAmount,
     amountNumeric: amountValue,
     status: statusMap[r.status] ?? "Pending",

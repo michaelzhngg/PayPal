@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import { HistoryClaim, STATUS_BADGE, STATUS_DOT } from "./historyData";
+import { formatClaimRef } from "@/lib/format";
 
 interface HistoryListProps {
   claims: HistoryClaim[];
@@ -52,7 +53,10 @@ export default function HistoryList({ claims, onSelectClaim }: HistoryListProps)
                 <td className="p-4 text-on-surface">
                   <div className="flex flex-col">
                     <span className="font-semibold">{claim.merchant}</span>
-                    <span className="text-xs text-on-surface-variant">{claim.subCategory} • <span title={claim.id}>{claim.id.slice(0, 8)}</span></span>
+                    <span className="text-xs text-on-surface-variant">
+                      {claim.subCategory && claim.subCategory !== claim.merchant ? `${claim.subCategory} • ` : ""}
+                      <span className="font-mono">{formatClaimRef(claim.id)}</span>
+                    </span>
                   </div>
                 </td>
                 <td className="p-4 font-bold text-on-surface tabular-nums">
