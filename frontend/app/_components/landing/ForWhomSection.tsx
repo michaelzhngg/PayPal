@@ -1,49 +1,23 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Check, UserCircle2, Users } from "lucide-react";
+import { revealGroup, revealItem, revealViewport } from "./motion";
 
 const HR_ITEMS = [
-  "Policy Studio — upload, edit, audit company policy",
-  "Triage Dashboard — Bucket A (passed) vs Bucket B (attention)",
-  "AI auto-clears clean claims, you handle edge cases",
-  "Full immutable audit trail per reimbursement",
+  "Policy Studio: upload, edit and review company policy",
+  "Risky claims arrive sorted, with the evidence attached",
+  "Clean, low-risk claims are paid without waiting on you",
+  "A full audit trail for every claim and payout",
 ];
 
 const EMP_ITEMS = [
   "Upload up to 10 receipts (JPEG, PNG, PDF) per claim",
-  "AI pre-fill verification — review side-by-side, edit if wrong",
-  "Real-time claim status — no more chasing HR",
-  "Personal reimbursement history with line items",
+  "Check what the AI read, and fix it if it's wrong",
+  "Clean claims are paid to your PayPal account in seconds",
+  "Live claim status, so you don't have to chase HR",
 ];
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.2, delayChildren: 0.1 },
-  },
-} as const;
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 40, scale: 0.96 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.65, ease: "easeOut" },
-  },
-} as const;
-
-const listItemVariants: Variants = {
-  hidden: { opacity: 0, x: -15 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.4, ease: "easeOut" },
-  },
-} as const;
 
 export default function ForWhomSection() {
   return (
@@ -51,10 +25,10 @@ export default function ForWhomSection() {
       <div className="mx-auto max-w-7xl">
         <motion.div
           className="max-w-2xl mb-10"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          variants={revealItem}
+          initial="hidden"
+          whileInView="visible"
+          viewport={revealViewport}
         >
           <span className="inline-flex items-center rounded-full border border-on-surface-variant/20 bg-surface-container-lowest px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
             Two portals
@@ -66,13 +40,13 @@ export default function ForWhomSection() {
 
         <motion.div
           className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-          variants={containerVariants}
+          variants={revealGroup}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={revealViewport}
         >
           <motion.div
-            variants={cardVariants}
+            variants={revealItem}
             whileHover={{ y: -6, transition: { duration: 0.25 } }}
             className="relative overflow-hidden rounded-3xl bg-surface-container-lowest p-8 lg:p-10 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300"
           >
@@ -89,31 +63,21 @@ export default function ForWhomSection() {
                 <Users className="w-6 h-6" strokeWidth={2} />
               </motion.div>
               <h3 className="font-headline text-2xl font-bold text-on-surface tracking-tight mb-2">
-                For HR Teams
+                For HR teams
               </h3>
               <p className="text-sm text-on-surface-variant mb-5">
-                Manage policy, monitor autonomous processing, handle edge cases.
+                Set the policy, then decide the claims that need a person.
               </p>
-              <motion.ul
-                className="space-y-3 mb-7"
-                variants={containerVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-              >
+              <ul className="space-y-3 mb-7">
                 {HR_ITEMS.map((item) => (
-                  <motion.li
-                    key={item}
-                    variants={listItemVariants}
-                    className="flex items-start gap-3 text-sm text-on-surface"
-                  >
+                  <li key={item} className="flex items-start gap-3 text-sm text-on-surface">
                     <span className="mt-0.5 inline-flex w-5 h-5 rounded-full bg-primary/15 text-primary items-center justify-center shrink-0">
                       <Check className="w-3 h-3" strokeWidth={3} />
                     </span>
                     <span>{item}</span>
-                  </motion.li>
+                  </li>
                 ))}
-              </motion.ul>
+              </ul>
               <Link
                 href="/login?role=hr"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:text-primary-dim transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded"
@@ -125,7 +89,7 @@ export default function ForWhomSection() {
           </motion.div>
 
           <motion.div
-            variants={cardVariants}
+            variants={revealItem}
             whileHover={{ y: -6, transition: { duration: 0.25 } }}
             className="relative overflow-hidden rounded-3xl bg-surface-container-lowest p-8 lg:p-10 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300"
           >
@@ -142,31 +106,21 @@ export default function ForWhomSection() {
                 <UserCircle2 className="w-6 h-6" strokeWidth={2} />
               </motion.div>
               <h3 className="font-headline text-2xl font-bold text-on-surface tracking-tight mb-2">
-                For Employees
+                For employees
               </h3>
               <p className="text-sm text-on-surface-variant mb-5">
-                Submit claims, verify AI extraction, track status — without chasing.
+                Submit claims, check what the AI read, and get paid to PayPal.
               </p>
-              <motion.ul
-                className="space-y-3 mb-7"
-                variants={containerVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-              >
+              <ul className="space-y-3 mb-7">
                 {EMP_ITEMS.map((item) => (
-                  <motion.li
-                    key={item}
-                    variants={listItemVariants}
-                    className="flex items-start gap-3 text-sm text-on-surface"
-                  >
+                  <li key={item} className="flex items-start gap-3 text-sm text-on-surface">
                     <span className="mt-0.5 inline-flex w-5 h-5 rounded-full bg-tertiary/15 text-tertiary items-center justify-center shrink-0">
                       <Check className="w-3 h-3" strokeWidth={3} />
                     </span>
                     <span>{item}</span>
-                  </motion.li>
+                  </li>
                 ))}
-              </motion.ul>
+              </ul>
               <Link
                 href="/login?role=employee"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-tertiary hover:text-tertiary-dim transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tertiary/40 rounded"

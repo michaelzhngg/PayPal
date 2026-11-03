@@ -1,81 +1,47 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
-import { Brain, ChevronRight, FileText, ScanText } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronRight, FileCheck2, ReceiptText, Scale, Wallet } from "lucide-react";
+import { revealGroup, revealItem, revealViewport } from "./motion";
 
-const PIPELINES = [
+const STEPS = [
   {
-    icon: FileText,
-    badge: "Step 1 · Setup",
-    name: "Policy Agent",
-    tagline: "5-node LangGraph pipeline",
-    nodes: [
-      "process_pdfs",
-      "extract_categories_and_summary",
-      "extract_conditions",
-      "save_to_db",
-      "embed_and_save_sections",
-    ],
+    icon: ReceiptText,
+    badge: "Step 1",
+    name: "Snap the receipt",
+    tagline: "Up to 10 receipts per claim",
     description:
-      "HR uploads the company policy. The agent extracts reimbursable categories and mandatory conditions, persists them as queryable rules, and embeds policy sections for RAG.",
+      "The employee uploads photos or PDFs. AI reads the merchant, date, amount and category, and the employee checks the result.",
+    points: ["JPEG, PNG or PDF", "Every edit to an AI-read field is logged"],
   },
   {
-    icon: ScanText,
-    badge: "Step 2 · Submit",
-    name: "Document Agent",
-    tagline: "Parallel OCR workers (≤4 concurrent)",
-    nodes: [
-      "image → Qwen3.5 vision",
-      "PDF → PyMuPDF4LLM → Gemini",
-      "structured JSON per receipt",
-      "anomaly flag generation",
-    ],
+    icon: FileCheck2,
+    badge: "Step 2",
+    name: "AI checks it against policy",
+    tagline: "Your policy, not a generic rulebook",
     description:
-      "Up to 10 receipts per submission. Images go through a vision model, PDFs are parsed to markdown then read. Output: merchant, date, amount, category, confidence — ready for verification.",
+      "HR uploads the company policy once. The agent checks each receipt against its categories, caps and required conditions, and looks for signs of a fake receipt.",
+    points: ["Eligible categories", "Spending caps", "Required conditions"],
   },
   {
-    icon: Brain,
-    badge: "Step 3 · Decide",
-    name: "Compliance Agent",
-    tagline: "5-node ReAct pipeline",
-    nodes: [
-      "load_context",
-      "analyze_receipts (parallel ReAct, ≤5 tool calls)",
-      "aggregate_totals (pure Python)",
-      "final_judgment",
-      "save_reimbursement",
-    ],
+    icon: Scale,
+    badge: "Step 3",
+    name: "Guardrails decide",
+    tagline: "Fixed rules, separate from the AI",
     description:
-      "Per-receipt ReAct agents reason iteratively against the active policy — checking eligibility, caps, mandatory conditions. Final judgment: APPROVE, PARTIAL_APPROVE, REJECT, or MANUAL_REVIEW.",
+      "Each claim gets a risk score. Clean, low-risk claims inside every limit are cleared to pay. Anything risky goes to HR, and the riskiest need two HR approvals.",
+    points: ["Auto-pay", "Quick HR approval", "HR review", "Two-person review"],
+  },
+  {
+    icon: Wallet,
+    badge: "Step 4",
+    name: "PayPal pays",
+    tagline: "Sent with PayPal Payouts",
+    description:
+      "Approved claims are paid to the employee's verified PayPal account in seconds. Each payout is sent once and recorded in the log.",
+    points: ["Verified PayPal accounts only", "No payout is sent twice", "Every payout in a tamper-evident log"],
   },
 ];
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.2, delayChildren: 0.15 },
-  },
-} as const;
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 50, scale: 0.96 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.65, ease: "easeOut" },
-  },
-} as const;
-
-const arrowVariants: Variants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.4, delay: 0.5 },
-  },
-} as const;
 
 export default function HowItWorks() {
   return (
@@ -95,31 +61,31 @@ export default function HowItWorks() {
       <div className="relative mx-auto max-w-7xl">
         <motion.div
           className="max-w-2xl"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          variants={revealItem}
+          initial="hidden"
+          whileInView="visible"
+          viewport={revealViewport}
         >
           <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
             How it works
           </span>
           <h2 className="mt-4 font-headline text-3xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight">
-            Three LangGraph pipelines, one decision chain.
+            Four steps from receipt to payout.
           </h2>
           <p className="mt-4 text-on-surface-variant text-base sm:text-lg leading-relaxed">
-            Reclaim&rsquo;s intelligence is split into three deterministic, stateful agents — each with a defined input, output, and audit trail.
+            The AI reads and checks. Fixed rules decide whether money moves. A person decides anything risky.
           </p>
         </motion.div>
 
         <motion.div
-          className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch"
-          variants={containerVariants}
+          className="mt-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 xl:gap-8 items-stretch"
+          variants={revealGroup}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={revealViewport}
         >
-          {PIPELINES.map((p, idx) => (
-            <motion.div key={p.name} className="relative flex" variants={cardVariants}>
+          {STEPS.map((p, idx) => (
+            <motion.div key={p.name} className="relative flex" variants={revealItem}>
               <motion.div
                 className="glass-card relative flex-1 rounded-3xl p-7 border border-white/50 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300"
                 whileHover={{ y: -5, transition: { duration: 0.25 } }}
@@ -136,7 +102,7 @@ export default function HowItWorks() {
                     {p.badge}
                   </span>
                 </div>
-                <h3 className="font-headline text-2xl font-extrabold text-on-surface tracking-tight">
+                <h3 className="font-headline text-xl xl:text-2xl font-extrabold text-on-surface tracking-tight">
                   {p.name}
                 </h3>
                 <p className="mt-1 text-sm font-semibold text-primary">
@@ -147,36 +113,24 @@ export default function HowItWorks() {
                 </p>
 
                 <ul className="mt-5 space-y-2">
-                  {p.nodes.map((n, nodeIdx) => (
-                    <motion.li
-                      key={n}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.3 + nodeIdx * 0.08, duration: 0.4 }}
-                      className="flex items-start gap-2 text-xs text-on-surface font-mono"
-                    >
-                      <ChevronRight className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-                      <span className="break-words">{n}</span>
-                    </motion.li>
+                  {p.points.map((point) => (
+                    <li key={point} className="flex items-start gap-2 text-sm text-on-surface">
+                      <ChevronRight className="w-3.5 h-3.5 text-primary mt-1 shrink-0" aria-hidden="true" />
+                      <span className="break-words">{point}</span>
+                    </li>
                   ))}
                 </ul>
               </motion.div>
 
-              {idx < PIPELINES.length - 1 && (
-                <motion.div
+              {idx < STEPS.length - 1 && (
+                <div
                   aria-hidden="true"
-                  className="hidden lg:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 items-center justify-center"
-                  variants={arrowVariants}
+                  className="hidden xl:flex absolute -right-5 top-1/2 -translate-y-1/2 z-10 items-center justify-center"
                 >
-                  <motion.div
-                    className="w-9 h-9 rounded-full bg-primary text-on-primary shadow-ambient flex items-center justify-center"
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                  >
+                  <div className="w-9 h-9 rounded-full bg-primary text-on-primary shadow-ambient flex items-center justify-center">
                     <ChevronRight className="w-5 h-5" />
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
               )}
             </motion.div>
           ))}

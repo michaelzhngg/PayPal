@@ -2,7 +2,8 @@
 
 import React, { JSX, useRef, useState, useEffect } from 'react';
 import { Plus, Search, ChevronUp, ChevronDown, ChevronRight, FileText, Shield, Archive, Pencil, Trash2, ArrowLeft, X, SlidersHorizontal, Upload, Settings, CheckCircle2, ScanLine, Sparkles, History, Clock, User, PlusCircle, AlertCircle, ShieldCheck, Users, Calendar, BarChart3, Banknote } from 'lucide-react';
-import { MOCK_POLICIES, POLICY_STATUS_STYLE, Policy, PolicyStatus } from '../hr_components/mockData';
+import { POLICY_STATUS_STYLE, type Policy, type PolicyStatus } from '../hr_components/mockData';
+import type { Policy as BackendPolicy } from '@/lib/api/types';
 import { uploadPolicy } from '@/lib/actions/hr';
 import { getPolicies, deletePolicy, updatePolicyCategories } from '@/lib/actions/policies';
 
@@ -267,58 +268,50 @@ export default function PolicyStudio() {
     return null;
   }
 
-  const [policies, setPolicies] = useState<Policy[]>(MOCK_POLICIES);
+  // Map the backend Policy (lib/api/types) to the shape this page renders.
+  function toLocalPolicy(p: BackendPolicy): Policy {
+    return {
+      policy_id: p.policy_id,
+      alias: p.alias,
+      title: p.title,
+      version: "",
+      department: "",
+      lastModified: p.effective_date
+        ? new Date(p.effective_date).toLocaleDateString("en-MY", { month: "short", day: "numeric", year: "numeric" })
+        : "",
+      status: (p.status === "ACTIVE" ? "Active" : p.status === "DEPRECATED" ? "Expired" : "Impending") as PolicyStatus,
+      icon: FileText,
+      overview_summary: p.overview_summary,
+      mandatory_conditions: parseMandatoryConditions(p.mandatory_conditions) ?? undefined,
+      reimbursable_categories_with_budgets: p.reimbursable_categories_with_budgets ?? [],
+      history: [],
+      source_file_url: p.source_file_url,
+      effective_date: p.effective_date,
+    };
+  }
+
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [policiesStatus, setPoliciesStatus] = useState<"loading" | "ready" | "error">("loading");
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Persistence: Load deleted IDs and Local Edits
   useEffect(() => {
-    const deletedIds = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('deleted_policy_ids') || '[]') : [];
-    const localEdits = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('local_policy_edits') || '{}') : {};
-
-    const applyEdits = (list: Policy[]) => {
-      return list
-        .filter(p => !deletedIds.includes(p.policy_id))
-        .map(p => {
-          if (localEdits[p.policy_id]) {
-            // Apply saved edits (ignoring the icon as it's a React component)
-            const { icon, ...editedData } = localEdits[p.policy_id];
-            return { ...p, ...editedData };
-          }
-          return p;
-        });
-    };
-
-    // 1. Initial filter for mock policies
-    setPolicies(applyEdits(MOCK_POLICIES));
-
-    // 2. Load from backend
-    getPolicies().then((backendPolicies) => {
-      if (backendPolicies.length === 0) return;
-      // Map backend Policy type (from types.ts) → local Policy shape (mockData.ts)
-      const mapped: Policy[] = backendPolicies.map((p) => ({
-        policy_id: p.policy_id,
-        alias: p.alias,
-        title: p.title,
-        version: "",
-        department: "",
-        lastModified: p.effective_date
-          ? new Date(p.effective_date).toLocaleDateString("en-MY", { month: "short", day: "numeric", year: "numeric" })
-          : "",
-        status: (p.status === "ACTIVE" ? "Active" : p.status === "DEPRECATED" ? "Expired" : "Impending") as PolicyStatus,
-        icon: FileText,
-        overview_summary: p.overview_summary,
-        mandatory_conditions: parseMandatoryConditions(p.mandatory_conditions) ?? undefined,
-        reimbursable_categories_with_budgets: p.reimbursable_categories_with_budgets ?? [],
-        history: [],
-        source_file_url: p.source_file_url,
-        effective_date: p.effective_date,
-      }));
-      // Use only real policies, no mock fallback
-      setPolicies(mapped);
-    }).catch(() => {
-      // Keep mock data on error
-    });
+    getPolicies()
+      .then((backendPolicies) => {
+        setPolicies(backendPolicies.map(toLocalPolicy));
+        setPoliciesStatus("ready");
+      })
+      .catch(() => setPoliciesStatus("error"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const listMessage =
+    policiesStatus === "loading"
+      ? "Loading policies..."
+      : policiesStatus === "error"
+        ? "Couldn't load policies. Refresh the page to try again."
+        : policies.length === 0
+          ? "No policies yet. Create one to start checking claims."
+          : "No policies found matching your search or filter.";
 
   // Status dropdown & edit states
   const [editStatus, setEditStatus] = useState<PolicyStatus>("Active");
@@ -354,10 +347,7 @@ export default function PolicyStudio() {
         }
         setCategoryBudgets(budgets);
 
-        setEditHistory(p.history || [
-          { user: "Sarah Miller", action: "Policy Created", date: "Oct 12, 2023", details: "Initial draft uploaded" },
-          { user: "James Wilson", action: "Updated Appendix", date: "Jan 15, 2024", details: "Added W10 Requirements Review" }
-        ]);
+        setEditHistory(p.history ?? []);
         setExistingAppendix(p.existingAppendix ?? []);
         setAppendixFiles(p.appendixFiles || []);
         setMainPolicyFile(p.mainFile || null);
@@ -441,25 +431,7 @@ export default function PolicyStudio() {
       // Refresh policy list from backend
       try {
         const updated = await getPolicies();
-        if (updated.length > 0) {
-          const mapped: Policy[] = updated.map((p) => ({
-            policy_id: p.policy_id,
-            alias: p.alias,
-            title: p.title,
-            version: "",
-            department: "",
-            lastModified: p.effective_date
-              ? new Date(p.effective_date).toLocaleDateString("en-MY", { month: "short", day: "numeric", year: "numeric" })
-              : "",
-            status: (p.status === "ACTIVE" ? "Active" : p.status === "DEPRECATED" ? "Expired" : "Impending") as PolicyStatus,
-            icon: FileText,
-            overview_summary: p.overview_summary,
-            mandatory_conditions: parseMandatoryConditions(p.mandatory_conditions) ?? undefined,
-            source_file_url: p.source_file_url,
-            effective_date: p.effective_date,
-          }));
-          setPolicies([...mapped, ...MOCK_POLICIES]);
-        }
+        setPolicies(updated.map(toLocalPolicy));
       } catch { /* keep existing list */ }
 
       setIsSaving(false);
@@ -1270,7 +1242,7 @@ export default function PolicyStudio() {
                       ) : (
                         <tr>
                           <td colSpan={4} className="py-12 text-center text-on-surface-variant font-medium">
-                            No policies found matching your search or filter.
+                            {listMessage}
                           </td>
                         </tr>
                       )}
@@ -1305,7 +1277,7 @@ export default function PolicyStudio() {
                     ))
                   ) : (
                     <div className="py-12 text-center text-on-surface-variant font-medium text-sm">
-                      No policies found matching your search or filter.
+                      {listMessage}
                     </div>
                   )}
                 </div>
