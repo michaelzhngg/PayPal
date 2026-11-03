@@ -26,7 +26,7 @@ export default function LoadingOverlay({ show }: { show: boolean }) {
 
       {/* Tagline */}
       <p className="text-sm text-on-surface-variant font-body mb-10 max-w-xs text-center">
-        From receipt to reimbursement — in minutes, not days
+        Automation where it's safe, judgment where it matters
       </p>
 
       {/* Slim progress bar */}
