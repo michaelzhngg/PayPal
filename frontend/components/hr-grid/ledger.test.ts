@@ -4,6 +4,7 @@ import {
   STATUS_META,
   filterByStatus,
   formatUpdated,
+  hasAnyTier,
   hasInFlight,
   sortByUpdatedDesc,
   summarize,
@@ -20,6 +21,13 @@ describe("payout ledger logic", () => {
   it("labels a missing tier instead of leaving the cell blank", () => {
     expect(tierLabel(null)).toBe("Not recorded");
     expect(tierLabel("DUAL_REVIEW")).toBe("Two-person review");
+    expect(tierLabel("HR_QUICK")).toBe("Quick HR approval");
+  });
+
+  it("shows the Route column only once some payout has a tier", () => {
+    expect(hasAnyTier(ledgerRows)).toBe(true);
+    expect(hasAnyTier(ledgerRows.map((r) => ({ ...r, tier: null })))).toBe(false);
+    expect(hasAnyTier([])).toBe(false);
   });
 
   it("keeps polling only while a payout is accepted or requested", () => {
