@@ -192,7 +192,7 @@ describe("signalEvidence", () => {
       "MYR",
     );
     expect(v.facts).toEqual([
-      { label: "Digital source type", value: "trainedAlgorithmicMedia" },
+      { label: "Source type", value: "trainedAlgorithmicMedia" },
       { label: "Signature", value: "Not verified, read from the file" },
     ]);
   });
@@ -205,8 +205,12 @@ describe("signalEvidence", () => {
   });
   it("states the provenance source", () => {
     const v = signalEvidence(decisions.S3.signals[0], "MYR");
-    expect(v.note).toBe("C2PA content credentials say this image was AI-generated.");
-    expect(v.facts).toEqual([{ label: "Digital source type", value: "trainedAlgorithmicMedia" }]);
+    expect(v.facts).toEqual([{ label: "Source type", value: "trainedAlgorithmicMedia" }]);
+    // S3's message already names C2PA, so the note is not repeated.
+    expect(v.note).toBeNull();
+    expect(signalEvidence(signal({ code: "AI_PROVENANCE", message: "AI-made image." }), "MYR").note).toBe(
+      "C2PA content credentials say this image was AI-generated.",
+    );
   });
   it("lists the related claims of a split", () => {
     const v = signalEvidence(signal({ code: "SPLIT_CLAIM", evidence: { combined: 180, limit: 100, related: ["aaaaaaaa-1", "aaaaaaaa-1"] } }), "MYR");

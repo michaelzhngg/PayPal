@@ -226,7 +226,7 @@ export function signalEvidence(s: RiskSignal, currency: string): EvidenceView {
     }
     case "AI_PROVENANCE": {
       view.note = "C2PA content credentials say this image was AI-generated.";
-      fact("Digital source type", str(e.c2pa) ?? str(e.digital_source_type));
+      fact("Source type", str(e.c2pa) ?? str(e.digital_source_type));
       fact("Generator", str(e.generator) ?? str(e.claim_generator));
       if (e.verified === false) fact("Signature", "Not verified, read from the file");
       break;
@@ -278,7 +278,7 @@ export function signalEvidence(s: RiskSignal, currency: string): EvidenceView {
     default:
       break;
   }
-  // The note repeats the backend message for some fixtures; show it once.
-  if (view.note && view.note === s.message) view.note = null;
+  // Skip the note when the message already says it.
+  if (view.note && (view.note === s.message || (s.code === "AI_PROVENANCE" && /c2pa/i.test(s.message)))) view.note = null;
   return view;
 }

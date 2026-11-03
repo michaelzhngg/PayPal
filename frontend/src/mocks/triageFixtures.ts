@@ -84,7 +84,8 @@ export const triageReimbursements: TriageSource[] = [
   claim({ reim_id: "8d4a1b2c-3e5f-4a6b-8c7d-9e0f1a2b3c4d", who: "daniel", category: "Accommodation", amount: 620, eligible: 250, judgment: "PARTIAL", confidence: 0.9, status: "REVIEW", decision: decisions.S2, minutes: 170 }),
   claim({
     reim_id: "a3c2e1f0-7b6d-4c5e-9f8a-1b2c3d4e5f60", who: "priya", category: "Accommodation", amount: 450, judgment: "APPROVED", confidence: 0.8, status: "REVIEW", decision: decisions.S3, minutes: 150,
-    approvals: [{ hr_id: "c0ffee00-0000-4000-8000-0000000000aa", at: minutesAgo(30) }],
+    // The fixture HR user is the first approver, so the review page shows "You already approved".
+    approvals: [{ hr_id: FIXTURE_HR_USER_ID, at: minutesAgo(30) }],
   }),
   claim({ reim_id: "b4d3f2a1-8c7e-4d6f-a09b-2c3d4e5f6a71", who: "aisyah", category: "Meals", amount: 95, judgment: "APPROVED", confidence: 1, status: "REVIEW", decision: decisions.S4, minutes: 130 }),
   claim({ reim_id: "9f8e7d6c-5b4a-4392-8170-6f5e4d3c2b1a", who: "daniel", category: "Transportation", amount: 48, judgment: "APPROVED", confidence: 0.97, status: "REVIEW", decision: decisions.S5, minutes: 110 }),

@@ -1,6 +1,5 @@
 import { formatMoney } from "@/lib/format";
 import { TierPill } from "@/components/hr-grid/cells/TierCell";
-import { RiskBar } from "@/components/hr-grid/cells/RiskCell";
 import {
   approvalProgress,
   hardStopLabel,
@@ -71,10 +70,7 @@ export function AutonomyPanel({
         <div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <TierPill tier={autonomy.tier} />
-            <span className="inline-flex items-center gap-2 text-sm">
-              <span className="font-semibold text-on-surface">Risk {score}/100</span>
-              <RiskBar score={score} />
-            </span>
+            <span className="text-sm font-semibold text-on-surface tabular-nums">Risk {score}/100</span>
           </div>
           <p className="mt-3 text-sm text-on-surface leading-relaxed">{summarySentence(autonomy)}</p>
           {progress && (

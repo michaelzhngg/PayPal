@@ -39,7 +39,7 @@ export function SignalEvidence({ id, signal, currency }: { id: string; signal: R
           {view.snippets.map((s, i) => (
             <pre
               key={i}
-              className="mt-1 whitespace-pre-wrap break-all rounded-md bg-surface-container-low px-3 py-2 font-mono text-xs text-on-surface"
+              className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-md bg-surface-container-low px-3 py-2 font-mono text-xs text-on-surface"
             >
               {s}
             </pre>
