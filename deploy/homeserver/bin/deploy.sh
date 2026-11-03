@@ -27,7 +27,11 @@ touch release.env
 exec 9>"$APP_DIR/.deploy.lock"
 flock -n 9 || die "another deploy is already running"
 
-compose() { docker compose --project-directory "$APP_DIR" --env-file .env --env-file release.env "$@"; }
+# Compose doesn't reliably read COMPOSE_PROFILES from --env-file, so pass it explicitly.
+compose() {
+  COMPOSE_PROFILES="$(env_value COMPOSE_PROFILES .env)" \
+    docker compose --project-directory "$APP_DIR" --env-file .env --env-file release.env "$@"
+}
 env_value() { sed -n "s/^$1=//p" "$2" 2>/dev/null | tail -n1; }
 http_port() { local p; p="$(env_value HTTP_PORT .env)"; echo "${p:-8080}"; }
 
