@@ -9,6 +9,12 @@ import { MOCK_BUNDLES } from "../../hr_components/mockData";
 import { SuccessModal } from "../../hr_components/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
 import { getHRClaimBundle, updateReimbursementStatus } from "@/lib/actions/hr";
+import { FIXTURES_ON } from "@/lib/api/fixtures";
+import type { ReimbursementRaw } from "@/lib/api/types";
+import { approveBlockedReason } from "@/lib/hr/evidence";
+import { verdictLabel } from "@/components/hr-grid/rows";
+import { FIXTURE_HR_USER_ID } from "@/src/mocks/triageFixtures";
+import { AutonomyPanel } from "./_components/AutonomyPanel";
 
 
 type Decision = "approve_full" | "approve_adjusted" | "reject" | null;
@@ -369,7 +375,10 @@ export default function ReviewPage() {
     </div>
   );
 
-  const pct = Math.round(bundle.confidence * 100);
+  // Two-person claims: the first approver can't also be the second.
+  const approveBlocked = approveBlockedReason(bundle.autonomy ?? null, FIXTURES_ON ? FIXTURE_HR_USER_ID : user?.user_id);
+  // Editing an amount picks "approve adjusted", which a blocked approver can't send.
+  const submittable: Decision = approveBlocked && decision !== "reject" ? null : decision;
   const identityFields = identityFieldsOf(bundle);
   const contextFields = contextFieldsOf(bundle);
   const netHR = Object.values(approvals).reduce((sum, s) => sum + (parseFloat(s) || 0), 0);
@@ -386,7 +395,7 @@ export default function ReviewPage() {
   }
 
   async function submit() {
-    if (!decision) return;
+    if (!submittable) return;
     setSubmitting(true);
     setSubmitError(null);
     const status = decision === "reject" ? "REJECTED" : "APPROVED";
@@ -628,20 +637,7 @@ export default function ReviewPage() {
         {/* ═══ RIGHT ═══ */}
         <div className="flex flex-col gap-6 lg:sticky lg:top-6 lg:h-fit">
 
-          {/* AI Analysis */}
-          <Card title="AI Analysis">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[10px] font-semibold font-headline text-on-surface-variant uppercase tracking-wider">Confidence</span>
-                <span className={`text-2xl font-extrabold tabular-nums ${pct >= 85 ? "text-emerald-600" : pct >= 60 ? "text-amber-600" : "text-error-dim"}`}>{pct}%</span>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_CHIP[bundle.overall_judgment]}`}>{bundle.overall_judgment.replace("_", " ")}</span>
-              </div>
-              <div className="w-full h-2 rounded-full bg-surface-container mb-4 overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-500 ${pct >= 85 ? "bg-emerald-500" : pct >= 60 ? "bg-amber-500" : "bg-error"}`} style={{ width: `${pct}%` }} />
-              </div>
-              <p className="text-sm text-on-surface leading-relaxed">{bundle.summary}</p>
-            </div>
-          </Card>
+          <AutonomyPanel autonomy={bundle.autonomy} aiSummary={bundle.summary} aiVerdict={verdictLabel(bundle.overall_judgment as ReimbursementRaw["judgment"])} />
 
           {/* Financial Totals */}
           <Card title="Financial Summary">
@@ -668,7 +664,7 @@ export default function ReviewPage() {
             right={
               <div className="flex gap-1">
                 {(["full", "ai"] as const).map(m => (
-                  <button key={m} onClick={() => preset(m)} className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors">
+                  <button key={m} onClick={() => preset(m)} disabled={!!approveBlocked} className="text-[10px] font-semibold px-2 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors disabled:opacity-50 disabled:pointer-events-none">
                     {m === "full" ? "Max" : "AI"}
                   </button>
                 ))}
@@ -716,6 +712,11 @@ export default function ReviewPage() {
           {/* Decision */}
           <Card title="Your Decision">
             <div className="p-6 flex flex-col gap-4">
+              {approveBlocked && (
+                <p id="approve-blocked" role="status" className="rounded-md bg-surface-container-low px-3 py-2 text-sm text-on-surface">
+                  <span className="font-semibold">{approveBlocked}.</span> A second HR member has to approve this claim. You can still reject it.
+                </p>
+              )}
               <div className="flex flex-col gap-2">
                 {([
                   ["approve_full", ShieldCheck, "Force Full Approval", `Approve full ${fmt(bundle.totals.total_requested)}`, "emerald", "full"],
@@ -723,13 +724,14 @@ export default function ReviewPage() {
                   ["reject", ShieldX, "Confirm Rejection", "Reject entire claim bundle", "error", "zero"],
                 ] as const).map(([val, Icon, label, sub, color, p]) => {
                   const active = decision === val;
+                  const blocked = !!approveBlocked && val !== "reject";
                   const s = {
                     emerald: active ? "bg-emerald-50 text-emerald-700 border-emerald-300 ring-1 ring-emerald-200" : "border-outline-variant/20 text-on-surface-variant hover:border-emerald-300 hover:text-emerald-700",
                     amber: active ? "bg-amber-50 text-amber-800 border-amber-300 ring-1 ring-amber-200" : "border-outline-variant/20 text-on-surface-variant hover:border-amber-300 hover:text-amber-800",
                     error: active ? "bg-error/10 text-error-dim border-error/30 ring-1 ring-error/20" : "border-outline-variant/20 text-on-surface-variant hover:border-error/30 hover:text-error-dim",
                   };
                   return (
-                    <button key={val} onClick={() => {
+                    <button key={val} disabled={blocked} aria-describedby={blocked ? "approve-blocked" : undefined} onClick={() => {
                       setDecision(val);
                       if (val === "approve_adjusted") {
                         const hasCustomAmounts = bundle!.line_items.some(li => approvals[li.document_id] !== String(li.approved_amount ?? 0));
@@ -738,7 +740,7 @@ export default function ReviewPage() {
                         preset(p as "full" | "ai" | "zero");
                       }
                     }}
-                      className={`flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sm font-semibold font-headline transition-all active:scale-[0.98] cursor-pointer border text-left bg-surface-container-lowest ${s[color]}`}>
+                      className={`flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sm font-semibold font-headline transition-all active:scale-[0.98] cursor-pointer border text-left bg-surface-container-lowest disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 ${blocked ? "border-outline-variant/20 text-on-surface-variant" : s[color]}`}>
                       <Icon className="w-5 h-5 shrink-0" strokeWidth={2} />
                       <div><p>{label}</p><p className="text-[11px] font-normal mt-0.5 opacity-70">{sub}</p></div>
                     </button>
@@ -754,10 +756,10 @@ export default function ReviewPage() {
                   className="w-full bg-surface-container-low rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/50 outline-none ring-1 ring-outline-variant/20 focus:ring-primary/40 resize-none transition-all" />
               </div>
 
-              <button id="submit-review" onClick={submit} disabled={!decision || submitting}
-                className={`w-full py-3 rounded-xl text-sm font-semibold font-headline transition-all active:scale-[0.97] flex items-center justify-center gap-2 ${decision ? "bg-primary text-on-primary shadow-[0_4px_16px_rgba(70,71,211,0.25)] hover:bg-primary-dim cursor-pointer" : "bg-surface-container text-on-surface-variant/50 cursor-not-allowed"}`}>
+              <button id="submit-review" onClick={submit} disabled={!submittable || submitting}
+                className={`w-full py-3 rounded-xl text-sm font-semibold font-headline transition-all active:scale-[0.97] flex items-center justify-center gap-2 ${submittable ? "bg-primary text-on-primary shadow-[0_4px_16px_rgba(70,71,211,0.25)] hover:bg-primary-dim cursor-pointer" : "bg-surface-container text-on-surface-variant/50 cursor-not-allowed"}`}>
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {decision === "approve_full" ? "Submit Full Approval" : decision === "approve_adjusted" ? "Submit Adjusted Approval" : decision === "reject" ? "Submit Rejection" : "Select a decision"}
+                {submittable === "approve_full" ? "Submit Full Approval" : submittable === "approve_adjusted" ? "Submit Adjusted Approval" : submittable === "reject" ? "Submit Rejection" : "Select a decision"}
               </button>
               {submitError && (
                 <p className="text-xs text-error text-center font-body mt-1">{submitError}</p>
