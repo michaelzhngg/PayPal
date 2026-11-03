@@ -26,6 +26,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  /** Merges fields the server just saved, so the nav and forms show them without a reload. */
+  updateUser: (fields: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -115,8 +117,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push("/login");
   }, [router]);
 
+  // 4. Profile edits: keep the session cache in step with the saved user
+  const updateUser = useCallback((fields: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...fields };
+      _sessionCache = { user: next, ts: Date.now() };
+      return next;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser }}>
       {/* The public landing renders straight away so link previews and crawlers see its content. */}
       {isLoading && pathname !== "/" ? <LoadingOverlay show={true} /> : children}
     </AuthContext.Provider>

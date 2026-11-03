@@ -1,10 +1,11 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useSyncExternalStore } from "react";
-import { Settings, User, Wallet, ChevronRight, Save, LifeBuoy } from "lucide-react";
+import { Settings, User, Wallet, ChevronRight, LifeBuoy } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import PayPalConnectCard from "./_components/PayPalConnectCard";
+import ProfileCard from "./_components/ProfileCard";
 
 // The URL hash picks the section, so /employee/settings#paypal opens on PayPal.
 function subscribeHash(onChange: () => void) {
@@ -107,43 +108,7 @@ export default function SettingsLegacyContent() {
               </Suspense>
             </div>
 
-            {/* Profile Section */}
-            <section id="profile" className="scroll-mt-24 bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm">
-              <div className="p-6 border-b border-outline-variant/10">
-                <h2 className="font-headline font-bold text-lg text-on-surface mb-1">Profile Information</h2>
-                <p className="font-body text-sm text-on-surface-variant">Update your personal details below.</p>
-              </div>
-              <div className="p-6 space-y-5">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-linear-to-br from-primary-container to-tertiary-container shadow-sm border-2 border-surface flex items-center justify-center font-headline font-bold text-xl text-on-primary-container">
-                    {user?.name?.charAt(0) || "E"}
-                  </div>
-                  <button className="px-4 py-2 border border-outline-variant/20 rounded-xl text-sm font-semibold text-on-surface hover:bg-surface-container transition-colors">
-                    Change Avatar
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider">Full Name</label>
-                    <input type="text" defaultValue={user?.name || "Employee"} className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider">Email Address</label>
-                    <input type="email" defaultValue={user?.email || "employee@reclaim.inc"} className="w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                  </div>
-                  <div className="space-y-1.5 sm:col-span-2">
-                    <label className="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider">Department</label>
-                    <input type="text" defaultValue={user?.department_name || "General"} disabled className="w-full bg-surface-variant/30 text-on-surface-variant px-4 py-2.5 rounded-xl border border-transparent cursor-not-allowed" />
-                  </div>
-                </div>
-              </div>
-              <div className="p-4 bg-surface-container/30 border-t border-outline-variant/10 flex justify-end">
-                <button className="flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl font-bold text-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all">
-                  <Save className="w-4 h-4" />
-                  Save Changes
-                </button>
-              </div>
-            </section>
+            <ProfileCard key={user?.user_id ?? "anon"} />
 
             {/* Mobile Support Link */}
             <section className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm md:hidden block">

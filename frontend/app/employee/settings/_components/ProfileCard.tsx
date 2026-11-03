@@ -1,0 +1,132 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { Loader2, Save } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/toast/ToastProvider";
+import { updateProfile } from "@/lib/actions/settings";
+import {
+  PROFILE_SAVED_TOAST,
+  isProfileChanged,
+  normalizeProfile,
+  profileError,
+  profileFailedToast,
+  type ProfileDraft,
+} from "./profileForm";
+
+const LABEL = "font-label text-xs font-bold text-on-surface-variant";
+const INPUT =
+  "w-full bg-surface-container text-on-surface px-4 py-2.5 rounded-xl border border-transparent focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all aria-invalid:border-error";
+
+/** Name and email save to PUT /auth/me. The department is set by HR. */
+export default function ProfileCard() {
+  const { user, updateUser } = useAuth();
+  const { toast } = useToast();
+  const saved: ProfileDraft = { name: user?.name ?? "", email: user?.email ?? "" };
+  const [draft, setDraft] = useState<ProfileDraft>(saved);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const changed = isProfileChanged(draft, saved);
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    const problem = profileError(draft);
+    setError(problem);
+    if (problem || !changed) return;
+    setSaving(true);
+    const body = normalizeProfile(draft);
+    const result = await updateProfile(body);
+    setSaving(false);
+    if (result.error || !result.user) {
+      toast(profileFailedToast(result.error));
+      return;
+    }
+    updateUser({ name: result.user.name, email: result.user.email });
+    setDraft({ name: result.user.name, email: result.user.email });
+    toast(PROFILE_SAVED_TOAST);
+  }
+
+  return (
+    <section
+      id="profile"
+      aria-labelledby="profile-heading"
+      className="scroll-mt-24 bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm"
+    >
+      <form onSubmit={onSubmit} noValidate>
+        <div className="p-6 border-b border-outline-variant/10">
+          <h2 id="profile-heading" className="font-headline font-bold text-lg text-on-surface mb-1">Profile Information</h2>
+          <p className="font-body text-sm text-on-surface-variant">The name and email HR sees on your claims.</p>
+        </div>
+        <div className="p-6 space-y-5">
+          <div className="flex items-center gap-4">
+            <div
+              aria-hidden="true"
+              className="w-16 h-16 rounded-full bg-primary-container border-2 border-surface flex items-center justify-center font-headline font-bold text-xl text-on-primary-container"
+            >
+              {(draft.name || user?.name || "E").charAt(0).toUpperCase()}
+            </div>
+            <p className="font-body text-sm text-on-surface-variant">Your initial is used as your picture.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label htmlFor="profile-name" className={LABEL}>Full name</label>
+              <input
+                id="profile-name"
+                type="text"
+                autoComplete="name"
+                value={draft.name}
+                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                aria-invalid={error?.includes("name") || undefined}
+                aria-describedby={error ? "profile-error" : undefined}
+                className={INPUT}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="profile-email" className={LABEL}>Email address</label>
+              <input
+                id="profile-email"
+                type="email"
+                autoComplete="email"
+                inputMode="email"
+                value={draft.email}
+                onChange={(e) => setDraft((d) => ({ ...d, email: e.target.value }))}
+                aria-invalid={error?.includes("email") || undefined}
+                aria-describedby={error ? "profile-error" : "profile-email-note"}
+                className={INPUT}
+              />
+              <p id="profile-email-note" className="text-xs text-on-surface-variant">You also sign in with this address.</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <label htmlFor="profile-department" className={LABEL}>Department</label>
+              <input
+                id="profile-department"
+                type="text"
+                value={user?.department_name || "Not assigned"}
+                readOnly
+                aria-describedby="profile-department-note"
+                className="w-full bg-surface-variant/30 text-on-surface-variant px-4 py-2.5 rounded-xl border border-transparent outline-none focus-visible:ring-1 focus-visible:ring-primary"
+              />
+              <p id="profile-department-note" className="text-xs text-on-surface-variant">HR sets your department.</p>
+            </div>
+          </div>
+          {error && (
+            <p id="profile-error" role="alert" className="text-sm font-semibold text-error">
+              {error}
+            </p>
+          )}
+        </div>
+        <div className="p-4 bg-surface-container/30 border-t border-outline-variant/10 flex justify-end">
+          <button
+            type="submit"
+            disabled={!changed || saving}
+            className="flex min-h-11 items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-primary-dim active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden /> : <Save className="w-4 h-4" aria-hidden />}
+            {saving ? "Saving..." : "Save profile"}
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}
