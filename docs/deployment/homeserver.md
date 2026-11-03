@@ -5,7 +5,8 @@ Tailscale as `ssh homelab`). The server holds **no source code**: GitHub Actions
 the code, builds images, pushes them to GHCR, and the server only pulls images.
 
 Steps are marked **[done]** (already set up) or **[you]** (needs a password, a
-browser login, or an account owner).
+browser login, or an account owner). For the click-by-click version of the remaining
+steps, follow [homeserver-setup-checklist.md](homeserver-setup-checklist.md).
 
 ## How it works
 
