@@ -13,6 +13,7 @@ import {
   LogOut,
   Plus,
   Users,
+  Banknote,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -20,6 +21,7 @@ const NAV_LINKS = [
   { href: "/hr/policy",    label: "Policy Studio",  icon: FileSliders         },
   { href: "/hr/manage_employee", label: "Manage Employee", icon: Users },
   { href: "/hr/history",   label: "History",    icon: History          },
+  { href: "/hr/payouts",   label: "Payouts",    icon: Banknote         },
   { href: "/hr/settings",  label: "Settings",   icon: Settings         },
 ];
 
