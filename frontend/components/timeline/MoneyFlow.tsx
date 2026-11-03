@@ -5,13 +5,15 @@ import Link from "next/link";
 import { CheckCircle2, Circle, Clock, Loader2, XCircle } from "lucide-react";
 import { getPayeeStatus } from "@/lib/actions/paypal";
 import { usePayoutStatus } from "@/lib/hooks/usePayoutStatus";
-import { formatMoney, type PayeeStatus } from "@/lib/api/reclaim-pay-types";
+import { formatMoney, type AutonomyTier, type PayeeStatus } from "@/lib/api/reclaim-pay-types";
 import { FLOW_NODES, displayTier, flowState, type NodeState } from "./flow";
 
 interface MoneyFlowProps {
   reimId: string;
   /** Backend reimbursement status, e.g. APPROVED or PAID. */
   claimStatus: string;
+  /** The agent's decision tier, when the backend sent one. Falls back to `displayTier`. */
+  tier?: AutonomyTier;
 }
 
 const NODE_STYLE: Record<NodeState, { icon: typeof Circle; className: string }> = {
@@ -35,7 +37,7 @@ function nodeCaption(index: number, state: NodeState, amount: string | null): st
   return "Not yet";
 }
 
-export default function MoneyFlow({ reimId, claimStatus }: MoneyFlowProps) {
+export default function MoneyFlow({ reimId, claimStatus, tier }: MoneyFlowProps) {
   const { payout, timedOut, loaded } = usePayoutStatus(reimId);
   const [payee, setPayee] = useState<PayeeStatus | null>(null);
 
@@ -43,7 +45,7 @@ export default function MoneyFlow({ reimId, claimStatus }: MoneyFlowProps) {
     getPayeeStatus().then(setPayee);
   }, []);
 
-  const states = flowState(displayTier(claimStatus, payout !== null), payout?.status ?? null);
+  const states = flowState(tier ?? displayTier(claimStatus, payout !== null), payout?.status ?? null);
   const amount = payout ? formatMoney(payout.currency, payout.amount) : null;
   const paypalLabel = payee?.email_masked ? `your PayPal account (${payee.email_masked})` : "your PayPal account";
 

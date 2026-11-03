@@ -3,6 +3,8 @@
 // These types are used by both server actions and UI components.
 // ──────────────────────────────────────────────────────────────────────────────
 
+import type { AutonomyDecision, AutonomyTier } from "./reclaim-pay-types";
+
 // ─── Generic API Result ──────────────────────────────────────────────────────
 
 /** Standardised wrapper for all API client responses. */
@@ -491,6 +493,10 @@ export interface AnalyzeResponse {
   created_at: string | null;
   message: string;
   task_id?: string;
+  /** Reclaim Pay: present once the autonomy engine runs (spec, "Timeline over SSE"). */
+  tier?: AutonomyTier | null;
+  risk_score?: number | null;
+  autonomy?: AutonomyDecision | Record<string, never> | null;
 }
 
 /** SSE complete payload for multi-policy autonomous analysis. */

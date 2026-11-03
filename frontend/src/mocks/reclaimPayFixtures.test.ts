@@ -1,6 +1,27 @@
 import { describe, it, expect } from "vitest";
 import { formatMoney } from "@/lib/api/reclaim-pay-types";
-import { ledgerRows, payeeVariants } from "./reclaimPayFixtures";
+import { decisions, ledgerRows, payeeVariants, timelineS1, timelineS4 } from "./reclaimPayFixtures";
+
+describe("timeline fixtures follow the spec", () => {
+  it("S1 runs every step in spec order and ends in AUTO_PAY", () => {
+    expect(timelineS1.filter(e => e.status === "done").map(e => e.step)).toEqual([
+      "policy.load", "receipt.analyze", "shield.injection", "shield.duplicate", "shield.provenance",
+      "shield.arithmetic", "shield.split", "totals.aggregate", "judgment.final", "autonomy.decide", "payout.create"]);
+    expect(decisions.S1.tier).toBe("AUTO_PAY");
+  });
+  it("S4 warns on injection and needs two people", () => {
+    expect(timelineS4.find(e => e.step === "shield.injection" && e.status !== "running")?.status).toBe("warn");
+    expect(decisions.S4.tier).toBe("DUAL_REVIEW");
+  });
+  it("every tier appears in the demo decisions", () => {
+    expect(new Set(Object.values(decisions).map(d => d.tier)))
+      .toEqual(new Set(["AUTO_PAY", "HR_QUICK", "HR_REVIEW", "DUAL_REVIEW"]));
+  });
+  it("S1's decision detail mirrors the backend string", () => {
+    expect(timelineS1.find(e => e.step === "autonomy.decide" && e.status === "done")?.detail)
+      .toBe("Auto-pay — risk 0/100, Standard employee limit MYR 100.00.");
+  });
+});
 
 describe("PayPal fixtures follow the backend contract", () => {
   it("cover every Connect PayPal card state", () => {
