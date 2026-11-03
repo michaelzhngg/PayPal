@@ -80,8 +80,7 @@ def main() -> None:
             created = call(client, "POST", f"{api}/recoveries", headers, create_body)
             recovery_id = created["recovery_id"]
             print(f"Recovery {recovery_id}: {created['status']}, dispute until {created['dispute_until']}")
-            # TODO(Task 2 seed): the seed creates the S8 recovery with dispute_until in the past, so a demo
-            # take uses --recovery-id. A recovery opened here cannot be executed for 120 h.
+            # A recovery opened here cannot be executed for 120 h; demo takes use the seeded one via --recovery-id.
 
         preview = call(client, "GET", f"{api}/recoveries/{recovery_id}/invoice-preview", headers)
         print(f"Invoice preview: {preview['currency']} {preview['amount']:.2f} to {preview['recipient_email_masked']}")
