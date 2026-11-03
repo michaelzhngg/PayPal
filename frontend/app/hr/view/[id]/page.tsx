@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ArrowLeft, Clock, ShieldCheck, ShieldX, ChevronDown, ZoomIn, CheckCircle2, FileText, ExternalLink, Download, X, Loader2 } from "lucide-react";
 import type { ClaimBundle } from "@/lib/api/types";
+import { formatClaimRef, formatMoney } from "@/lib/format";
 import { MOCK_BUNDLES } from "../../hr_components/mockData";
 import { SuccessModal } from "../../hr_components/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
@@ -15,10 +16,34 @@ const STATUS_CHIP: Record<string, string> = {
   PENDING: "bg-surface-container text-on-surface-variant",
 };
 const CAT: Record<string, string> = { meals: "Meals", transportation: "Transport", accommodation: "Stay", others: "Others" };
-const fmt = (n: number | undefined | null) => {
-  if (n === undefined || n === null) return "MYR 0.00";
-  return `MYR ${n.toLocaleString("en-MY", { minimumFractionDigits: 2 })}`;
-};
+const fmt = (n: number | undefined | null) => formatMoney("MYR", n ?? 0);
+/** Label/value pairs with empty values dropped, so the page never shows a label with nothing under it. */
+function presentFields(pairs: Array<[string, string | null | undefined]>): Array<[string, string]> {
+  return pairs.filter((p): p is [string, string] => typeof p[1] === "string" && p[1].trim() !== "");
+}
+
+function identityFieldsOf(bundle: ClaimBundle) {
+  return presentFields([
+    ["Entity", bundle.employee.entity],
+    ["Employee Name", bundle.employee.name],
+    ["Employee No.", bundle.employee.employee_no],
+    ["Position", bundle.employee.position],
+    ["Department", bundle.employee.department],
+    ["Location", bundle.employee.location],
+  ]);
+}
+
+function contextFieldsOf(bundle: ClaimBundle) {
+  return presentFields([
+    ["Destination", bundle.travel_destination],
+    ["Purpose", bundle.travel_purpose],
+    ["Departure", bundle.departure_date],
+    ["Arrival", bundle.arrival_date],
+    // Overseas is not recorded yet, so only a real "Yes" is shown.
+    ["Overseas Travel", bundle.is_overseas ? "Yes" : null],
+  ]);
+}
+
 
 function Card({ title, children, right }: { title: React.ReactNode; children: React.ReactNode; right?: React.ReactNode }) {
   return (
@@ -110,7 +135,7 @@ function ClaimFormModal({
             </div>
             <div className="text-right">
               <p className="font-bold text-base text-gray-900">EXPENSE CLAIM FORM</p>
-              <p className="text-gray-500 font-mono text-xs">{bundle.id}</p>
+              <p className="text-gray-500 font-mono text-xs">{formatClaimRef(bundle.id)}</p>
               <p className="text-gray-500 text-xs mt-1">Date: {new Date(bundle.submitted_at).toLocaleDateString()}</p>
               <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold uppercase ${statusClass}`}>
                 {effectiveStatus}
@@ -124,12 +149,12 @@ function ClaimFormModal({
               Employee Information
             </h3>
             <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-              {[
-                ["Full Name",   bundle.employee.name     || "—"],
-                ["Employee ID", bundle.employee.employee_no       || "—"],
-                ["Department",  bundle.employee.department || "—"],
-                ["Position",    bundle.employee.position || "—"],
-              ].map(([label, value]) => (
+              {presentFields([
+                ["Full Name",   bundle.employee.name],
+                ["Employee ID", bundle.employee.employee_no],
+                ["Department",  bundle.employee.department],
+                ["Position",    bundle.employee.position],
+              ]).map(([label, value]) => (
                 <div key={label} className="flex gap-2">
                   <span className="text-gray-500 w-28 shrink-0">{label}:</span>
                   <span className="font-semibold text-gray-900">{value}</span>
@@ -144,10 +169,12 @@ function ClaimFormModal({
               Claim Context
             </h3>
             <div className="grid grid-cols-2 gap-x-8 gap-y-2">
-              <div className="flex gap-2">
-                <span className="text-gray-500 w-28 shrink-0">Purpose:</span>
-                <span className="font-semibold">{bundle.travel_purpose}</span>
-              </div>
+              {bundle.travel_purpose && (
+                <div className="flex gap-2">
+                  <span className="text-gray-500 w-28 shrink-0">Purpose:</span>
+                  <span className="font-semibold">{bundle.travel_purpose}</span>
+                </div>
+              )}
               {bundle.travel_destination && (
                 <div className="flex gap-2">
                   <span className="text-gray-500 w-28 shrink-0">Destination:</span>
@@ -166,10 +193,12 @@ function ClaimFormModal({
                   <span className="font-semibold">{bundle.arrival_date}</span>
                 </div>
               )}
-              <div className="flex gap-2">
-                <span className="text-gray-500 w-28 shrink-0">Overseas:</span>
-                <span className="font-semibold">{bundle.is_overseas ? "Yes" : "No"}</span>
-              </div>
+              {bundle.is_overseas && (
+                <div className="flex gap-2">
+                  <span className="text-gray-500 w-28 shrink-0">Overseas:</span>
+                  <span className="font-semibold">Yes</span>
+                </div>
+              )}
             </div>
           </section>
 
@@ -271,7 +300,7 @@ function ClaimFormModal({
 
           {/* Footer */}
           <div className="mt-8 pt-4 border-t border-gray-100 flex justify-between text-gray-400 text-[10px]">
-            <span>Generated by Reclaim v1.0 · {bundle.id}</span>
+            <span>Generated by Reclaim Pay · {formatClaimRef(bundle.id)}</span>
             <span>CONFIDENTIAL — Internal Use Only</span>
           </div>
         </div>
@@ -317,6 +346,8 @@ export default function ViewPage() {
   );
 
   const pct = Math.round(bundle.confidence * 100);
+  const identityFields = identityFieldsOf(bundle);
+  const contextFields = contextFieldsOf(bundle);
 
   async function submit() {
     if (!hrDecision) return;
@@ -357,7 +388,7 @@ export default function ViewPage() {
           </span>
         </div>
         <p className="text-sm text-on-surface-variant mt-1">
-          Claim <span className="font-mono font-semibold">{bundle.id}</span> · Submitted {new Date(bundle.submitted_at).toLocaleString("en-MY")} · <span className="text-emerald-600 font-semibold">{pct}% confidence</span>
+          Claim <span className="font-mono font-semibold">{formatClaimRef(bundle.id)}</span> · Submitted {new Date(bundle.submitted_at).toLocaleString("en-MY")} · <span className="text-emerald-600 font-semibold">{pct}% confidence</span>
         </p>
       </div>
 
@@ -369,21 +400,18 @@ export default function ViewPage() {
           {/* Employee Identity */}
           <Card title="Employee Identity">
             <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {([["Entity", bundle.employee.entity], ["Employee Name", bundle.employee.name], ["Employee No.", bundle.employee.employee_no],
-                ["Position", bundle.employee.position], ["Department", bundle.employee.department], ["Location", bundle.employee.location]] as [string,string][])
-                .map(([l, v]) => <Field key={l} label={l} value={v} />)}
+              {identityFields.map(([l, v]) => <Field key={l} label={l} value={v} />)}
             </div>
           </Card>
 
-          {/* Claim Context */}
-          <Card title="Claim Context">
-            <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {([["Destination", bundle.travel_destination], ["Purpose", bundle.travel_purpose],
-                ["Departure", bundle.departure_date], ["Arrival", bundle.arrival_date],
-                ["Overseas Travel", bundle.is_overseas ? "Yes" : "No"]] as [string,string][])
-                .map(([l, v]) => <Field key={l} label={l} value={v} />)}
-            </div>
-          </Card>
+          {/* Claim Context: shown only when at least one value was recorded */}
+          {contextFields.length > 0 && (
+            <Card title="Claim Context">
+              <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {contextFields.map(([l, v]) => <Field key={l} label={l} value={v} />)}
+              </div>
+            </Card>
+          )}
 
           {/* Official Document */}
           <Card title="Official Document">
@@ -395,7 +423,7 @@ export default function ViewPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-headline font-semibold text-sm text-on-surface">Official Claim Form</p>
                   <p className="font-body text-xs text-on-surface-variant">
-                    {bundle.id}_claim_form.pdf
+                    {formatClaimRef(bundle.id)}_claim_form.pdf
                   </p>
                 </div>
               </div>
@@ -613,7 +641,7 @@ export default function ViewPage() {
         />
       )}
 
-      {showSuccessModal && <SuccessModal decision={hrDecision} id={bundle.id} />}
+      {showSuccessModal && <SuccessModal decision={hrDecision} id={formatClaimRef(bundle.id)} />}
     </div>
   );
 }
