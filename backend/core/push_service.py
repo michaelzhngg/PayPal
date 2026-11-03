@@ -1,6 +1,7 @@
 import logging
 import json
 import asyncio
+import os
 from uuid import UUID
 from pathlib import Path
 
@@ -15,7 +16,12 @@ from core.models import PushSubscription
 
 logger = logging.getLogger(__name__)
 
-VAPID_KEYS_FILE = Path(__file__).resolve().parent.parent / "vapid_keys.json"
+# Override in containers so the key pair lives on a persistent volume; a new
+# pair on every redeploy would invalidate all existing push subscriptions.
+VAPID_KEYS_FILE = Path(
+    os.environ.get("VAPID_KEYS_FILE")
+    or Path(__file__).resolve().parent.parent / "vapid_keys.json"
+)
 
 # ─── VAPID key management ──────────────────────────────────────────────────
 
