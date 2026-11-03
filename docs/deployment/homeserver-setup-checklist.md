@@ -175,8 +175,12 @@ identity token for **this repo's production deploy job only**.
    | Description | `Paypal Hackathon` (anything) |
    | Issuer | **GitHub** |
    | Issuer URL | `https://token.actions.githubusercontent.com` (filled in for you) |
-   | Subject | `repo:michaelzhngg/PayPal:environment:production` |
+   | Subject | `repo:michaelzhngg@142100201/PayPal@1443110379:environment:production` |
    | Custom claims | none (don't click *Add claim key*) |
+
+   This repo uses GitHub's *immutable subject* format (owner and repo IDs after the
+   `@`), so the plain `repo:michaelzhngg/PayPal:…` form is rejected with a 403. Check the
+   current prefix with `gh api repos/michaelzhngg/PayPal/actions/oidc/customization/sub`.
 
    Type the subject exactly, case included. The placeholder `…:environment:*` would
    allow any environment; we pin it to `production`, the one the deploy job uses.
@@ -235,7 +239,7 @@ database). Expect 5–10 minutes.
 
 | Fails at | Likely cause | Fix |
 |---|---|---|
-| Join tailnet | Subject or tag mismatch in step 6, or secrets missing | Re-check step 6 values; subject must be exactly `repo:michaelzhngg/PayPal:environment:production` |
+| Join tailnet | Subject or tag mismatch in step 6, or secrets missing | Re-check step 6 values; subject must be exactly `repo:michaelzhngg@142100201/PayPal@1443110379:environment:production` |
 | Wait for the server to be reachable | Policy doesn't allow `tag:ci` → `100.87.169.54:22` | Re-check step 5 |
 | Deploy: `.env still has placeholder secrets` | `.env` was recreated | Re-run `install.sh` or fix `.env` |
 | Deploy: `pull failed` | Image not pushed / GHCR permission | Check the **Build** jobs ran on `main` and pushed |

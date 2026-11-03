@@ -125,7 +125,7 @@ In the [Tailscale admin console](https://login.tailscale.com/admin):
    device. Tighten that when you're ready, keeping your own devices' access.
 2. **Settings → Trust credentials → Credential → OpenID Connect**:
    - Issuer: **GitHub Actions**
-   - Subject: `repo:michaelzhngg/PayPal:environment:production`
+   - Subject: `repo:michaelzhngg@142100201/PayPal@1443110379:environment:production`
    - Scope: **auth_keys** (write), tag **tag:ci**
    - Generate, then copy **Client ID** and **Audience**.
 3. Add them as repo secrets (gh works with your write access):
