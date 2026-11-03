@@ -184,6 +184,12 @@ jobs:
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: printf '%s %s\n' "${{ github.actor }}" "$GHCR_TOKEN" | ssh homeserver "deploy ${{ steps.tag.outputs.value }}"
 
+      # On the tailnet, MagicDNS resolves the Funnel hostname to the server's tailnet
+      # IP, where tag:ci may only use port 22. Leave first so the check goes the way
+      # real visitors do.
+      - name: Leave tailnet
+        run: sudo tailscale down
+
       - name: Public smoke test
         if: vars.PUBLIC_URL != ''
         env:
