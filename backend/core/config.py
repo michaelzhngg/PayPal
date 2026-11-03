@@ -37,6 +37,17 @@ class Settings(BaseSettings):
     XENDIT_WEBHOOK_URL: str = "https://reclaimai.dev/api/v1/payouts/webhook"
     XENDIT_MOCK_MODE: bool = True
 
+    # PayPal (sandbox by default; mock mode needs no keys)
+    PAYPAL_MOCK_MODE: bool = True
+    PAYPAL_BASE_URL: str = "https://api-m.sandbox.paypal.com"
+    PAYPAL_WEB_URL: str = "https://www.sandbox.paypal.com"
+    PAYPAL_CLIENT_ID: str = ""
+    PAYPAL_CLIENT_SECRET: str = ""
+    PAYPAL_WEBHOOK_ID: str = ""
+    PAYPAL_CURRENCY: str = "MYR"
+    BACKEND_PUBLIC_URL: str = "http://localhost:8000"
+    FRONTEND_PUBLIC_URL: str = "http://localhost:3000"
+
     # Autonomous reimbursement — kill switch (set to false to force all claims through HR)
     AUTO_REIMBURSE_ENABLED: bool = True
 
