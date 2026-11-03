@@ -1,0 +1,116 @@
+import type { PayeeStatus, PayoutInfoV2, PayoutLedgerRow } from "@/lib/api/reclaim-pay-types";
+
+const inThreeDays = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
+
+/** The four states the Connect PayPal card has to render. */
+export const payeeVariants: Record<"notLinked" | "verified" | "coolDown" | "unverified", PayeeStatus> = {
+  notLinked: { linked: false, email_masked: null, verified: false, linked_at: null, cooldown_until: null },
+  verified: {
+    linked: true,
+    email_masked: "e***@sandbox.example",
+    verified: true,
+    linked_at: "2026-10-28T09:12:00Z",
+    cooldown_until: null,
+  },
+  coolDown: {
+    linked: true,
+    email_masked: "e***@sandbox.example",
+    verified: true,
+    linked_at: new Date().toISOString(),
+    cooldown_until: inThreeDays,
+  },
+  unverified: {
+    linked: true,
+    email_masked: "e***@sandbox.example",
+    verified: false,
+    linked_at: "2026-10-28T09:12:00Z",
+    cooldown_until: null,
+  },
+};
+
+export const payee: PayeeStatus = payeeVariants.verified;
+
+export const payoutS1: PayoutInfoV2 = {
+  payout_id: "9b1f6a52-0d1e-4b7a-9a59-1f3c2b7d4e01",
+  reim_id: "5c2e8f10-4a3b-4c6d-8e9f-0a1b2c3d4e5f",
+  user_id: "70a8e9da-549a-4718-b854-23164e464be0",
+  amount: 48,
+  currency: "MYR",
+  status: "SUCCEEDED",
+  provider: "PAYPAL",
+  provider_batch_id: "MOCKB-5C2E8F104A3B",
+  provider_item_id: "MOCKI-5C2E8F104A3B",
+  attempt: 1,
+  reference_id: "RC-5c2e8f10",
+  channel_code: "PAYPAL",
+  failure_code: null,
+  created_at: "2026-11-04T02:14:05Z",
+  updated_at: "2026-11-04T02:14:14Z",
+};
+
+export const ledgerRows: PayoutLedgerRow[] = [
+  {
+    payout_id: payoutS1.payout_id,
+    reim_id: payoutS1.reim_id,
+    claim_ref: "RC-5c2e8f10",
+    employee_name: "Aisyah Rahman",
+    amount: 48,
+    currency: "MYR",
+    status: "SUCCEEDED",
+    tier: "AUTO_PAY",
+    provider_batch_id: "MOCKB-5C2E8F104A3B",
+    provider_item_id: "MOCKI-5C2E8F104A3B",
+    attempt: 1,
+    audit_selected: false,
+    created_at: "2026-11-04T02:14:05Z",
+    updated_at: "2026-11-04T02:14:14Z",
+  },
+  {
+    payout_id: "1e0c3b0a-5f63-4d0f-9b0b-6a8f2d1c7e22",
+    reim_id: "8d4a1b2c-3e5f-4a6b-8c7d-9e0f1a2b3c4d",
+    claim_ref: "RC-8d4a1b2c",
+    employee_name: "Daniel Lim",
+    amount: 250,
+    currency: "MYR",
+    status: "REQUESTED",
+    tier: "HR_REVIEW",
+    provider_batch_id: "MOCKB-8D4A1B2C3E5F",
+    provider_item_id: null,
+    attempt: 1,
+    audit_selected: false,
+    created_at: "2026-11-04T03:02:40Z",
+    updated_at: "2026-11-04T03:02:41Z",
+  },
+  {
+    payout_id: "4f7a9c1e-2b3d-4e5f-8a9b-0c1d2e3f4a5b",
+    reim_id: "2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d",
+    claim_ref: "RC-2a3b4c5d",
+    employee_name: "Priya Nair",
+    amount: 86.4,
+    currency: "MYR",
+    status: "FAILED",
+    tier: "HR_QUICK",
+    provider_batch_id: "MOCKB-2A3B4C5D6E7F",
+    provider_item_id: "MOCKI-2A3B4C5D6E7F",
+    attempt: 1,
+    audit_selected: true,
+    created_at: "2026-11-03T08:41:10Z",
+    updated_at: "2026-11-03T08:41:22Z",
+  },
+  {
+    payout_id: "6c8e0a2b-4d6f-4801-9a3c-5e7f9b1d3f50",
+    reim_id: "2a3b4c5d-6e7f-4a8b-9c0d-1e2f3a4b5c6d",
+    claim_ref: "RC-2a3b4c5d",
+    employee_name: "Priya Nair",
+    amount: 86.4,
+    currency: "MYR",
+    status: "SUCCEEDED",
+    tier: "HR_QUICK",
+    provider_batch_id: "MOCKB-2A3B4C5D6E80",
+    provider_item_id: "MOCKI-2A3B4C5D6E80",
+    attempt: 2,
+    audit_selected: true,
+    created_at: "2026-11-03T09:05:00Z",
+    updated_at: "2026-11-03T09:05:09Z",
+  },
+];
