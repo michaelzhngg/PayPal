@@ -8,6 +8,7 @@
 
 import { apiGet, apiPatch, apiPost, apiPostMultipart, API_PREFIX } from "@/lib/api/client";
 import type { ReimbursementRaw, Claim, ClaimBundle, PayoutInfo, AiStatus } from "@/lib/api/types";
+import { formatClaimRef, formatMoney } from "@/lib/format";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -35,10 +36,10 @@ function formatDate(iso: string | null): string {
   return d.toLocaleDateString("en-MY", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function formatCurrency(amount: number, currency = "MYR"): string {
-  const symbols: Record<string, string> = { MYR: "MYR ", USD: "$", EUR: "€", GBP: "£" };
-  const sym = symbols[currency] ?? `${currency} `;
-  return `${sym}${amount.toLocaleString("en-MY", { minimumFractionDigits: 2 })}`;
+/** "3 Nov": short enough for a table column. */
+function formatShortDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 /** Map a raw reimbursement to the HR dashboard list row shape. */
@@ -53,7 +54,7 @@ function mapToClaim(r: ReimbursementRaw): Claim {
       initials: getInitials(employeeName),
     },
     date: formatDate(r.created_at),
-    amount: formatCurrency(r.total_claimed_amount ?? 0, r.currency),
+    amount: formatMoney(r.currency ?? "MYR", r.total_claimed_amount ?? 0),
     category: r.main_category ?? "General",
     status: aiStatus,
     note: r.summary ? r.summary.split(".")[0] : undefined,
@@ -92,7 +93,8 @@ function mapToBundle(r: ReimbursementRaw): ClaimBundle {
     employee: {
       name: employeeName,
       initials: getInitials(employeeName),
-      employee_no: r.user_id ?? "",
+      // The staff number, never the user UUID. Empty hides the field.
+      employee_no: r.employee_code ?? "",
       position: "",
       department: deptName,
       location: "",
@@ -100,10 +102,11 @@ function mapToBundle(r: ReimbursementRaw): ClaimBundle {
       email: "",
     },
     submitted_at: r.created_at ?? new Date().toISOString(),
-    travel_destination: "",
-    travel_purpose: r.summary?.split(".")[0] ?? "",
-    departure_date: "",
-    arrival_date: "",
+    travel_destination: r.destination ?? "",
+    // The settlement's stated purpose. r.summary is the AI's risk summary and belongs in the AI panel only.
+    travel_purpose: r.purpose ?? "",
+    departure_date: r.departure_date ?? "",
+    arrival_date: r.arrival_date ?? "",
     is_overseas: false,
     line_items: lineItems,
     totals: {
@@ -192,6 +195,28 @@ export interface HistoryClaim {
   dateSubmitted: string;
   dateResolved: string;
   status: "Approved" | "Rejected" | "Paid";
+  /** Where the money is. null for rejected claims, which never pay out. */
+  payout: PayoutState | null;
+}
+
+export type PayoutState =
+  | { kind: "paid" }
+  | { kind: "sending" }
+  | { kind: "waiting_link" }
+  | { kind: "not_sent" }
+  | { kind: "failed"; reason: string | null };
+
+/** Payout state for an approved claim, from the claim status, its latest payout and the payee link. */
+function payoutStateOf(r: ReimbursementRaw): PayoutState | null {
+  if (r.status === "REJECTED") return null;
+  const p = r.payout?.status;
+  if (r.status === "PAID" || p === "SUCCEEDED") return { kind: "paid" };
+  if (r.status === "DISBURSEMENT_FAILED" || p === "FAILED" || p === "CANCELLED" || p === "REVERSED") {
+    return { kind: "failed", reason: r.payout?.failure_code ?? null };
+  }
+  if (r.status === "DISBURSING" || p === "ACCEPTED" || p === "REQUESTED") return { kind: "sending" };
+  if (r.payee_linked === false) return { kind: "waiting_link" };
+  return { kind: "not_sent" };
 }
 
 /**
@@ -212,7 +237,8 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
     DISBURSING: "Approved",
     PAID: "Paid",
     REJECTED: "Rejected",
-    DISBURSEMENT_FAILED: "Rejected",
+    // A failed payout is still an approved claim. The payout column shows the failure.
+    DISBURSEMENT_FAILED: "Approved",
   };
 
   return result.data
@@ -221,7 +247,7 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
       const isAutoProcessed = r.reviewed_by == null;
       const createdAt = r.created_at ? new Date(r.created_at) : null;
       const isRecent = createdAt != null && createdAt >= cutoff;
-      const isResolved = ["APPROVED", "DISBURSING", "PAID", "REJECTED"].includes(r.status);
+      const isResolved = ["APPROVED", "DISBURSING", "PAID", "REJECTED", "DISBURSEMENT_FAILED"].includes(r.status);
       if (isAutoProcessed && isRecent && !isResolved) return false; // exclude only unresolved
       return statusMap[r.status] != null;
     })
@@ -233,7 +259,7 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
       const name = r.employee_name ?? "Unknown";
       const resolvedDate = r.reviewed_at ?? r.updated_at ?? r.created_at;
       return {
-        id: `RC-${r.reim_id.slice(0, 8).toUpperCase()}`,
+        id: formatClaimRef(r.reim_id),
         reim_id: r.reim_id,
         employeeName: name,
         employeeInitial: name.charAt(0).toUpperCase(),
@@ -241,9 +267,10 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
         policyName: r.policy_name ?? r.main_category ?? "General",
         amount: r.total_claimed_amount ?? 0,
         currency: r.currency ?? "MYR",
-        dateSubmitted: formatDate(r.created_at),
-        dateResolved: formatDate(resolvedDate ?? null),
+        dateSubmitted: formatShortDate(r.created_at),
+        dateResolved: formatShortDate(resolvedDate ?? null),
         status: statusMap[r.status] as "Approved" | "Rejected" | "Paid",
+        payout: payoutStateOf(r),
       };
     });
 }
