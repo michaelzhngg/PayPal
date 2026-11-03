@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext"; // Import AuthProvider
 import ServiceWorkerRegistration from "./_components/ServiceWorkerRegistration";
 import PushNotificationProvider from "./_components/PushNotificationProvider";
 import PushPermissionPrompt from "./_components/PushPermissionPrompt";
+import { ToastProvider } from "@/components/toast/ToastProvider";
 
 const inter = localFont({
   src: "./fonts/inter-latin-wght-normal.woff2",
@@ -71,13 +72,15 @@ export default function RootLayout({
       className={`${inter.variable} ${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          <PushNotificationProvider>
-            {children}
-            <PushPermissionPrompt />
-            <ServiceWorkerRegistration />
-          </PushNotificationProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <PushNotificationProvider>
+              {children}
+              <PushPermissionPrompt />
+              <ServiceWorkerRegistration />
+            </PushNotificationProvider>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );
