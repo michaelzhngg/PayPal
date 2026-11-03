@@ -121,10 +121,10 @@ export default function Footer() {
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <p className="text-xs opacity-70 text-center sm:text-left">
-            Built for UM Hackathon 2026 · Reclaim MVP v1.0
+            Reclaim Pay · Built for the PayPal AI Hackathon 2026
           </p>
           <a
-            href="https://github.com/zsh-sage/reclaim"
+            href="https://github.com/michaelzhngg/PayPal"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-xs font-semibold opacity-80 hover:opacity-100 transition-opacity"

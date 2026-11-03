@@ -373,7 +373,7 @@ All scenarios run against a **demo policy** that Darrell uploads through Policy 
 
 ## Open questions (resolve on Day 0)
 
-1. The Devpost rules on existing projects. A third-party listing says "substantially upgrade an existing one" is allowed; confirm on Devpost. The write-up gets a "What's new since UM Hackathon 2026" section either way.
+1. The Devpost rules on existing projects. A third-party listing says "substantially upgrade an existing one" is allowed; confirm on Devpost. The write-up gets a "What's new since the original Reclaim (April 2026)" section either way.
 2. Can one project win several sponsor prizes?
 3. MYR or USD in the sandbox (A0 spike).
 4. Does Render Postgres support `CREATE EXTENSION vector`? If not, staging uses the current VM.

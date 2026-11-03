@@ -21,7 +21,7 @@ This is the one page to keep open. Each section links to the detailed documents:
 
 **Why it should win:** the one hard rule is that the project must "meaningfully use PayPal and AI". Most teams will attach a checkout button to a chatbot. We show an AI agent moving money through PayPal under the controls PayPal itself cares about: verified payees, payouts that can't be sent twice, spend limits, a circuit breaker, and mistakes that are recovered fairly.
 
-**What already exists (from UM Hackathon 2026):** receipt OCR, policy extraction, the compliance agent, the "Fraud Trap" edit detection, employee and HR portals, and a PWA.
+**What already exists (from the original Reclaim, April 2026):** receipt OCR, policy extraction, the compliance agent, the "Fraud Trap" edit detection, employee and HR portals, and a PWA.
 
 **What's new this week:** everything in section 4. The Devpost write-up must say this clearly in a "What's new" section.
 
@@ -294,7 +294,7 @@ We link features to each judge's company and role only. Don't mention judges' pe
 
 - [ ] Staging URL works logged out, and demo logins are listed in the write-up
 - [ ] Video ≤ 3:00 uploaded (YouTube, unlisted or public), with captions on
-- [ ] Devpost: Inspiration, What it does, How we built it, Built with (each tool and how it's used), Challenges, **What's new since UM Hackathon 2026**, What's next, and the sandbox note
+- [ ] Devpost: Inspiration, What it does, How we built it, Built with (each tool and how it's used), Challenges, **What's new since the original Reclaim (April 2026)**, What's next, and the sandbox note
 - [ ] README: demo link, video, architecture diagram, how to run with sandbox keys, Postman link
 - [ ] Public Postman workspace link
 - [ ] Repository is public, or judges have access
@@ -308,7 +308,7 @@ We link features to each judge's company and role only. Don't mention judges' pe
 
 1. Do the Devpost rules allow an existing project, as long as it's substantially upgraded? Check the official rules page. — Darrell
 2. Can one project win several sponsor prizes? — Darrell
-3. Do we approve dropping AI-only rejections (a behavior change from the UM Hackathon version)? — Team
+3. Do we approve dropping AI-only rejections (a behavior change from the original version)? — Team
 4. Are the default limits right (RM50 / 100 / 200, two people above RM1,000)? — Team
 5. MYR or USD in the sandbox? — Chingiz, after the Day 0 test
 6. Do we want an AG Grid Enterprise trial key, or stay on the free Community version? — Christian

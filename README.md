@@ -4,7 +4,7 @@
 
 ### AI-assisted expense reimbursement with intelligent decision support.
 
-[![UM Hackathon 2026](https://img.shields.io/badge/UM%20Hackathon-2026%20Final%20Round-blue?style=for-the-badge)](https://hackathon.um.edu.mo/)
+[![PayPal AI Hackathon 2026](https://img.shields.io/badge/PayPal%20AI%20Hackathon-2026-003087?style=for-the-badge&logo=paypal&logoColor=white)](https://devpost.com)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-reclaimai.dev-brightgreen?style=for-the-badge)](https://reclaimai.dev)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
@@ -16,37 +16,20 @@
 
 ---
 
-## 🏆 Final Round Submission
+## 🏆 Reclaim Pay — PayPal AI Hackathon 2026
 
-> **Team Bogosort — UM Hackathon 2026 Final Round**
+> **Team Bogosort**
 
-### 🌐 Live Platform
+**Reclaim Pay** extends Reclaim with an AI agent that pays approved expense claims straight to employees' PayPal accounts when it is safe, and routes everything else to HR with the evidence ready: *automation where it's safe, judgment where it matters.*
 
-**Access the full platform at:** [**https://reclaimai.dev**](https://reclaimai.dev)
-
-- **Employee Portal:** Submit expense claims, track approvals, and manage reimbursements
-- **HR Portal:** Review policies, triage claims, and make final decisions
-
-### 📋 Submission Documents
-
-All final round submission materials are centralized in:
-
-**📁 [Google Drive — Reclaim Final Round Submission](https://drive.google.com/drive/folders/1f5yyRZrRANP7g13lGEje9fE3dvRdjUnb?usp=sharing)**
-
-**Includes:**
-- 📊 **Pitch Deck** — Product overview, market positioning, team vision
-- 📄 **Business Proposal** — Market analysis, financial projections, go-to-market strategy
-- 🚀 **Deployment Plan** — Infrastructure setup, scaling strategy, DevOps procedures
-- 🧪 **Quality Assurance Report** — Testing strategy, edge cases, performance benchmarks
+Work in progress. The plan is in [`docs/hackathon/PLAN.md`](docs/hackathon/PLAN.md), with full detail in [`docs/hackathon/DETAIL-PLAN.md`](docs/hackathon/DETAIL-PLAN.md). All payments use the PayPal sandbox.
 
 ### Quick Links
 
 | Resource | Link |
 |---|---|
-| 🎥 **Demo & Pitch Video Pre-eliminary Round** | [Watch on YouTube](https://youtu.be/9N3So5Cx0YU) |
 | 🌍 **Live Platform** | [reclaimai.dev](https://reclaimai.dev) |
-| 📁 **All Submission Docs** | [Google Drive Folder](https://drive.google.com/drive/folders/1f5yyRZrRANP7g13lGEje9fE3dvRdjUnb?usp=sharing) |
-| 🐙 **GitHub Repository** | [zsh-sage/reclaim](https://github.com/zsh-sage/reclaim) |
+| 🐙 **GitHub Repository** | [michaelzhngg/PayPal](https://github.com/michaelzhngg/PayPal) |
 
 ---
 
@@ -139,7 +122,7 @@ Reclaim is not a black box. Every judgment is explainable — every policy rule 
 | Python FastAPI | `0.129.1` | Async REST API, auto-generated OpenAPI docs at `/docs` |
 | LangGraph | `1.1.5` | Stateful agent graph orchestration (Policy & Compliance agents) |
 | LangChain | `1.2.15` | LLM abstraction layer, `ChatOpenAI`-compatible client |
-| LangSmith | `0.1.99` | LLM observability and distributed tracing (project: `um_hackathon`) |
+| LangSmith | `0.1.99` | LLM observability and distributed tracing (project: `reclaim_pay`) |
 | PyMuPDF4LLM | `0.27.2.2` | PDF-to-markdown conversion for document ingestion |
 | Pillow | `12.2.0` | Image preprocessing (resize, compression) before vision LLM calls |
 | xhtml2pdf + Jinja2 | `0.2.16` | Settlement form PDF rendering from HTML template |
@@ -191,7 +174,7 @@ Compliance Agent (5 nodes):
 | Technology | Role |
 |---|---|
 | Docker Compose | Containerized PostgreSQL (pgvector) + FastAPI backend + Next.js frontend with persistent volumes and `.env` injection |
-| LangSmith | Per-call LLM tracing, token counts, node-level debugging — project: `um_hackathon` |
+| LangSmith | Per-call LLM tracing, token counts, node-level debugging — project: `reclaim_pay` |
 | Web Push API | Real-time notifications to all authenticated clients |
 
 ### 🌐 Deployment
@@ -219,8 +202,8 @@ Compliance Agent (5 nodes):
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/zsh-sage/reclaim.git
-cd reclaim
+git clone https://github.com/michaelzhngg/PayPal.git
+cd PayPal
 ```
 
 ### 2. Environment Configuration
@@ -259,7 +242,7 @@ EMBEDDING_MODEL=openai/text-embedding-3-small
 LANGCHAIN_TRACING_V2=true
 LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
 LANGCHAIN_API_KEY=your_langsmith_api_key
-LANGCHAIN_PROJECT=um_hackathon
+LANGCHAIN_PROJECT=reclaim_pay
 
 # Frontend + Backend (Docker Compose)
 NODE_ENV=production
@@ -313,7 +296,7 @@ Reclaim operates as a **two-portal system** with JWT-based, role-isolated access
 
 ## 👥 Contributors
 
-Built for **UM Hackathon 2026 Final Round** by **Team Bogosort**.
+Built by **Team Bogosort**.
 
 | Name | Role |
 |---|---|
@@ -327,10 +310,10 @@ Built for **UM Hackathon 2026 Final Round** by **Team Bogosort**.
 
 <div align="center">
 
-**🏆 UM Hackathon 2026 Final Round**
+**🏆 PayPal AI Hackathon 2026**
 
 *Built with intent. Deployed to production. Ready for scale.*
 
-[🌍 Visit reclaimai.dev](https://reclaimai.dev) · [📁 Submission Documents](https://drive.google.com/drive/folders/1f5yyRZrRANP7g13lGEje9fE3dvRdjUnb?usp=sharing) · [🐙 GitHub](https://github.com/zsh-sage/reclaim)
+[🌍 Visit reclaimai.dev](https://reclaimai.dev) · [🐙 GitHub](https://github.com/michaelzhngg/PayPal)
 
 </div>
