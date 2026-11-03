@@ -214,7 +214,7 @@ def _compute_risk_level(changes: dict) -> str:
 From `backend/` directory:
 
 ```bash
-cd "C:/Main Storage/Programming/Hackathon/um_hackathon_bogosort/reclaim/backend"
+cd backend
 uv run python -c "
 from engine.tools.change_detector import detect_changes
 
@@ -324,7 +324,7 @@ from engine.tools.change_detector import detect_changes, EDITABLE_FIELDS
 - [ ] **Step 2: Verify the server starts without errors**
 
 ```bash
-cd "C:/Main Storage/Programming/Hackathon/um_hackathon_bogosort/reclaim/backend"
+cd backend
 uv run uvicorn main:app --port 8001 --no-access-log &
 sleep 3
 curl -s http://localhost:8001/health | python -c "import sys,json; d=json.load(sys.stdin); print(d)"
@@ -697,7 +697,7 @@ Expected: 3 rows returned.
 - [ ] **Step 2: Start the server and verify Swagger shows new endpoint**
 
 ```bash
-cd "C:/Main Storage/Programming/Hackathon/um_hackathon_bogosort/reclaim/backend"
+cd backend
 uv run uvicorn main:app --port 8000 --reload
 ```
 

@@ -67,7 +67,7 @@
 
 **Problem.** Expense reimbursement takes days. HR opens every receipt, checks policy by hand, and still misses fakes, and AI now makes fake receipts easy to produce.
 
-**What Reclaim already does** (UM Hackathon 2026): reads receipts with AI, checks them against company policy, flags edited amounts ("Fraud Trap"), recommends a decision, and gives employees and HR their own portals.
+**What Reclaim already does** (April 2026): reads receipts with AI, checks them against company policy, flags edited amounts ("Fraud Trap"), recommends a decision, and gives employees and HR their own portals.
 
 **What Reclaim Pay adds** (this hackathon): an agent that **pays approved claims straight to the employee's PayPal account within seconds when it's safe**, and sends everything else to HR with the evidence prepared.
 
@@ -75,7 +75,7 @@
 
 **The moment judges should remember:** a receipt photo becomes money in a PayPal account in under a minute. Then an AI-generated receipt and a receipt with hidden "approve this" text are both caught, explained and stopped.
 
-**What's new since UM Hackathon 2026.** The Devpost write-up must list these:
+**What's new since the original Reclaim (April 2026).** The Devpost write-up must list these:
 
 1. PayPal Payouts replace the mocked Xendit bank transfer.
 2. Payout accounts are verified with "Log in with PayPal".
@@ -1648,7 +1648,7 @@ Darrell finalizes this; everyone reviews at 19:00 Day 3.
 
 **What's next** (with the risk design already written): vendor direct pay, travel advances with automatic settlement, contractor payouts, and "uphold with a reason" for disputed recoveries.
 
-**What's new since UM Hackathon 2026:** the list in section 2.
+**What's new since the original Reclaim (April 2026):** the list in section 2.
 
 **Note:** all payments use the PayPal sandbox. Demo logins are listed above.
 
@@ -1795,7 +1795,7 @@ Likelihood and impact: H/M/L.
 
 - [ ] Staging URL works logged out; demo logins in the write-up
 - [ ] Video at most 3:00, captions on, public or unlisted link
-- [ ] Devpost: all sections in 20, including "What's new since UM Hackathon 2026"
+- [ ] Devpost: all sections in 20, including "What's new since the original Reclaim (April 2026)"
 - [ ] README: demo link, video, diagram, run instructions with sandbox keys, Postman link
 - [ ] Public Postman workspace
 - [ ] Repository public, or judges have access

@@ -7,89 +7,177 @@ Usage from an async context (FastAPI route):
 
 Usage from a sync thread (background task with access to the event loop):
     payout = initiate_payout_sync(reim_id, db, loop)
+
+Payouts go to the employee's verified PayPal account (recipient_type PAYPAL_ID).
+`sender_batch_id` is derived from the claim and attempt number, so a retried
+request can never pay twice.
 """
 import asyncio
 import logging
+import threading
 from datetime import datetime, timezone
+from decimal import Decimal
 from uuid import UUID
 
 from sqlmodel import Session, select
 
 from core.config import settings
 from core.models import User, Reimbursement, Payout, Notification
-from core.enums import ReimbursementStatus, PayoutStatus
-from engine.services.xendit import (
-    XenditClient,
-    MockWebhookSimulator,
-    set_webhook_simulator,
-    get_webhook_simulator,
+from core.enums import AgentActionType, ReimbursementStatus, PayoutStatus
+from core.push_service import fire_and_forget_push
+from engine.services.action_log import record_action
+from engine.services.paypal_client import (
+    PayoutCreated,
+    get_paypal_client,
+    mask_email,
+    sender_batch_id_for,
 )
+from engine.services.recovery_service import offset_for_reim
 
 logger = logging.getLogger(__name__)
-_xendit = XenditClient()
 
-_CHANNEL_NAMES = {
-    "MY_MAYBANK": "Maybank",
-    "MY_CIMB": "CIMB Bank",
-    "MY_PBB": "Public Bank",
-    "MY_RHB": "RHB Bank",
-    "MY_HLBB": "Hong Leong Bank",
-    "MY_AMBANK": "AmBank",
-    "MY_UOB": "UOB Malaysia",
-    "MY_OCBC": "OCBC Malaysia",
-    "MY_AFFIN": "Affin Bank",
-    "MY_DUITNOW": "DuitNow",
-}
+_LIVE_STATUSES = {PayoutStatus.ACCEPTED, PayoutStatus.REQUESTED, PayoutStatus.SUCCEEDED}
+_PAYABLE_STATUSES = {ReimbursementStatus.APPROVED, ReimbursementStatus.DISBURSEMENT_FAILED}
 
 
-def _get_channel_name(channel_code: str) -> str:
-    return _CHANNEL_NAMES.get(channel_code, channel_code)
+def payout_plan(
+    reim_status: str,
+    net_amount: Decimal,
+    existing_statuses: list[str],
+    payee_verified: bool,
+) -> tuple[str, Decimal | None, int]:
+    """Decide what to do for a claim. Returns (action, amount, attempt)."""
+    if reim_status not in _PAYABLE_STATUSES:
+        return "SKIP_NOT_APPROVED", None, 0
+    if any(s in _LIVE_STATUSES for s in existing_statuses):
+        return "SKIP_EXISTING", None, 0
+    if net_amount <= 0:
+        return "SKIP_ZERO", None, 0
+    if not payee_verified:
+        return "SKIP_NO_PAYEE", None, 0
+    # attempt only moves on after a payout ended FAILED, REVERSED or CANCELLED
+    return "CREATE", net_amount, len(existing_statuses) + 1
 
 
-def _notify(db: Session, user_id: UUID, n_type: str, title: str, message: str, link: str = None):
-    notif = Notification(
-        user_id=user_id,
-        type=n_type,
-        title=title,
-        message=message,
-        link=link,
-        is_read=False,
-    )
-    db.add(notif)
+def notify(db: Session, user_id: UUID, n_type: str, title: str, message: str, link: str | None = None):
+    db.add(Notification(user_id=user_id, type=n_type, title=title, message=message, link=link, is_read=False))
     db.commit()
+    fire_and_forget_push(user_id, title, message, link=link or "/")
 
 
-def _mask_account(account: str) -> str:
-    if not account or len(account) < 4:
-        return "****"
-    return "*" * (len(account) - 4) + account[-4:]
+def _claim_ref(reim_id: UUID) -> str:
+    return f"RC-{str(reim_id)[:8]}"
 
 
-def _schedule_mock_webhook(xendit_id: str, loop: asyncio.AbstractEventLoop | None):
-    """Schedule the Xendit mock webhook on the given event loop (or current loop)."""
-    async def _setup():
-        simulator = get_webhook_simulator()
-        if simulator is None:
-            async def _on_webhook(payout_id: str, status_str: str, failure_code: str | None):
-                from core.database import engine as db_engine
-                with Session(db_engine) as s:
-                    from api.payouts import _handle_webhook
-                    _handle_webhook(s, payout_id, status_str, failure_code)
+def _existing_payouts(db: Session, reim_id: UUID) -> list[Payout]:
+    return list(db.exec(select(Payout).where(Payout.reim_id == reim_id).order_by(Payout.attempt)).all())
 
-            simulator = MockWebhookSimulator(_on_webhook)
-            set_webhook_simulator(simulator)
 
-        if isinstance(simulator, MockWebhookSimulator):
-            simulator.schedule(xendit_id, delay=10.0)
+def _plan(reim_id: UUID, db: Session):
+    reim = db.get(Reimbursement, reim_id)
+    if not reim:
+        return None, None, ("SKIP_NOT_APPROVED", None, 0), []
+    existing = _existing_payouts(db, reim_id)
+    employee = db.get(User, reim.user_id)
+    payee_verified = bool(employee and employee.paypal_verified and employee.paypal_payer_id)
+    net_amount, _applied = offset_for_reim(db, reim)
+    plan = payout_plan(reim.status, net_amount, [p.status for p in existing], payee_verified)
+    return reim, employee, plan, existing
 
-    if loop and loop.is_running():
-        asyncio.run_coroutine_threadsafe(_setup(), loop)
-    else:
+
+def _settle_without_payout(db: Session, reim: Reimbursement):
+    reim.status = ReimbursementStatus.PAID
+    reim.updated_at = datetime.now(timezone.utc)
+    db.add(reim)
+    db.commit()
+    notify(
+        db, reim.user_id, "success",
+        f"Claim {_claim_ref(reim.reim_id)} settled",
+        "Settled against an earlier overpayment. No PayPal transfer was needed.",
+        link=f"/employee/history?id={reim.reim_id}",
+    )
+
+
+def _handle_skip(db: Session, reim: Reimbursement | None, action: str, existing: list[Payout]) -> Payout | None:
+    if action == "SKIP_EXISTING":
+        return next(p for p in reversed(existing) if p.status in _LIVE_STATUSES)
+    if action == "SKIP_ZERO" and reim is not None:
+        _settle_without_payout(db, reim)
+    elif action == "SKIP_NO_PAYEE" and reim is not None:
+        logger.info("[AUTO_PAYOUT] Skipping reim=%s — employee has no verified PayPal account", reim.reim_id)
+    return None
+
+
+def _mark_disbursing(db: Session, reim: Reimbursement):
+    reim.status = ReimbursementStatus.DISBURSING
+    reim.updated_at = datetime.now(timezone.utc)
+    db.add(reim)
+    db.flush()
+
+
+def _save_payout(
+    db: Session,
+    reim: Reimbursement,
+    employee: User,
+    amount: Decimal,
+    attempt: int,
+    sender_batch_id: str,
+    created: PayoutCreated,
+) -> Payout:
+    currency = settings.PAYPAL_CURRENCY
+    payout = Payout(
+        reim_id=reim.reim_id,
+        user_id=reim.user_id,
+        amount=amount,
+        currency=currency,
+        status=PayoutStatus.ACCEPTED,
+        provider="PAYPAL",
+        provider_batch_id=created.batch_id,
+        attempt=attempt,
+        idempotency_key=sender_batch_id,
+        reference_id=_claim_ref(reim.reim_id),
+        channel_code="PAYPAL",
+    )
+    db.add(payout)
+    db.commit()
+    db.refresh(payout)
+
+    record_action(db, AgentActionType.PAYOUT_CREATED, "agent", reim.reim_id, {
+        "amount": f"{amount:.2f}",
+        "currency": currency,
+        "sender_batch_id": sender_batch_id,
+        "batch_id": created.batch_id,
+    })
+    notify(
+        db, reim.user_id, "info",
+        f"Payout initiated for claim {_claim_ref(reim.reim_id)}",
+        f"Sending {currency} {amount:,.2f} to your PayPal account ({mask_email(employee.paypal_email or '')})",
+        link=f"/employee/history?id={reim.reim_id}",
+    )
+    if settings.PAYPAL_MOCK_MODE:
+        _schedule_status_refresh(payout.payout_id)
+
+    logger.info("[AUTO_PAYOUT] Payout initiated: reim=%s payout=%s batch=%s",
+                reim.reim_id, payout.payout_id, created.batch_id)
+    return payout
+
+
+def _schedule_status_refresh(payout_id: UUID, delay: float = 9.0):
+    """Mock mode has no webhooks, so poll once after the mock payout has settled."""
+    def _run():
+        from core.database import engine as db_engine
+        from engine.services.payout_status import refresh_payout
         try:
-            current = asyncio.get_running_loop()
-            asyncio.ensure_future(_setup(), loop=current)
-        except RuntimeError:
-            pass
+            with Session(db_engine) as s:
+                payout = s.get(Payout, payout_id)
+                if payout:
+                    asyncio.run(refresh_payout(s, payout))
+        except Exception:
+            logger.exception("[AUTO_PAYOUT] Mock status refresh failed for payout=%s", payout_id)
+
+    timer = threading.Timer(delay, _run)
+    timer.daemon = True
+    timer.start()
 
 
 def initiate_payout_sync(
@@ -99,166 +187,59 @@ def initiate_payout_sync(
 ) -> Payout | None:
     """
     Synchronous payout initiator — safe to call from a thread executor.
-    Returns the Payout record on success, or None if skipped (no banking details,
-    zero amount, or payout already exists). Does NOT raise on Xendit failure —
-    it leaves the reimbursement in APPROVED status for manual HR retry.
+    Returns the Payout record on success, or None if skipped (no verified PayPal
+    account, nothing left to pay, or not approved). Does NOT raise on PayPal
+    failure — it leaves the reimbursement in its current status for HR retry.
     """
-    reim = db.get(Reimbursement, reim_id)
-    if not reim or reim.status != ReimbursementStatus.APPROVED:
-        return None
+    reim, employee, (action, amount, attempt), existing = _plan(reim_id, db)
+    if action != "CREATE":
+        return _handle_skip(db, reim, action, existing)
 
-    existing = db.exec(select(Payout).where(Payout.reim_id == reim_id)).first()
-    if existing:
-        return existing
-
-    employee = db.get(User, reim.user_id)
-    if not employee or not employee.bank_code or not employee.bank_account_number:
-        logger.info("[AUTO_PAYOUT] Skipping reim=%s — employee has no banking details", reim_id)
-        return None
-
-    amount = float(reim.total_approved_amount or 0)
-    if amount <= 0:
-        logger.info("[AUTO_PAYOUT] Skipping reim=%s — approved amount is 0", reim_id)
-        return None
-
-    reim.status = ReimbursementStatus.DISBURSING
-    reim.updated_at = datetime.now(timezone.utc)
-    db.add(reim)
-    db.flush()
-
-    reference_id = f"RC-{str(reim_id)[:8]}"
-    bank_name = _get_channel_name(employee.bank_code)
+    _mark_disbursing(db, reim)
+    sender_batch_id = sender_batch_id_for(reim_id, attempt)
 
     try:
-        coro = _xendit.create_payout(
-            reference_id=reference_id,
-            channel_code=employee.bank_code,
-            account_holder_name=employee.bank_account_holder_name or employee.name,
-            account_number=employee.bank_account_number,
+        coro = get_paypal_client().create_payout(
+            sender_batch_id=sender_batch_id,
+            payer_id=employee.paypal_payer_id,
             amount=amount,
-            currency="MYR",
-            description=f"Reimbursement RC-{str(reim_id)[:8]}",
+            currency=settings.PAYPAL_CURRENCY,
+            note=_claim_ref(reim_id),
+            sender_item_id=str(reim_id),
         )
         if loop and loop.is_running():
-            xendit_result = asyncio.run_coroutine_threadsafe(coro, loop).result(timeout=30)
+            created = asyncio.run_coroutine_threadsafe(coro, loop).result(timeout=70)
         else:
-            xendit_result = asyncio.run(coro)
+            created = asyncio.run(coro)
     except Exception:
-        logger.exception("[AUTO_PAYOUT] Xendit call failed for reim=%s — leaving APPROVED for HR retry", reim_id)
+        logger.exception("[AUTO_PAYOUT] PayPal call failed for reim=%s — leaving for HR retry", reim_id)
         db.rollback()
         return None
 
-    payout = Payout(
-        reim_id=reim_id,
-        user_id=reim.user_id,
-        amount=amount,
-        currency="MYR",
-        status=PayoutStatus.ACCEPTED,
-        xendit_id=xendit_result.get("id"),
-        idempotency_key=xendit_result.get("idempotency_key", ""),
-        reference_id=reference_id,
-        channel_code=employee.bank_code,
-    )
-    db.add(payout)
-    db.commit()
-    db.refresh(payout)
-
-    masked = _mask_account(employee.bank_account_number)
-    _notify(
-        db, reim.user_id, "info",
-        f"Payout initiated for claim RC-{str(reim_id)[:8]}",
-        f"Payout of MYR {amount:,.2f} to {bank_name} ({masked}) has been initiated.",
-        link=f"/employee/history?id={reim_id}",
-    )
-
-    if settings.XENDIT_MOCK_MODE and xendit_result.get("id"):
-        _schedule_mock_webhook(xendit_result["id"], loop)
-
-    logger.info("[AUTO_PAYOUT] Payout initiated: reim=%s payout=%s", reim_id, payout.payout_id)
-    return payout
+    return _save_payout(db, reim, employee, amount, attempt, sender_batch_id, created)
 
 
 async def initiate_payout_async(reim_id: UUID, db: Session) -> Payout | None:
     """Async variant for use in FastAPI route handlers."""
-    reim = db.get(Reimbursement, reim_id)
-    if not reim or reim.status != ReimbursementStatus.APPROVED:
-        return None
+    reim, employee, (action, amount, attempt), existing = _plan(reim_id, db)
+    if action != "CREATE":
+        return _handle_skip(db, reim, action, existing)
 
-    existing = db.exec(select(Payout).where(Payout.reim_id == reim_id)).first()
-    if existing:
-        return existing
-
-    employee = db.get(User, reim.user_id)
-    if not employee or not employee.bank_code or not employee.bank_account_number:
-        return None
-
-    amount = float(reim.total_approved_amount or 0)
-    if amount <= 0:
-        return None
-
-    reim.status = ReimbursementStatus.DISBURSING
-    reim.updated_at = datetime.now(timezone.utc)
-    db.add(reim)
-    db.flush()
-
-    reference_id = f"RC-{str(reim_id)[:8]}"
-    bank_name = _get_channel_name(employee.bank_code)
+    _mark_disbursing(db, reim)
+    sender_batch_id = sender_batch_id_for(reim_id, attempt)
 
     try:
-        xendit_result = await _xendit.create_payout(
-            reference_id=reference_id,
-            channel_code=employee.bank_code,
-            account_holder_name=employee.bank_account_holder_name or employee.name,
-            account_number=employee.bank_account_number,
+        created = await get_paypal_client().create_payout(
+            sender_batch_id=sender_batch_id,
+            payer_id=employee.paypal_payer_id,
             amount=amount,
-            currency="MYR",
-            description=f"Reimbursement RC-{str(reim_id)[:8]}",
+            currency=settings.PAYPAL_CURRENCY,
+            note=_claim_ref(reim_id),
+            sender_item_id=str(reim_id),
         )
     except Exception:
-        logger.exception("[AUTO_PAYOUT] Xendit call failed for reim=%s", reim_id)
+        logger.exception("[AUTO_PAYOUT] PayPal call failed for reim=%s", reim_id)
         db.rollback()
         return None
 
-    payout = Payout(
-        reim_id=reim_id,
-        user_id=reim.user_id,
-        amount=amount,
-        currency="MYR",
-        status=PayoutStatus.ACCEPTED,
-        xendit_id=xendit_result.get("id"),
-        idempotency_key=xendit_result.get("idempotency_key", ""),
-        reference_id=reference_id,
-        channel_code=employee.bank_code,
-    )
-    db.add(payout)
-    db.commit()
-    db.refresh(payout)
-
-    masked = _mask_account(employee.bank_account_number)
-    _notify(
-        db, reim.user_id, "info",
-        f"Payout initiated for claim RC-{str(reim_id)[:8]}",
-        f"Payout of MYR {amount:,.2f} to {bank_name} ({masked}) has been initiated.",
-        link=f"/employee/history?id={reim_id}",
-    )
-
-    if settings.XENDIT_MOCK_MODE and xendit_result.get("id"):
-        await _setup_mock_webhook_async(xendit_result["id"])
-
-    return payout
-
-
-async def _setup_mock_webhook_async(xendit_id: str):
-    simulator = get_webhook_simulator()
-    if simulator is None:
-        async def _on_webhook(payout_id: str, status_str: str, failure_code: str | None):
-            from core.database import engine as db_engine
-            with Session(db_engine) as s:
-                from api.payouts import _handle_webhook
-                _handle_webhook(s, payout_id, status_str, failure_code)
-
-        simulator = MockWebhookSimulator(_on_webhook)
-        set_webhook_simulator(simulator)
-
-    if isinstance(simulator, MockWebhookSimulator):
-        simulator.schedule(xendit_id, delay=10.0)
+    return _save_payout(db, reim, employee, amount, attempt, sender_batch_id, created)

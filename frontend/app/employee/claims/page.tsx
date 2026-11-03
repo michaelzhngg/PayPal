@@ -35,11 +35,13 @@ import { SuccessModal, type SuccessType } from "./_components/SuccessModal";
 // CameraModal removed — using native <input capture="environment"> instead
 
 // ─── Server Actions ───────────────────────────────────────────────────────────
-import { uploadDocuments, editDocument, analyzeCompliance, saveDraft, updateDraft, loadDraft } from "@/lib/actions/claims";
+import { uploadDocuments, editDocument, analyzeCompliance, saveDraft, updateDraft, loadDraft, getRawReimbursements } from "@/lib/actions/claims";
 import type { SubCategoryConfig, AnalyzeResponseMulti, DocumentUploadResponse } from "@/lib/api/types";
 
 // ─── SSE ─────────────────────────────────────────────────────────────────────
 import { subscribeToProgress } from "@/lib/sse";
+import { useTimeline } from "@/lib/hooks/useTimeline";
+import AgentTimeline from "@/components/timeline/AgentTimeline";
 
 // ─── Stage type ───────────────────────────────────────────────────────────────
 
@@ -430,6 +432,32 @@ function CaptureReceiptContent() {
    */
   const [isDirty, setIsDirty] = useState(false);
 
+  // ── Compliance analysis stream ─────────────────────────────────────────────
+  // useTimeline owns the analysis SSE: the backend queue serves one listener per task.
+  const [complianceTaskId, setComplianceTaskId] = useState<string | null>(null);
+  const complianceSettlementRef = useRef<string | null>(null);
+  const compliance = useTimeline(complianceTaskId, {
+    audience: "employee",
+    // If the stream drops or goes quiet, the claim is done once its reimbursement rows exist.
+    poll: async () => {
+      const sid = complianceSettlementRef.current;
+      if (!sid) return null;
+      const rows = (await getRawReimbursements()).filter(r => r.settlement_id === sid);
+      return rows.length ? { reimbursements: rows } : null;
+    },
+    onComplete: completeResult => {
+      setIsSubmitting(false);
+      setAnalysisResult(completeResult as unknown as AnalyzeResponseMulti);
+      setIsDirty(false);
+      setShowSuccess(true);
+    },
+    onError: error => {
+      console.error("Compliance SSE error:", error);
+      setSubmitError(error);
+      setIsSubmitting(false);
+    },
+  });
+
   // ── Unsaved-changes guard state ────────────────────────────────────────────
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [leaveModalStep, setLeaveModalStep] = useState<"confirm" | "name">("confirm");
@@ -778,22 +806,8 @@ function CaptureReceiptContent() {
     const taskId = (analyzeResult as unknown as Record<string, unknown>).task_id as string | undefined;
 
     if (taskId) {
-      sseCloseRef.current = subscribeToProgress(taskId, "reimbursements", {
-        onProgress: (_stage: string, _data: Record<string, unknown>) => {
-          // Compliance analysis progress updates
-        },
-        onComplete: (completeResult: Record<string, unknown>) => {
-          setIsSubmitting(false);
-          setAnalysisResult(completeResult as unknown as AnalyzeResponseMulti);
-          setIsDirty(false);
-          setShowSuccess(true);
-        },
-        onError: (error: string) => {
-          console.error("Compliance SSE error:", error);
-          setSubmitError(error);
-          setIsSubmitting(false);
-        },
-      });
+      complianceSettlementRef.current = settlementId;
+      setComplianceTaskId(taskId);
     } else {
       setIsSubmitting(false);
       setAnalysisResult(analyzeResult);
@@ -813,6 +827,8 @@ function CaptureReceiptContent() {
     setDocumentIds([]);
     setEmployeeData(null);
     setAnalysisResult(null);
+    setComplianceTaskId(null);
+    complianceSettlementRef.current = null;
     setSubmitError(null);
     setIsSubmitting(false);
     originalOcrRef.current = [];
@@ -1060,8 +1076,15 @@ function CaptureReceiptContent() {
             {submitError && (
               <p className="text-sm text-error font-body mt-2 text-center">{submitError}</p>
             )}
-            {isSubmitting && (
-              <p className="text-sm text-on-surface-variant font-body mt-2 text-center">Submitting claim…</p>
+            {/* The backend only emits timeline events once the autonomy engine ships; until then the plain notice stays. */}
+            {isSubmitting && compliance.steps.length > 0 ? (
+              <div className="mx-auto mt-4 w-full max-w-xl rounded-2xl border border-outline-variant/15 bg-surface-container-lowest p-4">
+                <AgentTimeline steps={compliance.steps} />
+              </div>
+            ) : (
+              isSubmitting && (
+                <p className="text-sm text-on-surface-variant font-body mt-2 text-center">Submitting claim…</p>
+              )
             )}
           </>
         )}
@@ -1199,7 +1222,12 @@ function CaptureReceiptContent() {
 
       {/* Success Modal */}
       {showSuccess && (
-        <SuccessModal type={"claim" as SuccessType} onSubmitAnother={handleSubmitAnother} />
+        <SuccessModal
+          type={"claim" as SuccessType}
+          onSubmitAnother={handleSubmitAnother}
+          reimbursements={analysisResult?.reimbursements ?? []}
+          timeline={compliance.steps}
+        />
       )}
 
       {/* ── Leave / Unsaved-Changes Modal ───────────────────────────────────── */}

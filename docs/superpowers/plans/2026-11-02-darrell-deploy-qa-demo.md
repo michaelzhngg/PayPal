@@ -19,7 +19,7 @@
 - Secrets go only in the Render dashboard or local `.env`, never in `render.yaml`, Postman exports or the repo.
 - Seeded rows are marked (`ai_reasoning["seed"] = "reclaim-pay"`, batch IDs prefixed `SEED-`).
 - `--reset-demo` restores a clean demo between takes. It deletes **all** claims, documents, payouts, recoveries and agent actions (otherwise a second take's S1 is flagged as a duplicate of the first take's), resets `autonomy_settings` to defaults, clears the breaker, then re-seeds. The agent log restarts from a new first row. It refuses to run unless `DEMO_RESET_ALLOWED=true`, which is set only on staging and local machines, never on production.
-- The write-up must include a "What's new since UM Hackathon 2026" section.
+- The write-up must include a "What's new since the original Reclaim (April 2026)" section.
 
 ## Review Focus
 
@@ -250,7 +250,7 @@ Keep lines short, for TTS (ElevenLabs or local), with captions on.
 - Inspiration; What it does; How we built it.
 - **Built with**: each tool and exactly what it does in Reclaim Pay, listing only tools visible in the demo.
 - The risk framework in five bullets (from spec D2); Challenges.
-- **What's new since UM Hackathon 2026**: a bullet list of this week's work.
+- **What's new since the original Reclaim (April 2026)**: a bullet list of this week's work.
 - What's next: the roadmap risk table for vendor pay, advances and contractors.
 - The sandbox note.
 

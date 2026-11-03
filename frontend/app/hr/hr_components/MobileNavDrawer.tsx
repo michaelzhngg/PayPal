@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import {
   Users,
+  Banknote,
   Settings,
   LifeBuoy,
   LogOut,
@@ -43,6 +44,7 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
   const isSettingsActive = pathname === "/hr/settings" || pathname.startsWith("/hr/settings/");
   const isSupportActive = pathname === "/hr/support" || pathname.startsWith("/hr/support/");
   const isManageActive = pathname === "/hr/manage_employee" || pathname.startsWith("/hr/manage_employee/");
+  const isPayoutsActive = pathname === "/hr/payouts" || pathname.startsWith("/hr/payouts/");
 
   // Swipe handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -170,6 +172,25 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
               strokeWidth={isManageActive ? 2.5 : 1.75}
             />
             Manage Employee
+          </Link>
+
+          <Link
+            href="/hr/payouts"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
+              isPayoutsActive
+                ? "bg-surface-container font-bold text-primary"
+                : "font-medium text-on-surface hover:bg-surface-container/60 hover:text-on-surface"
+            }`}
+            style={{ transitionDelay: open ? "140ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
+          >
+            <Banknote
+              className={`w-[18px] h-[18px] shrink-0 transition-colors ${
+                isPayoutsActive ? "text-primary" : "text-on-surface-variant"
+              }`}
+              strokeWidth={isPayoutsActive ? 2.5 : 1.75}
+            />
+            Payouts
           </Link>
 
           <Link
