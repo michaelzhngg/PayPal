@@ -129,6 +129,16 @@ export function approveBlockedReason(
   return c.approvals.some((a) => a.hr_id === hrId) ? "You already approved" : null;
 }
 
+const APPROVAL_ERRORS: Record<string, string> = {
+  ALREADY_APPROVED: "You already approved. A second HR member has to approve this claim.",
+  SELF_APPROVAL: "You can't approve your own claim. Another HR member has to review it.",
+};
+
+/** PATCH /status answers with bare codes for approval conflicts; everything else passes through. */
+export function approvalErrorMessage(error: string): string {
+  return APPROVAL_ERRORS[error.trim()] ?? error;
+}
+
 // ─── Signals ─────────────────────────────────────────────────────────────────
 
 const SEVERITY_RANK: Record<Severity, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
@@ -197,16 +207,28 @@ export function signalEvidence(s: RiskSignal, currency: string): EvidenceView {
       break;
     }
     case "DUPLICATE_RECEIPT": {
-      const ids = strings(e.matched_reim_id ?? e.match_reim_id ?? e.reim_id ?? e.matched_claims);
+      // Backend: matches[] sorted best first, each {reim_id, same_claim, same_user, match, distance}.
+      const matches = (Array.isArray(e.matches) ? e.matches : []).filter(
+        (m): m is Record<string, unknown> => typeof m === "object" && m !== null,
+      );
+      const ids = matches.length
+        ? matches.filter((m) => !m.same_claim).flatMap((m) => strings(m.reim_id))
+        : strings(e.matched_reim_id ?? e.match_reim_id ?? e.reim_id ?? e.matched_claims);
       view.claims = claimLinks(ids);
-      const distance = num(e.phash_distance) ?? num(e.distance);
-      fact("Image distance", distance === null ? null : `${distance} (0 means identical)`);
+      const best = matches[0];
+      const distance = num(best?.distance) ?? num(e.phash_distance) ?? num(e.distance);
+      if (best?.match === "sha256") fact("Best match", "Identical file");
+      else fact("Image distance", distance === null ? null : `${distance} (0 means identical)`);
+      if (matches.some((m) => m.same_claim)) fact("In this claim", "Attached more than once");
+      const others = matches.filter((m) => !m.same_claim);
+      if (others.length) fact("Submitted by", others.every((m) => m.same_user) ? "The same employee" : "Another employee");
       break;
     }
     case "AI_PROVENANCE": {
       view.note = "C2PA content credentials say this image was AI-generated.";
       fact("Digital source type", str(e.c2pa) ?? str(e.digital_source_type));
       fact("Generator", str(e.generator) ?? str(e.claim_generator));
+      if (e.verified === false) fact("Signature", "Not verified, read from the file");
       break;
     }
     case "PROMPT_INJECTION": {

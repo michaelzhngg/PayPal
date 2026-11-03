@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { AutonomyDecision, RiskSignal } from "@/lib/api/reclaim-pay-types";
 import { decisions } from "@/src/mocks/reclaimPayFixtures";
 import {
+  approvalErrorMessage,
   approvalProgress,
   approveBlockedReason,
   hardStopLabel,
@@ -122,6 +123,14 @@ describe("approveBlockedReason", () => {
   });
 });
 
+describe("approvalErrorMessage", () => {
+  it("turns approval conflict codes into sentences", () => {
+    expect(approvalErrorMessage("ALREADY_APPROVED")).toBe("You already approved. A second HR member has to approve this claim.");
+    expect(approvalErrorMessage("SELF_APPROVAL")).toContain("your own claim");
+    expect(approvalErrorMessage("Reimbursement not found")).toBe("Reimbursement not found");
+  });
+});
+
 describe("signalEvidence", () => {
   it("builds the arithmetic table from backend keys", () => {
     const v = signalEvidence(
@@ -145,6 +154,47 @@ describe("signalEvidence", () => {
     );
     expect(v.claims).toEqual([{ href: "/hr/view/5c2e8f10-4a3b-4c6d-8e9f-0a1b2c3d4e5f", ref: "RC-5C2E8F10" }]);
     expect(v.facts).toEqual([{ label: "Image distance", value: "4 (0 means identical)" }]);
+  });
+  it("reads the backend's duplicate matches, linking only other claims", () => {
+    const v = signalEvidence(
+      signal({
+        code: "DUPLICATE_RECEIPT",
+        evidence: {
+          max_distance: 6,
+          matches: [
+            { reim_id: "11111111-aaaa", same_claim: false, same_user: false, match: "phash", distance: 3 },
+            { reim_id: "22222222-bbbb", same_claim: true, same_user: true, match: "sha256", distance: 0 },
+          ],
+        },
+      }),
+      "MYR",
+    );
+    expect(v.claims.map((c) => c.ref)).toEqual(["RC-11111111"]);
+    expect(v.facts).toEqual([
+      { label: "Image distance", value: "3 (0 means identical)" },
+      { label: "In this claim", value: "Attached more than once" },
+      { label: "Submitted by", value: "Another employee" },
+    ]);
+  });
+  it("says when the best duplicate match is the identical file", () => {
+    const v = signalEvidence(
+      signal({ code: "DUPLICATE_RECEIPT", evidence: { matches: [{ reim_id: "x", same_user: true, match: "sha256", distance: 0 }] } }),
+      "MYR",
+    );
+    expect(v.facts).toEqual([
+      { label: "Best match", value: "Identical file" },
+      { label: "Submitted by", value: "The same employee" },
+    ]);
+  });
+  it("notes unverified C2PA credentials from the backend", () => {
+    const v = signalEvidence(
+      signal({ code: "AI_PROVENANCE", evidence: { manifest: "c2pa", digital_source_type: "trainedAlgorithmicMedia", verified: false } }),
+      "MYR",
+    );
+    expect(v.facts).toEqual([
+      { label: "Digital source type", value: "trainedAlgorithmicMedia" },
+      { label: "Signature", value: "Not verified, read from the file" },
+    ]);
   });
   it("shows injected text verbatim, from a list or a single string", () => {
     expect(signalEvidence(signal({ code: "PROMPT_INJECTION", evidence: { matches: ["a", "b"] } }), "MYR").snippets).toEqual(["a", "b"]);

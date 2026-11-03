@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getHRClaimBundle, updateReimbursementStatus } from "@/lib/actions/hr";
 import { FIXTURES_ON } from "@/lib/api/fixtures";
 import type { ReimbursementRaw } from "@/lib/api/types";
-import { approveBlockedReason } from "@/lib/hr/evidence";
+import { approvalErrorMessage, approveBlockedReason } from "@/lib/hr/evidence";
 import { verdictLabel } from "@/components/hr-grid/rows";
 import { FIXTURE_HR_USER_ID } from "@/src/mocks/triageFixtures";
 import { AutonomyPanel } from "./_components/AutonomyPanel";
@@ -409,7 +409,7 @@ export default function ReviewPage() {
     });
     setSubmitting(false);
     if (!res.ok) {
-      setSubmitError(res.error ?? "Failed to update status.");
+      setSubmitError(res.error ? approvalErrorMessage(res.error) : "Failed to update status.");
       return;
     }
     setReviewedStatus(status);
