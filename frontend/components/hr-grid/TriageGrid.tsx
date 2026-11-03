@@ -216,19 +216,26 @@ export default function TriageGrid({ rows, selectable, selfId, selected, onSelec
     [selectable, selfId],
   );
 
-  // React state owns the selection so the grid and the phone card list agree. Push it into the grid.
-  useEffect(() => {
+  // React state owns the selection so the grid and the phone card list agree. Push it into the grid
+  // whenever the selection changes or the grid finishes taking new rows.
+  const selectedRef = useRef(selected);
+  const syncSelection = useCallback(() => {
     const api = apiRef.current;
     if (!api || !selectable) return;
     const toSelect: Parameters<GridApi<TriageRow>["setNodesSelected"]>[0]["nodes"] = [];
     const toClear: typeof toSelect = [];
     api.forEachNode((node) => {
-      const want = !!node.data && selected.has(node.data.reimId);
+      const want = !!node.data && selectedRef.current.has(node.data.reimId);
       if (want !== !!node.isSelected()) (want ? toSelect : toClear).push(node);
     });
     if (toSelect.length) api.setNodesSelected({ nodes: toSelect, newValue: true, source: "api" });
     if (toClear.length) api.setNodesSelected({ nodes: toClear, newValue: false, source: "api" });
-  }, [selected, selectable, rows]);
+  }, [selectable]);
+
+  useEffect(() => {
+    selectedRef.current = selected;
+    syncSelection();
+  }, [selected, rows, syncSelection]);
 
   const onSelectionChanged = useCallback(
     (e: SelectionChangedEvent<TriageRow>) => {
@@ -290,6 +297,8 @@ export default function TriageGrid({ rows, selectable, selfId, selected, onSelec
           onGridReady={(e) => {
             apiRef.current = e.api;
           }}
+          onFirstDataRendered={syncSelection}
+          onRowDataUpdated={syncSelection}
           onSelectionChanged={onSelectionChanged}
           onGridSizeChanged={onGridSizeChanged}
           onRowClicked={onRowClicked}
