@@ -5,7 +5,7 @@ from datetime import datetime, timezone, date
 from sqlmodel import Field, SQLModel, Column, String, Text, Integer, Boolean, DateTime, Float, Date, Numeric
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import BigInteger, ForeignKey, UniqueConstraint, text
 
 from core.enums import (
     UserRole,
@@ -15,6 +15,8 @@ from core.enums import (
     DocumentClass,
     PolicyStatus,
     PayoutStatus,
+    RecoveryStatus,
+    AgentActionType,
 )
 
 
@@ -373,6 +375,28 @@ class Reimbursement(SQLModel, table=True):
         default=None,
         sa_column=Column(DateTime(timezone=True))
     )
+    tier: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String, index=True)
+    )
+    risk_score: Optional[int] = Field(
+        default=None,
+        sa_column=Column(Integer)
+    )
+    # AutonomyDecision.model_dump(mode="json") from engine/risk.
+    autonomy: dict = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    )
+    audit_selected: bool = Field(
+        default=False,
+        sa_column=Column(Boolean, nullable=False, server_default="false")
+    )
+    # [{"hr_id": str, "at": iso8601}], one entry per distinct HR approver.
+    approvals: list = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'[]'::jsonb"))
+    )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_column=Column(DateTime(timezone=True))
@@ -553,6 +577,18 @@ class SupportingDocument(SQLModel, table=True):
     editable_fields: dict = Field(
         default={},
         sa_column=Column(JSONB)
+    )
+    sha256: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String, index=True)
+    )
+    phash: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String, index=True)
+    )
+    shield: dict = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
     )
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
@@ -785,4 +821,138 @@ class PushSubscription(SQLModel, table=True):
 
     __table_args__ = (
         UniqueConstraint("user_id", "endpoint", name="uq_push_sub_user_endpoint"),
+    )
+
+
+# ---------------------------------------------------------------------------
+# 18. autonomy_settings
+# ---------------------------------------------------------------------------
+
+class AutonomySettings(SQLModel, table=True):
+    """Single row (id = 1). The store creates it from AutonomyConfig defaults on first read."""
+    __tablename__ = "autonomy_settings"
+
+    id: int = Field(default=1, primary_key=True)
+    config: dict = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    )
+    enabled: bool = Field(
+        default=True,
+        sa_column=Column(Boolean, nullable=False, server_default="true")
+    )
+    version: int = Field(
+        default=1,
+        sa_column=Column(Integer, nullable=False, server_default="1")
+    )
+    breaker_until: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True))
+    )
+    updated_by: Optional[UUID] = Field(
+        default=None,
+        foreign_key="employees.user_id"
+    )
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True))
+    )
+
+
+# ---------------------------------------------------------------------------
+# 19. recoveries
+# ---------------------------------------------------------------------------
+
+class Recovery(SQLModel, table=True):
+    __tablename__ = "recoveries"
+
+    recovery_id: UUID = Field(
+        default_factory=uuid4,
+        primary_key=True
+    )
+    reim_id: UUID = Field(
+        foreign_key="reimbursements.reim_id",
+        index=True
+    )
+    user_id: UUID = Field(
+        foreign_key="employees.user_id",
+        index=True
+    )
+    amount: float = Field(
+        sa_column=Column(Numeric(12, 2), nullable=False)
+    )
+    currency: str = Field(
+        sa_column=Column(String(3), nullable=False)
+    )
+    reason: str = Field(
+        sa_column=Column(Text, nullable=False)
+    )
+    status: RecoveryStatus = Field(
+        default=RecoveryStatus.NOTICE_SENT,
+        sa_column=Column(String, nullable=False, index=True)
+    )
+    dispute_until: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False)
+    )
+    dispute_note: Optional[str] = Field(
+        default=None,
+        sa_column=Column(Text)
+    )
+    offset_reim_id: Optional[UUID] = Field(
+        default=None,
+        foreign_key="reimbursements.reim_id"
+    )
+    paypal_invoice_id: Optional[str] = Field(
+        default=None,
+        sa_column=Column(String, index=True)
+    )
+    created_by: UUID = Field(
+        foreign_key="employees.user_id"
+    )
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True))
+    )
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True))
+    )
+
+
+# ---------------------------------------------------------------------------
+# 20. agent_actions
+# ---------------------------------------------------------------------------
+
+class AgentAction(SQLModel, table=True):
+    """Hash-chained, append-only log. Written only through engine.services.action_log."""
+    __tablename__ = "agent_actions"
+
+    action_id: Optional[int] = Field(
+        default=None,
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True)
+    )
+    action_type: AgentActionType = Field(
+        sa_column=Column(String, nullable=False, index=True)
+    )
+    # "agent" or a user UUID.
+    actor: str = Field(
+        sa_column=Column(String, nullable=False)
+    )
+    # No foreign key: the log must outlive the claim it describes.
+    reim_id: Optional[UUID] = Field(
+        default=None,
+        sa_column=Column(PG_UUID(as_uuid=True), index=True)
+    )
+    payload: dict = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    )
+    prev_hash: str = Field(
+        sa_column=Column(String(64), nullable=False)
+    )
+    hash: str = Field(
+        sa_column=Column(String(64), nullable=False, unique=True)
+    )
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False)
     )
