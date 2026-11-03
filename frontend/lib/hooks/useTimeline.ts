@@ -8,7 +8,8 @@ export type TimelineAudience = "employee" | "hr";
 
 const SILENCE_MS = 20_000;
 const POLL_MS = 3_000;
-const GIVE_UP_MS = 120_000;
+// Compliance runs several LLM calls; give a slow analysis room before telling the employee to check later.
+const GIVE_UP_MS = 300_000;
 
 /**
  * Folds one timeline event into the rendered steps. Rows keep the order they
