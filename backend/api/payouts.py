@@ -1,9 +1,9 @@
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -44,11 +44,71 @@ class PayoutOut(BaseModel):
         from_attributes = True
 
 
+class PayoutLedgerRow(BaseModel):
+    payout_id: UUID
+    reim_id: UUID
+    claim_ref: str
+    employee_name: str
+    amount: float
+    currency: str
+    status: PayoutStatus
+    tier: Optional[str] = None
+    provider_batch_id: Optional[str] = None
+    provider_item_id: Optional[str] = None
+    attempt: int
+    audit_selected: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+def ledger_row(payout: Payout, reim: Reimbursement, employee: User) -> PayoutLedgerRow:
+    return PayoutLedgerRow(
+        payout_id=payout.payout_id,
+        reim_id=payout.reim_id,
+        claim_ref=f"RC-{str(payout.reim_id)[:8]}",
+        employee_name=employee.name,
+        amount=float(payout.amount),
+        currency=payout.currency,
+        status=payout.status,
+        # tier and audit_selected arrive with the autonomy columns (Chingiz B, DB-1).
+        tier=getattr(reim, "tier", None),
+        provider_batch_id=payout.provider_batch_id,
+        provider_item_id=payout.provider_item_id,
+        attempt=payout.attempt,
+        audit_selected=bool(getattr(reim, "audit_selected", False)),
+        created_at=payout.created_at,
+        updated_at=payout.updated_at,
+    )
+
+
 _SKIP_DETAIL = {
     "SKIP_NOT_APPROVED": "Claim must be APPROVED (or DISBURSEMENT_FAILED for a retry) before it can be paid.",
     "SKIP_EXISTING": "A payout for this claim is already in progress or has succeeded.",
     "SKIP_NO_PAYEE": "Employee has not connected a verified PayPal account. Ask them to connect PayPal in Settings.",
 }
+
+
+@router.get("/", response_model=list[PayoutLedgerRow])
+def list_payouts(
+    status: Optional[PayoutStatus] = None,
+    from_date: Optional[date] = Query(default=None, alias="from"),
+    to_date: Optional[date] = Query(default=None, alias="to"),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_hr_user),
+):
+    query = (
+        select(Payout, Reimbursement, User)
+        .join(Reimbursement, Reimbursement.reim_id == Payout.reim_id)
+        .join(User, User.user_id == Payout.user_id)
+    )
+    if status:
+        query = query.where(Payout.status == status)
+    if from_date:
+        query = query.where(Payout.created_at >= datetime.combine(from_date, time.min, tzinfo=timezone.utc))
+    if to_date:
+        query = query.where(Payout.created_at < datetime.combine(to_date + timedelta(days=1), time.min, tzinfo=timezone.utc))
+    rows = db.exec(query.order_by(Payout.created_at.desc()).limit(500)).all()
+    return [ledger_row(payout, reim, employee) for payout, reim, employee in rows]
 
 
 @router.post("/", response_model=PayoutOut)
