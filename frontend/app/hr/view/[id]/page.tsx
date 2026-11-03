@@ -3,7 +3,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ArrowLeft, Clock, ShieldCheck, ShieldX, ChevronDown, ZoomIn, CheckCircle2, FileText, ExternalLink, Download, X, Loader2 } from "lucide-react";
 import type { ClaimBundle } from "@/lib/api/types";
-import { MOCK_BUNDLES } from "../../hr_components/mockData";
 import { SuccessModal } from "../../hr_components/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
 import { getHRClaimBundle, updateReimbursementStatus } from "@/lib/actions/hr";
@@ -298,8 +297,8 @@ export default function ViewPage() {
 
   useEffect(() => {
     getHRClaimBundle(id)
-      .then((b) => setBundle(b ?? MOCK_BUNDLES[id] ?? null))
-      .catch(() => setBundle(MOCK_BUNDLES[id] ?? null));
+      .then((b) => setBundle(b ?? null))
+      .catch(() => setBundle(null));
   }, [id]);
 
   if (bundle === undefined) return (
@@ -311,7 +310,7 @@ export default function ViewPage() {
 
   if (!bundle) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-      <p className="text-on-surface-variant">No bundle found for <code className="font-mono">{id}</code></p>
+      <p className="text-on-surface-variant">This claim couldn&apos;t be loaded. It may not exist: <code className="font-mono">{id}</code></p>
       <button onClick={() => router.push("/hr/dashboard")} className="px-5 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold">Back to Dashboard</button>
     </div>
   );
