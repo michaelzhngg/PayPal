@@ -1,48 +1,50 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
-import { FileLock2, LayoutGrid, ShieldAlert, UserCheck } from "lucide-react";
+import { motion } from "framer-motion";
+import { Handshake, LayoutList, ScanSearch, ShieldAlert } from "lucide-react";
+import { revealGroup, revealItem, revealViewport } from "./motion";
 
-const FEATURES = [
+// Receipt Shield is the flagship check, so it spans the full row and lists
+// what it catches. The other three cards share the row below.
+const FEATURES: {
+  icon: typeof ScanSearch;
+  title: string;
+  body: string;
+  points?: string[];
+  span: string;
+}[] = [
+  {
+    icon: ScanSearch,
+    title: "Receipt Shield",
+    body: "Every receipt is checked for signs it was faked or reused before any money moves. A hit sends the claim to HR, never straight to a rejection.",
+    points: [
+      "Hidden instructions written into the receipt",
+      "Duplicates of an earlier claim",
+      "AI-generated images",
+      "Totals that don't add up",
+      "One expense split into smaller claims",
+    ],
+    span: "md:col-span-2 lg:col-span-3",
+  },
   {
     icon: ShieldAlert,
     title: "The Fraud Trap",
-    body: "Every employee edit to an AI-extracted field is logged immutably with a risk level (HIGH / MEDIUM / LOW). HR sees the original AI value vs the submitted value, side by side.",
+    body: "Every employee edit to an AI-read field is logged with a risk level. HR sees the AI value and the submitted value side by side.",
+    span: "",
   },
   {
-    icon: LayoutGrid,
-    title: "Triage Dashboard",
-    body: "Claims pre-bucketed by AI judgment — Bucket A (Passed AI Review) for fast-track approvals, Bucket B (Requires Attention) for the 20–30% that need a human.",
+    icon: LayoutList,
+    title: "Claims sorted for HR",
+    body: "Claims that need a person arrive sorted by risk, with the reasons and the evidence attached. HR starts with the riskiest.",
+    span: "",
   },
   {
-    icon: FileLock2,
-    title: "Immutable Audit Trail",
-    body: "Every claim leaves a permanent chain — receipt → AI extraction → employee edits → compliance reasoning → HR decision. The legal record for finance and tax audits.",
-  },
-  {
-    icon: UserCheck,
-    title: "Autonomous approve and decline",
-    body: "AI handles the straightforward cases automatically so HR can focus only on the ambiguous ones that need judgment. Clean claims flow through instantly.",
+    icon: Handshake,
+    title: "Fair by design",
+    body: "The AI never rejects a claim on its own. A person makes every risky call, and employees get a dispute window before any money is recovered.",
+    span: "md:col-span-2 lg:col-span-1",
   },
 ];
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 },
-  },
-} as const;
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-} as const;
 
 export default function FeaturesSection() {
   return (
@@ -53,10 +55,10 @@ export default function FeaturesSection() {
       <div className="mx-auto max-w-7xl">
         <motion.div
           className="max-w-2xl"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          variants={revealItem}
+          initial="hidden"
+          whileInView="visible"
+          viewport={revealViewport}
         >
           <span className="inline-flex items-center rounded-full border border-tertiary/20 bg-tertiary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-tertiary">
             Core Features
@@ -65,23 +67,23 @@ export default function FeaturesSection() {
             Built around accountability.
           </h2>
           <p className="mt-4 text-on-surface-variant text-base sm:text-lg leading-relaxed">
-            Reclaim augments HR — it doesn&rsquo;t replace them. Every feature is designed for traceability, consistency, and human judgment at the final step.
+            Reclaim Pay pays the easy claims and hands the hard ones to people. Every flag comes with a reason HR can read.
           </p>
         </motion.div>
 
         <motion.div
-          className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6"
-          variants={containerVariants}
+          className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6"
+          variants={revealGroup}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={revealViewport}
         >
-          {FEATURES.map(({ icon: Icon, title, body }) => (
+          {FEATURES.map(({ icon: Icon, title, body, points, span }) => (
             <motion.div
               key={title}
-              variants={itemVariants}
+              variants={revealItem}
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="relative overflow-hidden rounded-3xl bg-surface-container-lowest p-7 lg:p-8 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300 group"
+              className={`${span} relative overflow-hidden rounded-3xl bg-surface-container-lowest p-7 lg:p-8 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300 group`}
             >
               <div
                 aria-hidden="true"
@@ -97,9 +99,21 @@ export default function FeaturesSection() {
                 <h3 className="font-headline text-xl lg:text-2xl font-bold text-on-surface tracking-tight mb-3">
                   {title}
                 </h3>
-                <p className="text-sm lg:text-base text-on-surface-variant leading-relaxed">
+                <p className="max-w-3xl text-sm lg:text-base text-on-surface-variant leading-relaxed">
                   {body}
                 </p>
+                {points && (
+                  <ul className="mt-5 flex flex-wrap gap-2">
+                    {points.map((point) => (
+                      <li
+                        key={point}
+                        className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-on-surface"
+                      >
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </motion.div>
           ))}
