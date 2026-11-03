@@ -8,11 +8,14 @@ const FAILED: readonly string[] = ["FAILED", "CANCELLED", "REVERSED"];
 
 /**
  * State of each money-flow node. A claim outside AUTO_PAY waits at Guardrails
- * until HR approves it, which is when a payout exists.
+ * until HR approves it, which is when a payout exists. An approved claim with no
+ * payout yet waits at PayPal rather than showing it as sending.
  */
 export function flowState(tier: AutonomyTier, payoutStatus: PayoutStatus | string | null): NodeState[] {
-  if (tier !== "AUTO_PAY" && payoutStatus === null) {
-    return ["done", "done", "waiting", "pending", "pending"];
+  if (payoutStatus === null) {
+    return tier === "AUTO_PAY"
+      ? ["done", "done", "done", "waiting", "pending"]
+      : ["done", "done", "waiting", "pending", "pending"];
   }
   if (payoutStatus === "SUCCEEDED") return ["done", "done", "done", "done", "done"];
   if (payoutStatus !== null && FAILED.includes(payoutStatus)) return ["done", "done", "done", "error", "pending"];

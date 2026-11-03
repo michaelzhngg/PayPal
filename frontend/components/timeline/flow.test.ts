@@ -8,6 +8,7 @@ describe("flowState", () => {
   it("payout failed", () => expect(flowState("AUTO_PAY", "FAILED")).toEqual(["done", "done", "done", "error", "pending"]));
   it("approved by HR, then paid", () => expect(flowState("HR_QUICK", "SUCCEEDED")).toEqual(["done", "done", "done", "done", "done"]));
   it("reversed counts as failed", () => expect(flowState("AUTO_PAY", "REVERSED")).toEqual(["done", "done", "done", "error", "pending"]));
+  it("approved, no payout yet", () => expect(flowState("AUTO_PAY", null)).toEqual(["done", "done", "done", "waiting", "pending"]));
 });
 
 describe("displayTier", () => {

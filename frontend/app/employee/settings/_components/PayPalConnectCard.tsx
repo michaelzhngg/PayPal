@@ -28,9 +28,8 @@ export default function PayPalConnectCard() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<PayeeStatus | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
-  const [notice, setNotice] = useState<Notice | null>(
-    () => NOTICE_FROM_CALLBACK[searchParams.get("paypal") ?? ""] ?? null,
-  );
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [seenOutcome, setSeenOutcome] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [confirmingUnlink, setConfirmingUnlink] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
@@ -51,10 +50,17 @@ export default function PayPalConnectCard() {
     fetchStatus();
   }, [fetchStatus]);
 
-  // The PayPal callback lands here with ?paypal=linked|error. The notice is read once on mount; drop it from the URL.
+  // The PayPal callback lands here with ?paypal=linked|error. Show it once, then drop it from the URL.
+  // State is adjusted during render so this also works when the card is already mounted.
+  const outcome = searchParams.get("paypal");
+  if (outcome !== seenOutcome) {
+    setSeenOutcome(outcome);
+    if (outcome && NOTICE_FROM_CALLBACK[outcome]) setNotice(NOTICE_FROM_CALLBACK[outcome]);
+  }
+
   useEffect(() => {
-    if (searchParams.get("paypal")) router.replace("/employee/settings", { scroll: false });
-  }, [searchParams, router]);
+    if (outcome) router.replace("/employee/settings", { scroll: false });
+  }, [outcome, router]);
 
   const handleConnect = useCallback(async () => {
     setConnecting(true);

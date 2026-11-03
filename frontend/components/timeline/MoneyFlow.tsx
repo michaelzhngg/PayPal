@@ -25,6 +25,7 @@ const NODE_STYLE: Record<NodeState, { icon: typeof Circle; className: string }> 
 function nodeCaption(index: number, state: NodeState, amount: string | null): string {
   if (index === 2 && state === "waiting") return "With HR";
   if (index === 3) {
+    if (state === "waiting") return "Not sent yet";
     if (state === "active") return "Sending";
     if (state === "done") return "Sent";
     if (state === "error") return "Didn't go through";
