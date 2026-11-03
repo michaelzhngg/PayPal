@@ -7,7 +7,10 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { apiGet, apiPatch, apiPost, apiPostMultipart, API_PREFIX } from "@/lib/api/client";
+import { withFixture } from "@/lib/api/fixtures";
 import type { ReimbursementRaw, Claim, ClaimBundle, PayoutInfo, AiStatus } from "@/lib/api/types";
+import { triageRows, type TriageRow, type TriageSource } from "@/components/hr-grid/rows";
+import { triageReimbursements } from "@/src/mocks/triageFixtures";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -128,27 +131,35 @@ function mapToBundle(r: ReimbursementRaw): ClaimBundle {
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
-/**
- * Fetch all reimbursements and bucket them for the HR dashboard.
- *
- * - attention : status=REVIEW (all ages) — HR must act
- * - passed    : auto-approved (reviewed_by=null) within 24 h — informational
- * - flagged   : auto-rejected (reviewed_by=null) within 24 h — informational
- *
- * All buckets sorted most-recent first.
- */
-export async function getHRClaims(): Promise<{
+export interface HRClaims {
   attention: Claim[];
   passed: Claim[];
   flagged: Claim[];
   allReims: ReimbursementRaw[];
-}> {
-  const result = await apiGet<ReimbursementRaw[]>(`${API_PREFIX}/reimbursements/`);
+  /** Triage queue rows: claims waiting on HR plus the last 24 hours of auto-pays. */
+  rows: TriageRow[];
+  error: string | null;
+}
 
-  if (!result.data || result.data.length === 0) {
-    return { attention: [], passed: [], flagged: [], allReims: [] };
-  }
+/**
+ * Fetch all reimbursements and bucket them for the HR dashboard.
+ *
+ * - attention : status=REVIEW (all ages), HR must act
+ * - passed    : auto-approved (reviewed_by=null) within 24 h, informational
+ * - flagged   : auto-rejected (reviewed_by=null) within 24 h, informational
+ * - rows      : the triage grid, with the tier fields from the autonomy engine
+ *
+ * All buckets sorted most-recent first.
+ */
+export async function getHRClaims(): Promise<HRClaims> {
+  return withFixture(bucketClaims(triageReimbursements), async () => {
+    const result = await apiGet<TriageSource[]>(`${API_PREFIX}/reimbursements/`);
+    if (result.error) return { ...bucketClaims([]), error: result.error };
+    return bucketClaims(result.data ?? []);
+  });
+}
 
+function bucketClaims(reims: TriageSource[]): HRClaims {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const byRecent = (a: ReimbursementRaw, b: ReimbursementRaw) =>
     new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
@@ -157,7 +168,7 @@ export async function getHRClaims(): Promise<{
   const passed: Claim[] = [];
   const flagged: Claim[] = [];
 
-  const sorted = [...result.data].sort(byRecent);
+  const sorted = [...reims].sort(byRecent);
 
   for (const r of sorted) {
     const isAutoProcessed = r.reviewed_by == null;
@@ -177,7 +188,7 @@ export async function getHRClaims(): Promise<{
     }
   }
 
-  return { attention, passed, flagged, allReims: result.data };
+  return { attention, passed, flagged, allReims: reims, rows: triageRows(reims), error: null };
 }
 
 export interface HistoryClaim {
