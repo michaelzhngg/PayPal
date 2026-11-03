@@ -61,8 +61,16 @@ def _enum_val(field) -> str:
 _EMPLOYEE_AUTONOMY_KEYS = ("tier", "trust_tier", "auto_limit", "audit_selected", "config_version")
 
 
+def _employee_tier(tier: Optional[str]) -> Optional[str]:
+    # Employees never learn that a claim needed two approvers.
+    return "HR_REVIEW" if tier == "DUAL_REVIEW" else tier
+
+
 def _employee_autonomy(autonomy: Optional[dict]) -> dict:
-    return {k: autonomy[k] for k in _EMPLOYEE_AUTONOMY_KEYS if autonomy and k in autonomy}
+    view = {k: autonomy[k] for k in _EMPLOYEE_AUTONOMY_KEYS if autonomy and k in autonomy}
+    if "tier" in view:
+        view["tier"] = _employee_tier(view["tier"])
+    return view
 
 
 def _employee_reasoning(reasoning: Optional[dict]) -> Optional[dict]:
@@ -164,11 +172,11 @@ def _build_reimbursement_response(
         "updated_at": r.updated_at.isoformat() if r.updated_at else None,
         "sub_categories": [sc.sub_category for sc in sub_cats],
         "receipt_count": receipt_count,
-        "tier": r.tier,
-        "risk_score": r.risk_score,
+        "tier": r.tier if viewer_is_hr else _employee_tier(r.tier),
+        "risk_score": r.risk_score if viewer_is_hr else None,
         "autonomy": (r.autonomy or {}) if viewer_is_hr else _employee_autonomy(r.autonomy),
         "audit_selected": bool(r.audit_selected),
-        "approvals": list(r.approvals or []),
+        "approvals": list(r.approvals or []) if viewer_is_hr else [],
         # Display-only fields. These never carry AI or HR judgment text.
         "employee_code": user.user_code if user else None,
         "payee_linked": bool(user and user.paypal_payer_id),

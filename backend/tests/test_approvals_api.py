@@ -176,6 +176,22 @@ def test_employee_response_has_no_judgment_text(env):
     assert hr_view["line_items"][0]["rejection_reason"] == "AI: amount within cap"
 
 
+def test_employee_never_sees_risk_score_or_dual_review(env):
+    c, db, users, act_as = env
+    r = _claim(db, users["emp"], "DUAL_REVIEW", autonomy={"tier": "DUAL_REVIEW", "risk_score": 90})
+    r.risk_score = 90
+    db.commit()
+
+    act_as("emp")
+    body = c.get(f"/api/v1/reimbursements/{r.reim_id}").json()
+    assert body["tier"] == "HR_REVIEW" and body["autonomy"].get("tier") == "HR_REVIEW"
+    assert body["risk_score"] is None and "risk_score" not in body["autonomy"]
+
+    act_as("hr1")
+    hr_body = c.get(f"/api/v1/reimbursements/{r.reim_id}").json()
+    assert hr_body["tier"] == "DUAL_REVIEW" and hr_body["risk_score"] == 90
+
+
 def test_list_filters_and_null_safe_old_claims(env):
     c, db, users, _ = env
     quick = _claim(db, users["emp"], "HR_QUICK", audit=True)
