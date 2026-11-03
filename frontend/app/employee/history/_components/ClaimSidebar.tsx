@@ -21,6 +21,7 @@ import {
   Loader2,
 } from "lucide-react";
 import type { HistoryClaim, LineItem, ClaimStatus } from "./historyData";
+import MoneyFlow from "@/components/timeline/MoneyFlow";
 
 // ─── Prop types ───────────────────────────────────────────────────────────────
 
@@ -616,6 +617,14 @@ export default function ClaimSidebar({ claim, onClose, isLoading = false }: Clai
                 </div>
               )}
             </div>
+
+            {!isPending && !masterRejected && (
+              <MoneyFlow
+                key={claim.id}
+                reimId={claim.id}
+                claimStatus={effectiveStatus === "Paid" ? "PAID" : "APPROVED"}
+              />
+            )}
 
             {/* ② HR NOTE ─────────────────────────────────────────────────── */}
             {claim.aiNote && <HRNoteBanner note={claim.aiNote} type="AI" />}
