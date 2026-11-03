@@ -36,7 +36,7 @@ export function AutonomyPanel({
         <div className="p-6 flex flex-col gap-3">
           <p className="text-sm font-semibold text-on-surface">No automated decision recorded for this claim</p>
           <p className="text-sm text-on-surface-variant">
-            It was checked before automatic payouts existed. Review the receipts and decide below.
+            There is no tier or risk score to show. Review the receipts and decide below.
           </p>
           {aiVerdict && (
             <p className="text-sm text-on-surface">
