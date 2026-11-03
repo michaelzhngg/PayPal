@@ -276,6 +276,11 @@ class StatusUpdateRequest(BaseModel):
     hr_note: Optional[str] = None
 
 
+class BatchApproveRequest(BaseModel):
+    # Each approval can start a PayPal payout, so one request is capped.
+    reim_ids: List[str] = Field(..., max_length=200)
+
+
 class AnalyzeReimbursementRequest(BaseModel):
     settlement_id: str
     document_ids: Optional[List[str]] = None
