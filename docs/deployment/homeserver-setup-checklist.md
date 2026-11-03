@@ -9,8 +9,8 @@ in [homeserver.md](homeserver.md).
 | 0 | Server files, CI deploy key, GitHub deploy secrets | ✅ done (Claude) |
 | 1 | Add `fil` to the `docker` group | ✅ done (you) |
 | 2 | Turn on Tailscale Funnel | ✅ done (you) |
-| 3 | Stop the laptop from sleeping | ⬜ |
-| 4 | Fill in the API keys in `~/reclaim/.env` | ⬜ |
+| 3 | Stop the laptop from sleeping | ✅ done (you) |
+| 4 | API keys in `~/reclaim/.env` (OpenRouter as main model) | ✅ done (you + Claude) |
 | 5 | Tailscale policy: create `tag:ci`, limit what it can reach | ⬜ |
 | 6 | Tailscale trust credential for GitHub Actions + 2 GitHub secrets | ⬜ |
 | 7 | Merge the deploy branch → first deploy | ⬜ |
@@ -24,7 +24,7 @@ in [homeserver.md](homeserver.md).
 
 | Secret | Lives in | Why |
 |---|---|---|
-| `LLM_API_KEY`, `OPENROUTER_API_KEY`, `LANGCHAIN_API_KEY`, `PAYPAL_CLIENT_SECRET`, DB password, `SECRET_KEY`, Cloudflare tunnel token | Server: `~/reclaim/.env` | The app reads them at runtime on the server. Anyone with write access to the repo can read GitHub secrets by pushing a workflow that prints them, so these never go to GitHub. |
+| `OPENROUTER_API_KEY` (also used as `LLM_API_KEY`), `LANGCHAIN_API_KEY`, `PAYPAL_CLIENT_SECRET`, DB password, `SECRET_KEY`, Cloudflare tunnel token | Server: `~/reclaim/.env` | The app reads them at runtime on the server. Anyone with write access to the repo can read GitHub secrets by pushing a workflow that prints them, so these never go to GitHub. |
 | `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`, `DEPLOY_USER` | GitHub repo secrets (already set) | Leaking them is harmless: the key can only run `deploy <tag>`, `rollback`, `status`. |
 | `TS_OAUTH_CLIENT_ID`, `TS_AUDIENCE` | GitHub repo secrets (step 6) | Identify the Tailscale credential. They are not passwords; GitHub's signed OIDC token is the proof. |
 | `PUBLIC_URL` | GitHub repo variable (already set) | Not secret; used for the post-deploy check. |
@@ -49,37 +49,39 @@ Also keep it on the charger (the battery was at 72%).
 
 ---
 
-## Step 4: Fill in the API keys
+## Step 4: Fill in the API keys ✅
 
-```bash
-ssh homelab
-nano ~/reclaim/.env
-```
+Done. `~/reclaim/.env` has `OPENROUTER_API_KEY` and `LANGCHAIN_API_KEY`. ILMU is
+skipped: the main chat model runs on OpenRouter too.
 
-Fill these lines (leave everything else as it is):
+| Model | Setting in `.env` | Value |
+|---|---|---|
+| Chat (policy, compliance, agent) | `LLM_BASE_URL`, `LLM_API_KEY`, `CHAT_MODEL` | `https://openrouter.ai/api/v1`, `${OPENROUTER_API_KEY}` (refers to the key, not a copy), `google/gemini-3.8-flash` |
+| Chat fallback | hard-coded in `backend/engine/llm.py` | OpenRouter `google/gemini-3.1-flash-lite-preview` |
+| Receipt vision | `VISION_MODEL` | OpenRouter `qwen/qwen3.5-flash-02-23` |
+| Embeddings | `EMBEDDING_MODEL` | OpenRouter `openai/text-embedding-3-small` |
 
-| Key | Where to get it |
-|---|---|
-| `LLM_API_KEY=` | ILMU console (the key for `api.ilmu.ai`, GLM-5.1), or ask the team for the one in their local `.env` |
-| `OPENROUTER_API_KEY=` | https://openrouter.ai/keys → Create key (starts with `sk-or-v1-`) |
-| `LANGCHAIN_API_KEY=` | Optional. https://smith.langchain.com → Settings → API Keys. If you set it, also set `LANGCHAIN_TRACING_V2=true` |
+`LLM_API_KEY=${OPENROUTER_API_KEY}` must stay **below** the `OPENROUTER_API_KEY` line.
 
-Save with `Ctrl+O`, `Enter`, exit with `Ctrl+X`.
+### Later: Gemini API as the main model
+
+1. Get a key at https://aistudio.google.com/apikey.
+2. `ssh homelab 'nano ~/reclaim/.env'` and change the three chat lines to:
+   ```bash
+   LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+   LLM_API_KEY=<your Gemini key>
+   CHAT_MODEL=<model id from AI Studio, e.g. gemini-…-flash, no "google/" prefix>
+   ```
+3. Apply: `ssh homelab '~/reclaim/bin/deploy.sh apply'`.
+
+Vision, embeddings and the fallback keep using OpenRouter, so keep that key.
 
 Don't change:
-- `POSTGRES_PASSWORD` and `SECRET_KEY`: generated already. After the first deploy the DB
-  password is stored in the database volume, and changing it breaks the connection.
-  Changing `SECRET_KEY` logs everyone out.
+- `POSTGRES_PASSWORD`: after the first deploy it's stored in the database volume, and
+  changing it breaks the connection.
+- `SECRET_KEY`: changing it logs everyone out.
 - `PAYPAL_MOCK_MODE=true`: leave it until step 9.
 - `PUBLIC_URL=https://fil-laptop.tail36f260.ts.net`: already set for Funnel.
-
-**Check:**
-
-```bash
-grep -E '^(LLM_API_KEY|OPENROUTER_API_KEY)=.+' ~/reclaim/.env | sed 's/=.*/=<set>/'
-```
-
-should print both names. `ls -l ~/reclaim/.env` should show `-rw-------`.
 
 ---
 
@@ -165,25 +167,28 @@ Instead of storing a Tailscale secret in GitHub, Tailscale trusts GitHub's signe
 identity token for **this repo's production deploy job only**.
 
 1. Open https://login.tailscale.com/admin/settings/trust-credentials
-   (**Settings** → **Trust credentials**).
-2. Click **Credential** → choose **OpenID Connect**.
-3. Fill in:
+   (**Settings** → **Trust credentials**) → **Credential** → **OpenID Connect**.
+2. First page:
 
    | Field | Value |
    |---|---|
-   | Issuer | **GitHub Actions** (from the dropdown) |
+   | Description | `Paypal Hackathon` (anything) |
+   | Issuer | **GitHub** |
+   | Issuer URL | `https://token.actions.githubusercontent.com` (filled in for you) |
    | Subject | `repo:michaelzhngg/PayPal:environment:production` |
-   | Custom claims | leave empty |
-   | Scopes | **Keys → Auth Keys: Write** |
-   | Tags (appears after picking Auth Keys) | `tag:ci` |
+   | Custom claims | none (don't click *Add claim key*) |
 
-   The subject must match exactly, case included. It works because the deploy job
-   runs in the GitHub Environment named `production`. Runs from PRs or forks get a
-   different subject and are refused.
+   Type the subject exactly, case included. The placeholder `…:environment:*` would
+   allow any environment; we pin it to `production`, the one the deploy job uses.
+   Runs from PRs or forks get a different subject and are refused.
 
-   If `tag:ci` isn't selectable, step 5 wasn't saved.
+   Click **Continue**.
+3. Scopes page: enable **Auth Keys** with **Write**. When asked for tags, pick
+   **`tag:ci`**. Leave every other scope off.
 
-4. Click **Generate credential**. Copy **Client ID** and **Audience**.
+   If `tag:ci` isn't in the list, step 5 wasn't saved.
+4. **Generate credential**. Copy **Client ID** and **Audience** (they're shown again in
+   the console later; they aren't passwords).
 5. Store them in the repo, from your laptop (you have the rights; I checked):
 
    ```powershell

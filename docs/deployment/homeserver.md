@@ -80,7 +80,7 @@ Nothing listens on a public interface, and no router port-forwarding is needed.
   `DEPLOY_HOST=100.87.169.54`, `DEPLOY_USER=fil`; variable `PUBLIC_URL`.
   The private key exists only in GitHub; to rotate it, generate a new one and re-run step 1.
 
-### 2. Let your user run Docker, keep the laptop awake — [you]
+### 2. Let your user run Docker, keep the laptop awake — [done]
 
 Needs your sudo password:
 
@@ -95,13 +95,15 @@ ssh homelab 'docker ps'          # new login, should list (no) containers withou
 Being in the `docker` group is root-equivalent. That is why the CI key is
 pinned to `ssh-gate.sh` rather than given a shell.
 
-### 3. Fill in the app secrets — [you]
+### 3. Fill in the app secrets — [done]
 
 ```bash
 ssh homelab 'nano ~/reclaim/.env'
 ```
 
-Set `LLM_API_KEY`, `OPENROUTER_API_KEY`, and optionally `LANGCHAIN_API_KEY`. Leave
+Set `OPENROUTER_API_KEY` and optionally `LANGCHAIN_API_KEY`. The main chat model also
+runs on OpenRouter (`LLM_API_KEY=${OPENROUTER_API_KEY}`, `CHAT_MODEL=google/gemini-3.8-flash`);
+the checklist explains switching to the Gemini API later. Leave
 `PAYPAL_MOCK_MODE=true` until step 7. Don't touch the generated
 `POSTGRES_PASSWORD` after the first deploy (it's baked into the database volume).
 
@@ -133,7 +135,7 @@ In the [Tailscale admin console](https://login.tailscale.com/admin):
    gh secret set TS_AUDIENCE        -R michaelzhngg/PayPal   # paste Audience
    ```
 
-### 5. Turn on Tailscale Funnel — [you]
+### 5. Turn on Tailscale Funnel — [done]
 
 ```bash
 ssh homelab
