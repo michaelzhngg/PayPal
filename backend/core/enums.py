@@ -32,6 +32,15 @@ class PayoutStatus(str, enum.Enum):
     REVERSED = "REVERSED"
 
 
+class RecoveryStatus(str, enum.Enum):
+    NOTICE_SENT = "NOTICE_SENT"
+    DISPUTED = "DISPUTED"
+    OFFSET = "OFFSET"
+    INVOICED = "INVOICED"
+    RECOVERED = "RECOVERED"
+    WAIVED = "WAIVED"
+
+
 class AgentActionType(str, enum.Enum):
     DECISION = "DECISION"
     PAYOUT_CREATED = "PAYOUT_CREATED"
