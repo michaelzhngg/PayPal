@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FileSliders, History, Settings } from "lucide-react";
+import { Home, FileSliders, History, Banknote, Settings } from "lucide-react";
 import MobileNavDrawer from "./MobileNavDrawer";
 
 const NAV_ITEMS = [
   { href: "/hr/dashboard", label: "Home",    icon: Home         },
   { href: "/hr/policy",    label: "Policy",  icon: FileSliders  },
   { href: "/hr/history",   label: "History", icon: History      },
+  { href: "/hr/payouts",   label: "Payouts", icon: Banknote     },
   { href: "/hr/settings",  label: "Settings", icon: Settings    },
 ];
 
