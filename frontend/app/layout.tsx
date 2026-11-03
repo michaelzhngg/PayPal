@@ -1,19 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google"; // Import fonts
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext"; // Import AuthProvider
 import ServiceWorkerRegistration from "./_components/ServiceWorkerRegistration";
 import PushNotificationProvider from "./_components/PushNotificationProvider";
 import PushPermissionPrompt from "./_components/PushPermissionPrompt";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-body", // Assign to --font-body
+const inter = localFont({
+  src: "./fonts/inter-latin-wght-normal.woff2",
+  weight: "100 900",
+  variable: "--font-body",
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-headline", // Assign to --font-headline
+const plusJakartaSans = localFont({
+  src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+  weight: "200 800",
+  variable: "--font-headline",
 });
 
 export const viewport: Viewport = {
