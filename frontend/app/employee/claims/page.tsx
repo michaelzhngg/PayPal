@@ -303,9 +303,21 @@ interface BatchDropzoneProps {
   onAdd: (files: File[]) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   cameraRef: React.RefObject<HTMLInputElement | null>;
+  /** True before any file is added: the drop zone fills the whole upload area. */
+  expanded?: boolean;
 }
 
-function BatchDropzone({ isFull, isLoading, onAdd, inputRef, cameraRef }: BatchDropzoneProps) {
+/** Enter or Space opens the picker, so the drop zone works without a mouse. */
+function activateOnKey(open: () => void) {
+  return (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      open();
+    }
+  };
+}
+
+function BatchDropzone({ isFull, isLoading, onAdd, inputRef, cameraRef, expanded = false }: BatchDropzoneProps) {
   const [dragging, setDragging] = useState(false);
 
   function handleDrop(e: React.DragEvent) {
@@ -320,8 +332,12 @@ function BatchDropzone({ isFull, isLoading, onAdd, inputRef, cameraRef }: BatchD
     <>
       {/* Mobile: tap to open native camera / gallery */}
       <div
-        className="md:hidden flex flex-col items-center justify-center gap-4 py-7 px-4 rounded-[20px] border-[2.5px] border-dashed border-primary/40 bg-primary/3 cursor-pointer active:scale-[0.97] transition-all duration-300"
+        role="button"
+        tabIndex={0}
+        aria-label="Scan or upload receipts"
+        className={`md:hidden flex flex-col items-center justify-center gap-4 ${expanded ? "py-14" : "py-7"} px-4 rounded-[20px] border-[2.5px] border-dashed border-primary/40 bg-primary/3 cursor-pointer active:scale-[0.97] transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
         onClick={() => cameraRef.current?.click()}
+        onKeyDown={activateOnKey(() => cameraRef.current?.click())}
       >
         <div className="w-12 h-12 rounded-[16px] bg-primary/10 flex items-center justify-center shadow-sm">
           <Camera className="w-6 h-6 text-primary" strokeWidth={1.75} />
@@ -338,7 +354,11 @@ function BatchDropzone({ isFull, isLoading, onAdd, inputRef, cameraRef }: BatchD
         onDragLeave={() => setDragging(false)}
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
-        className={`hidden md:flex border-2 border-dashed rounded-2xl flex-col items-center justify-center py-9 px-6 text-center cursor-pointer transition-all duration-200 group ${dragging
+        onKeyDown={activateOnKey(() => inputRef.current?.click())}
+        role="button"
+        tabIndex={0}
+        aria-label="Upload receipts"
+        className={`hidden md:flex border-2 border-dashed rounded-2xl flex-col items-center justify-center ${expanded ? "min-h-[360px] py-16" : "py-9"} px-6 text-center cursor-pointer transition-all duration-200 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${dragging
           ? "border-primary/60 bg-primary/5"
           : "border-outline-variant/40 bg-surface-container-lowest hover:border-primary/40 hover:bg-primary/3"
           }`}
@@ -1102,10 +1122,11 @@ function CaptureReceiptContent() {
             )}
 
             {/* Split-view upload area */}
-            <div className="flex flex-col lg:flex-row gap-5 items-stretch" style={{ minHeight: 480 }}>
+            {/* Until a file is added there is nothing to preview, so the drop zone takes the full width. */}
+            <div className="flex flex-col lg:flex-row gap-5 items-stretch" style={files.length > 0 ? { minHeight: 480 } : undefined}>
 
                 {/* ── Left: Dropzone + file list ─────────────────────────── */}
-                <div className="w-full lg:w-[380px] shrink-0 flex flex-col gap-4">
+                <div className={`w-full ${files.length > 0 ? "lg:w-[380px]" : ""} shrink-0 flex flex-col gap-4`}>
 
                   {/* Dropzone */}
                   <BatchDropzone
@@ -1114,6 +1135,7 @@ function CaptureReceiptContent() {
                     onAdd={handleAddFiles}
                     inputRef={fileInputRef}
                     cameraRef={cameraInputRef}
+                    expanded={files.length === 0}
                   />
 
                   {/* File list */}
@@ -1157,9 +1179,11 @@ function CaptureReceiptContent() {
                 </div>
 
                 {/* ── Right: Document preview ────────────────────────────── */}
-                <div className="flex-1 flex flex-col">
-                  <DocViewer file={activeFile} />
-                </div>
+                {files.length > 0 && (
+                  <div className="flex-1 flex flex-col">
+                    <DocViewer file={activeFile} />
+                  </div>
+                )}
               </div>
 
             {/* Hidden file input — desktop multi-file picker */}
@@ -1204,6 +1228,7 @@ function CaptureReceiptContent() {
               <button
                 id="process-receipts-btn"
                 disabled={!canProcess}
+                aria-describedby={canProcess ? undefined : "process-receipts-hint"}
                 onClick={handleProcessReceipts}
                 className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm font-body transition-all duration-200 ${canProcess
                   ? "bg-linear-to-r from-primary to-primary-dim text-on-primary shadow-[0_4px_16px_rgba(70,71,211,0.35)] hover:shadow-[0_6px_24px_rgba(70,71,211,0.45)] hover:scale-[1.02] active:scale-[0.97]"
@@ -1215,6 +1240,11 @@ function CaptureReceiptContent() {
                   : "Process Receipts"}
               </button>
             </div>
+            {!canProcess && (
+              <p id="process-receipts-hint" className="-mt-3 text-xs text-on-surface-variant font-body text-right max-w-2xl lg:max-w-none">
+                Add at least one receipt to continue.
+              </p>
+            )}
           </div>
         )}
 
