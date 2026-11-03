@@ -1,18 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, BadgeCheck, Clock, Loader2, Wallet, X } from "lucide-react";
+import { AlertCircle, BadgeCheck, Clock, Loader2, Wallet } from "lucide-react";
 import { getConnectUrl, getPayeeStatus, unlinkPayPal } from "@/lib/actions/paypal";
 import type { PayeeStatus } from "@/lib/api/reclaim-pay-types";
+import { useToast } from "@/components/toast/ToastProvider";
 import { payeeCardState } from "./payeeCardState";
-
-type Notice = { tone: "success" | "error"; text: string };
-
-const NOTICE_FROM_CALLBACK: Record<string, Notice> = {
-  linked: { tone: "success", text: "PayPal account linked." },
-  error: { tone: "error", text: "PayPal didn't link your account. Try connecting again." },
-};
+import { callbackToast, connectFailedToast, UNLINK_FAILED_TOAST, UNLINKED_TOAST } from "./paypalToasts";
 
 function formatWhen(iso: string): string {
   return new Date(iso).toLocaleString("en-MY", {
@@ -26,10 +21,10 @@ function formatWhen(iso: string): string {
 export default function PayPalConnectCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const [status, setStatus] = useState<PayeeStatus | null>(null);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
-  const [notice, setNotice] = useState<Notice | null>(null);
-  const [seenOutcome, setSeenOutcome] = useState<string | null>(null);
+  const handledOutcome = useRef<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [confirmingUnlink, setConfirmingUnlink] = useState(false);
   const [unlinking, setUnlinking] = useState(false);
@@ -50,28 +45,31 @@ export default function PayPalConnectCard() {
     fetchStatus();
   }, [fetchStatus]);
 
-  // The PayPal callback lands here with ?paypal=linked|error. Show it once, then drop it from the URL.
-  // State is adjusted during render so this also works when the card is already mounted.
+  // The PayPal callback lands here with ?paypal=linked|error. Toast it once, then drop it from the URL.
+  // The ref keeps React's dev double-run of effects from toasting twice.
   const outcome = searchParams.get("paypal");
-  if (outcome !== seenOutcome) {
-    setSeenOutcome(outcome);
-    if (outcome && NOTICE_FROM_CALLBACK[outcome]) setNotice(NOTICE_FROM_CALLBACK[outcome]);
-  }
-
   useEffect(() => {
-    if (outcome) router.replace("/employee/settings", { scroll: false });
-  }, [outcome, router]);
+    if (!outcome) {
+      handledOutcome.current = null;
+      return;
+    }
+    if (handledOutcome.current === outcome) return;
+    handledOutcome.current = outcome;
+    const feedback = callbackToast(outcome);
+    if (feedback) toast(feedback);
+    router.replace("/employee/settings", { scroll: false });
+  }, [outcome, router, toast]);
 
   const handleConnect = useCallback(async () => {
     setConnecting(true);
     const { url, error } = await getConnectUrl();
     if (!url) {
       setConnecting(false);
-      setNotice({ tone: "error", text: error ? `Couldn't start PayPal login (${error}).` : "Couldn't start PayPal login." });
+      toast(connectFailedToast(error));
       return;
     }
     window.location.assign(url);
-  }, []);
+  }, [toast]);
 
   const handleUnlink = useCallback(async () => {
     setUnlinking(true);
@@ -79,12 +77,12 @@ export default function PayPalConnectCard() {
     setUnlinking(false);
     setConfirmingUnlink(false);
     if (error) {
-      setNotice({ tone: "error", text: "Couldn't unlink your PayPal account. Try again." });
+      toast(UNLINK_FAILED_TOAST);
       return;
     }
-    setNotice({ tone: "success", text: "PayPal account unlinked." });
+    toast(UNLINKED_TOAST);
     reload();
-  }, [reload]);
+  }, [reload, toast]);
 
   const cardState = status ? payeeCardState(status, new Date()) : null;
 
@@ -103,24 +101,6 @@ export default function PayPalConnectCard() {
       </div>
 
       <div className="p-6 space-y-4" aria-live="polite">
-        {notice && (
-          <div
-            role="status"
-            className={`flex items-start justify-between gap-3 rounded-xl px-4 py-3 text-sm font-body ${
-              notice.tone === "success" ? "bg-emerald-50 text-emerald-800" : "bg-error/10 text-error"
-            }`}
-          >
-            <span>{notice.text}</span>
-            <button
-              onClick={() => setNotice(null)}
-              aria-label="Dismiss message"
-              className="-m-2 p-2 rounded-lg hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-primary shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
         {loadState === "loading" && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-surface-container-low text-sm text-on-surface-variant">
             <Loader2 className="w-4 h-4 animate-spin" />
