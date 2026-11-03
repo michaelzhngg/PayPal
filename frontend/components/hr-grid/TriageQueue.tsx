@@ -158,7 +158,7 @@ export default function TriageQueue({ rows, isLoading, error, selfId, onRetry, o
                     active ? "bg-primary/10 text-primary" : "bg-surface-container text-on-surface-variant"
                   }`}
                 >
-                  {isLoading ? "–" : counts[id]}
+                  {isLoading ? "…" : counts[id]}
                 </span>
               </button>
             );
