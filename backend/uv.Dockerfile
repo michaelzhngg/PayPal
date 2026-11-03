@@ -29,9 +29,11 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
-# Create a non-root user and set permissions
+# Create a non-root user and set permissions.
+# storage/ exists in the image so a fresh named volume mounted there inherits appuser ownership.
 
-RUN adduser --system --group --home /home/appuser appuser && chown -R appuser:appuser /app
+RUN mkdir -p /app/storage/documents /app/storage/policies \
+    && adduser --system --group --home /home/appuser appuser && chown -R appuser:appuser /app
 
 USER appuser
 

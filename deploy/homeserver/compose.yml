@@ -1,0 +1,108 @@
+# Production stack for the homeserver. Images are built by GitHub Actions and
+# pulled from GHCR; no source code lives on the server.
+#
+# Interpolation comes from two files next to this one:
+#   .env         secrets and host settings (you edit it; never committed)
+#   release.env  IMAGE_TAG of the live release (written by bin/deploy.sh)
+#
+# Run it through bin/deploy.sh, not `docker compose` directly, so both files load.
+
+name: reclaim
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+
+  backend:
+    image: ${IMAGE_REGISTRY:?set IMAGE_REGISTRY in .env}/backend:${IMAGE_TAG:?no release deployed yet}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      FRONTEND_URL: ${PUBLIC_URL:?set PUBLIC_URL in .env}
+      FRONTEND_PUBLIC_URL: ${PUBLIC_URL}
+      BACKEND_PUBLIC_URL: ${PUBLIC_URL}
+      VAPID_KEYS_FILE: /app/storage/vapid_keys.json
+      # Only Caddy and the frontend can reach the backend, so trust their X-Forwarded-For.
+      FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - backend_storage:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # /health answers 200 even when the DB is down, so check the body.
+      test: ["CMD", "python", "-c", "import json,sys,urllib.request; sys.exit(json.load(urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)).get('status') != 'healthy')"]
+      interval: 10s
+      timeout: 6s
+      retries: 5
+      start_period: 60s
+    logging: *logging
+
+  frontend:
+    image: ${IMAGE_REGISTRY}/frontend:${IMAGE_TAG}
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_URL: http://backend:8000
+      NODE_ENV: production
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *logging
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    # Loopback only. Tailscale Funnel and Cloudflare Tunnel are the public doors.
+    ports:
+      - "127.0.0.1:${HTTP_PORT:-8080}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      frontend:
+        condition: service_healthy
+    logging: *logging
+
+  # Enable with COMPOSE_PROFILES=cloudflare and CLOUDFLARE_TUNNEL_TOKEN in .env.
+  # In the Cloudflare dashboard, point the public hostname at http://caddy:80.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["cloudflare"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - caddy
+    logging: *logging
+
+volumes:
+  postgres_data:
+  backend_storage:
+  caddy_data:
