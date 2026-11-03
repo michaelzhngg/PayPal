@@ -210,7 +210,7 @@ export const decisions: Record<"S1" | "S2" | "S3" | "S4" | "S5" | "S6" | "S7" | 
     risk_score: 50,
     hard_stops: ["HIGH_RISK_SIGNAL"],
     signals: [
-      { code: "DUPLICATE_RECEIPT", severity: "HIGH", points: 50, message: "This receipt matches one already paid to another employee, with the same amount and date.", evidence: { phash_distance: 4 }, document_id: null },
+      { code: "DUPLICATE_RECEIPT", severity: "HIGH", points: 50, message: "This receipt matches one already paid to another employee, with the same amount and date.", evidence: { phash_distance: 4, matched_reim_id: payoutS1.reim_id }, document_id: null },
     ],
     expected_loss: 6.24,
     explanation: "Two-person review: this receipt matches one that was already paid.",
@@ -221,7 +221,7 @@ export const decisions: Record<"S1" | "S2" | "S3" | "S4" | "S5" | "S6" | "S7" | 
     risk_score: 25,
     hard_stops: [],
     signals: [
-      { code: "SPLIT_CLAIM", severity: "MEDIUM", points: 20, message: "A second MYR 90.00 meal at the same merchant on the same evening. Together they exceed the MYR 100.00 limit.", evidence: { related_claims: 1 }, document_id: null },
+      { code: "SPLIT_CLAIM", severity: "MEDIUM", points: 20, message: "A second MYR 90.00 meal at the same merchant on the same evening. Together they exceed the MYR 100.00 limit.", evidence: { related_claims: 1, combined: 180, limit: 100 }, document_id: null },
       { code: "NEAR_THRESHOLD", severity: "LOW", points: 5, message: "MYR 90.00 is within 10% of the limit.", evidence: {}, document_id: null },
     ],
     expected_loss: 6.08,

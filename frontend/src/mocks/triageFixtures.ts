@@ -31,6 +31,8 @@ interface Spec {
   decision: AutonomyDecision;
   minutes: number;
   approvals?: TriageSource["approvals"];
+  /** What the AI found eligible when it is less than the claimed amount. */
+  eligible?: number;
 }
 
 function claim(s: Spec): TriageSource {
@@ -54,6 +56,19 @@ function claim(s: Spec): TriageSource {
     created_at: minutesAgo(s.minutes),
     sub_categories: [],
     receipt_count: 1,
+    // One receipt per claim, so the review page has a line to decide on.
+    line_items: [{
+      line_item_id: `${s.reim_id}-li-1`,
+      reim_id: s.reim_id,
+      document_id: `${s.reim_id}-doc-1`,
+      description: `${s.category} receipt`,
+      category: s.category,
+      claimed_amount: s.amount,
+      approved_amount: s.eligible ?? s.amount,
+      currency: "MYR",
+      expense_date: minutesAgo(s.minutes).slice(0, 10),
+      judgment: s.judgment,
+    }],
     tier: s.decision.tier,
     risk_score: s.decision.risk_score,
     autonomy: s.decision,
@@ -66,7 +81,7 @@ const quickDecision = (over: Partial<AutonomyDecision>): AutonomyDecision => ({ 
 
 export const triageReimbursements: TriageSource[] = [
   claim({ reim_id: payoutS1.reim_id, who: "aisyah", category: "Transportation", amount: 48, judgment: "APPROVED", confidence: 0.95, status: "PAID", decision: decisions.S1, minutes: 190 }),
-  claim({ reim_id: "8d4a1b2c-3e5f-4a6b-8c7d-9e0f1a2b3c4d", who: "daniel", category: "Accommodation", amount: 620, judgment: "PARTIAL", confidence: 0.9, status: "REVIEW", decision: decisions.S2, minutes: 170 }),
+  claim({ reim_id: "8d4a1b2c-3e5f-4a6b-8c7d-9e0f1a2b3c4d", who: "daniel", category: "Accommodation", amount: 620, eligible: 250, judgment: "PARTIAL", confidence: 0.9, status: "REVIEW", decision: decisions.S2, minutes: 170 }),
   claim({
     reim_id: "a3c2e1f0-7b6d-4c5e-9f8a-1b2c3d4e5f60", who: "priya", category: "Accommodation", amount: 450, judgment: "APPROVED", confidence: 0.8, status: "REVIEW", decision: decisions.S3, minutes: 150,
     approvals: [{ hr_id: "c0ffee00-0000-4000-8000-0000000000aa", at: minutesAgo(30) }],

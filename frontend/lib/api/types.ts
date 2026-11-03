@@ -4,6 +4,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { formatMoney, type AutonomyDecision, type AutonomyTier } from "./reclaim-pay-types";
+import type { ClaimAutonomy } from "@/lib/hr/evidence";
 
 // ─── Generic API Result ──────────────────────────────────────────────────────
 
@@ -274,6 +275,8 @@ export interface ClaimBundle {
   summary: string;
   overall_status: AiStatus;
   audit_log: AuditLogEntry[];
+  /** The autonomy engine's decision. null for claims decided before it existed. */
+  autonomy?: ClaimAutonomy | null;
 }
 
 /** Dashboard list row. */
