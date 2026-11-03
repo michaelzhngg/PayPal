@@ -40,7 +40,7 @@ export async function getPayout(reimId: string): Promise<PayoutInfoV2 | null> {
   });
 }
 
-/** HR payout ledger. */
+/** HR payout ledger. Throws on a failed request so the page can tell an outage from an empty ledger. */
 export async function getLedger(filters: LedgerFilters = {}): Promise<PayoutLedgerRow[]> {
   return withFixture(ledgerRows, async () => {
     const params = new URLSearchParams();
@@ -49,6 +49,7 @@ export async function getLedger(filters: LedgerFilters = {}): Promise<PayoutLedg
     if (filters.to) params.set("to", filters.to);
     const query = params.size ? `?${params}` : "";
     const result = await apiGet<PayoutLedgerRow[]>(`${API_PREFIX}/payouts/${query}`);
+    if (result.error) throw new Error(result.error);
     return result.data ?? [];
   });
 }

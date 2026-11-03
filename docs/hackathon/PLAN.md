@@ -88,6 +88,7 @@ Priorities:
 | [ ] | Signed webhook endpoint, plus a status refresh as a fallback | Must | 2 |
 | [ ] | "Log in with PayPal" to verify the employee's account; 72-hour pause after the account changes | Must | 2 |
 | [ ] | Payout ledger endpoint for HR | Should | 2 |
+| [ ] | "Sign in with PayPal" on the login page, next to the password: employees only, matched by an already-linked and verified `paypal_payer_id` (never by email), and a PayPal sign-in starts the 72-hour pause before payout details can change. HR stays on password | Should | 3 |
 | [ ] | Mock mode, so the frontend can work without sandbox keys | Must | 1 |
 | [ ] | Reconcile payouts against the company's PayPal ledger (PayPal Server SDK) | Could | 3 |
 
