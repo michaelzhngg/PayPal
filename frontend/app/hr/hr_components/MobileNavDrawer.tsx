@@ -5,19 +5,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
-import {
-  Users,
-  Gauge,
-  Settings,
-  LifeBuoy,
-  LogOut,
-  X,
-} from "lucide-react";
+import { Users, Gauge, Settings, LifeBuoy, LogOut, X, type LucideIcon } from "lucide-react";
 
 type MobileNavDrawerProps = {
   open: boolean;
   onClose: () => void;
 };
+
+// Only the pages that are not in the bottom nav.
+const DRAWER_LINKS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/hr/manage_employee", label: "Manage Employee", icon: Users },
+  { href: "/hr/autonomy", label: "Autonomy", icon: Gauge },
+  { href: "/hr/settings", label: "Settings", icon: Settings },
+  { href: "/hr/support", label: "Support", icon: LifeBuoy },
+];
 
 export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps) {
   const { user, logout } = useAuth();
@@ -35,16 +36,23 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
     };
   }, [open]);
 
+  // Escape closes the drawer.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   // Auto-close on route change
   useEffect(() => {
     if (open) onClose();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  const isSettingsActive = pathname === "/hr/settings" || pathname.startsWith("/hr/settings/");
-  const isSupportActive = pathname === "/hr/support" || pathname.startsWith("/hr/support/");
-  const isAutonomyActive = pathname === "/hr/autonomy" || pathname.startsWith("/hr/autonomy/");
-  const isManageActive = pathname === "/hr/manage_employee" || pathname.startsWith("/hr/manage_employee/");
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   // Swipe handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -86,166 +94,93 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
 
   const panelStyle: React.CSSProperties = {
     transform: `translate3d(${open ? translateX : 100}%, 0, 0)`,
-    transition: isDragging ? "none" : "transform 300ms cubic-bezier(0.16, 1, 0.3, 1)",
+    transition: isDragging ? "none" : "transform 250ms cubic-bezier(0.16, 1, 0.3, 1)",
   };
 
   return (
     <div
-      className={`fixed inset-0 z-[60] transition-all duration-300 ${open ? "pointer-events-auto" : "pointer-events-none opacity-0"}`}
+      className={`fixed inset-0 z-[60] transition-opacity duration-200 ${open ? "pointer-events-auto" : "pointer-events-none opacity-0"}`}
       role="dialog"
       aria-modal="true"
+      aria-label="HR navigation"
       aria-hidden={!open}
     >
-      {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 bg-ink/40 transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0"}`}
         onClick={onClose}
       />
 
-      {/* Panel: slides from right */}
       <nav
         ref={panelRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="absolute top-0 right-0 bottom-0 w-full md:w-[280px] md:max-w-[80vw] bg-surface-muted border-l border-line/10 shadow-overlay flex flex-col h-full p-4 touch-pan-y"
+        className="absolute top-0 right-0 bottom-0 w-full md:w-[280px] md:max-w-[80vw] bg-surface border-l border-line shadow-overlay flex flex-col h-full p-4 touch-pan-y"
         style={panelStyle}
       >
-        {/* Close + Brand */}
-        <div className="flex items-center justify-between px-4 py-3 mb-2">
+        <div className="flex items-center justify-between pl-3 py-2 mb-2">
           <div className="flex items-center gap-2.5">
-            <Image src="/images/logo.svg" alt="Reclaim Logo" width={28} height={28} className="w-7 h-7 object-contain" />
-            <h1 className="font-display font-bold text-xl text-accent">
-              Reclaim Pay
-            </h1>
+            <Image src="/images/logo.svg" alt="" width={28} height={28} className="w-7 h-7 object-contain" />
+            <div className="leading-tight">
+              <p className="font-display font-semibold text-lg text-ink">Reclaim Pay</p>
+              <p className="font-body text-xs text-ink-muted">HR Portal</p>
+            </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-surface-muted transition-all"
+            className="inline-flex items-center justify-center w-11 h-11 rounded-control hover:bg-surface-muted transition-colors cursor-pointer"
             aria-label="Close navigation"
           >
-            <X className="w-5 h-5 text-ink" strokeWidth={2} />
+            <X className="w-5 h-5 text-ink" strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
-        <p
-          className="font-body text-xs font-medium text-ink-muted px-4 mb-6 leading-tight transition-all duration-300"
-          style={{ transitionDelay: open ? "40ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
-        >
-          HR Portal
-        </p>
-
-        {/* User identity chip */}
-        <div
-          className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-surface-muted/50 transition-all duration-300"
-          style={{ transitionDelay: open ? "80ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
-        >
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-accent-soft to-accent-soft shrink-0 flex items-center justify-center font-display font-bold text-base text-accent-hover border-2 border-surface">
+        <div className="flex items-center gap-3 px-3 py-3 mb-4 border-y border-line">
+          <div className="w-10 h-10 rounded-full bg-surface-muted border border-line shrink-0 flex items-center justify-center font-display font-semibold text-base text-ink">
             {user?.name?.charAt(0).toUpperCase() ?? "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-body font-semibold text-sm text-ink truncate leading-tight">
-              {user?.name ?? "Employee"}
-            </p>
-            <p className="font-body text-[11px] text-ink-muted truncate">
-              {user?.department_name ?? "General"}
-            </p>
+            <p className="font-body font-semibold text-sm text-ink truncate leading-tight">{user?.name ?? "Employee"}</p>
+            <p className="font-body text-xs text-ink-muted truncate">{user?.department_name ?? "General"}</p>
           </div>
         </div>
 
-        {/* Links: only items NOT in the bottom nav */}
         <div className="flex-1 flex flex-col gap-0.5 overflow-y-auto">
-          <Link
-            href="/hr/manage_employee"
-            onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
-              isManageActive
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
-            }`}
-            style={{ transitionDelay: open ? "120ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
-          >
-            <Users
-              className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isManageActive ? "text-accent" : "text-ink-muted"
-              }`}
-              strokeWidth={isManageActive ? 2.5 : 1.75}
-            />
-            Manage Employee
-          </Link>
-
-          <Link
-            href="/hr/autonomy"
-            onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
-              isAutonomyActive
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
-            }`}
-            style={{ transitionDelay: open ? "140ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
-          >
-            <Gauge
-              className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isAutonomyActive ? "text-accent" : "text-ink-muted"
-              }`}
-              strokeWidth={isAutonomyActive ? 2.5 : 1.75}
-            />
-            Autonomy
-          </Link>
-
-          <Link
-            href="/hr/settings"
-            onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
-              isSettingsActive
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
-            }`}
-            style={{ transitionDelay: open ? "160ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
-          >
-            <Settings
-              className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isSettingsActive ? "text-accent" : "text-ink-muted"
-              }`}
-              strokeWidth={isSettingsActive ? 2.5 : 1.75}
-            />
-            Settings
-          </Link>
-
-          <Link
-            href="/hr/support"
-            onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
-              isSupportActive
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
-            }`}
-            style={{ transitionDelay: open ? "200ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
-          >
-            <LifeBuoy
-              className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isSupportActive ? "text-accent" : "text-ink-muted"
-              }`}
-              strokeWidth={isSupportActive ? 2.5 : 1.75}
-            />
-            Support
-          </Link>
+          {DRAWER_LINKS.map(({ href, label, icon: Icon }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={onClose}
+                aria-current={active ? "page" : undefined}
+                className={`flex items-center gap-3 min-h-[48px] px-3 rounded-control font-body text-sm transition-colors ${
+                  active ? "bg-surface-muted font-semibold text-ink" : "font-medium text-ink-muted hover:bg-surface-muted hover:text-ink"
+                }`}
+              >
+                <Icon
+                  className={`w-[18px] h-[18px] shrink-0 ${active ? "text-ink" : "text-ink-muted"}`}
+                  strokeWidth={active ? 2.25 : 1.75}
+                  aria-hidden="true"
+                />
+                {label}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Bottom: Logout */}
-        <div
-          className="mt-auto pt-4 border-t border-line/10 transition-all duration-300"
-          style={{ transitionDelay: open ? "240ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
-        >
+        <div className="mt-auto pt-4 border-t border-line">
           <button
             id="drawer-logout-btn"
-            onClick={() => { logout(); onClose(); }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-medium text-ink hover:bg-danger/10 hover:text-danger group transition-all hover:translate-x-0.5 active:scale-[0.97]"
+            type="button"
+            onClick={() => {
+              logout();
+              onClose();
+            }}
+            className="w-full flex items-center gap-3 min-h-[48px] px-3 rounded-control font-body text-sm font-medium text-ink-muted hover:bg-danger-soft hover:text-danger group transition-colors cursor-pointer"
           >
-            <LogOut
-              className="w-[18px] h-[18px] text-ink-muted group-hover:text-danger transition-colors"
-              strokeWidth={1.75}
-            />
+            <LogOut className="w-[18px] h-[18px] text-ink-muted group-hover:text-danger" strokeWidth={1.75} aria-hidden="true" />
             Logout
           </button>
         </div>

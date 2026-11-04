@@ -1,8 +1,8 @@
 "use client";
 
-import { CheckCircle2, LayoutDashboard, ShieldX, AlertTriangle, UserCheck } from "lucide-react";
+import { CheckCircle2, ShieldX, AlertTriangle, UserCheck } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export type HRDecision = "approve_full" | "approve_adjusted" | "reject" | "confirm" | "flag" | null;
 
@@ -21,29 +21,31 @@ export function SuccessModal({
   /** First approval of two: nothing is paid yet, so the modal must not say the claim is done. */
   awaitingSecondApproval?: boolean;
 }) {
-  const [visible, setVisible] = useState(false);
+  const actionRef = useRef<HTMLAnchorElement>(null);
 
+  // The decision is final, so the one way on is the dashboard link: focus it.
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 30);
-    return () => clearTimeout(t);
+    actionRef.current?.focus();
   }, []);
 
-  let title = "Review Submitted!";
-  let subtitle = "The claim has been processed successfully.";
-  
+  let title = "Review submitted";
+  let subtitle = "The claim has been processed.";
+
   if (decision === "approve_full") {
-    subtitle = `Claim bundle ${id} has been fully approved.`;
+    title = "Claim approved";
+    subtitle = `Claim bundle ${id} is fully approved.`;
   } else if (decision === "approve_adjusted") {
-    subtitle = `Claim bundle ${id} has been approved with HR adjustments.`;
+    title = "Claim approved";
+    subtitle = `Claim bundle ${id} is approved with your adjustments.`;
   } else if (decision === "reject") {
-    title = "Claim Rejected";
-    subtitle = `Claim bundle ${id} has been rejected.`;
+    title = "Claim rejected";
+    subtitle = `You rejected claim bundle ${id}.`;
   } else if (decision === "confirm") {
-    title = "Approval Finalised!";
-    subtitle = `Claim bundle ${id} has been fully finalised and the employee has been notified.`;
+    title = "Approval finalised";
+    subtitle = `Claim bundle ${id} is finalised and the employee has been notified.`;
   } else if (decision === "flag") {
-    title = "Claim Flagged";
-    subtitle = `Claim bundle ${id} has been flagged for re-review.`;
+    title = "Claim flagged";
+    subtitle = `Claim bundle ${id} is flagged for another review.`;
   }
 
   if (awaitingSecondApproval) {
@@ -51,60 +53,36 @@ export function SuccessModal({
     subtitle = "A second HR member must approve before the payout is sent.";
   }
 
-  const isError = decision === "reject";
-  const isWarning = decision === "flag";
-
-  let Icon = awaitingSecondApproval ? UserCheck : CheckCircle2;
-  let colorTheme = "green";
-  if (isError) {
-    Icon = ShieldX;
-    colorTheme = "error";
-  } else if (isWarning) {
-    Icon = AlertTriangle;
-    colorTheme = "amber";
-  }
+  const tone = decision === "reject" ? "danger" : decision === "flag" ? "warning" : "success";
+  const Icon = tone === "danger" ? ShieldX : tone === "warning" ? AlertTriangle : awaitingSecondApproval ? UserCheck : CheckCircle2;
+  const iconColor = tone === "danger" ? "text-danger" : tone === "warning" ? "text-warning" : "text-success";
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
-        visible ? "bg-black/30" : "bg-transparent"
-      }`}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40">
       <div
-        className={`w-full max-w-md bg-surface rounded-3xl border border-line/15 flex flex-col items-center text-center p-10 transition-all duration-500 ${
-          visible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-6 scale-95"
-        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hr-success-title"
+        aria-describedby="hr-success-desc"
+        className="w-full max-w-md bg-surface rounded-dialog border border-line shadow-overlay flex flex-col items-center text-center p-8"
       >
-        <div className="relative w-20 h-20 mb-7">
-          <div className={`absolute inset-0 rounded-full animate-ping ${
-            colorTheme === "error" ? "bg-danger/10" : colorTheme === "amber" ? "bg-warning/10" : "bg-success/10"
-          }`} />
-          <div className={`relative w-20 h-20 rounded-full border flex items-center justify-center ${
-            colorTheme === "error" ? "bg-danger/15 border-danger/30" : colorTheme === "amber" ? "bg-warning/15 border-warning/30" : "bg-success/15 border-success/30"
-          }`}>
-            <Icon className={`w-10 h-10 ${
-              colorTheme === "error" ? "text-danger" : colorTheme === "amber" ? "text-warning" : "text-success"
-            }`} strokeWidth={1.75} />
-          </div>
-        </div>
+        <Icon className={`w-10 h-10 mb-5 ${iconColor}`} strokeWidth={1.75} aria-hidden="true" />
 
-        <h2 className="font-display text-2xl font-bold text-ink mb-3">
+        <h2 id="hr-success-title" className="font-display text-2xl font-semibold text-ink mb-2">
           {title}
         </h2>
 
-        <p className="text-sm text-ink-muted font-body leading-relaxed max-w-xs mb-8">
+        <p id="hr-success-desc" className="text-sm text-ink-muted font-body leading-relaxed max-w-xs mb-7">
           {subtitle}
         </p>
 
-        <div className="w-full">
-          <Link
-            href="/hr/dashboard"
-            className="flex items-center justify-center gap-2 px-5 py-3 w-full rounded-xl font-semibold text-sm font-body bg-accent text-on-accent hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
-          >
-            <LayoutDashboard className="w-4 h-4" strokeWidth={2} />
-            Return to Dashboard
-          </Link>
-        </div>
+        <Link
+          ref={actionRef}
+          href="/hr/dashboard"
+          className="flex items-center justify-center min-h-[44px] px-5 w-full rounded-control font-semibold text-sm font-body bg-accent text-on-accent hover:bg-accent-hover transition-colors"
+        >
+          Return to Dashboard
+        </Link>
       </div>
     </div>
   );

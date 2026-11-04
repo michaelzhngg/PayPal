@@ -33,7 +33,7 @@ export default function HRLayout({
           </main>
         </div>
 
-        {/* Mobile bottom navigation (fixed — FAB exception) */}
+        {/* Mobile bottom navigation (fixed, FAB exception) */}
         <BottomNav />
 
       </div>
