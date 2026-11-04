@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import PayPalConnectCard from "./_components/PayPalConnectCard";
 import ProfileCard from "./_components/ProfileCard";
+import PushSettingToggle from "@/app/_components/PushSettingToggle";
 
 // The URL hash picks the section, so /employee/settings#paypal opens on PayPal.
 function subscribeHash(onChange: () => void) {
@@ -17,6 +18,7 @@ const readServerHash = () => "";
 
 const SECTIONS = [
   { id: "paypal", label: "PayPal payouts" },
+  { id: "notifications", label: "Notifications" },
   { id: "profile", label: "Profile information" },
 ] as const;
 
@@ -94,8 +96,16 @@ export default function SettingsLegacyContent() {
               </Suspense>
             </div>
 
-            {/* WP5 push toggle slot: insert the notifications settings card here,
-                between PayPal payouts and Profile information. */}
+            <section
+              id="notifications"
+              aria-labelledby="notifications-title"
+              className="scroll-mt-24 bg-surface border border-line rounded-card"
+            >
+              <h2 id="notifications-title" className="px-5 pt-5 pb-1 font-display font-semibold text-lg text-ink">
+                Notifications
+              </h2>
+              <PushSettingToggle className="px-5 pb-4" />
+            </section>
 
             <ProfileCard key={user?.user_id ?? "anon"} />
 

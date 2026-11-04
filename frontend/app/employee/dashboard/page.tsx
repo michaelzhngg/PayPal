@@ -14,6 +14,7 @@ import StatSummary       from "./_components/StatSummary";
 import RecentClaimsTable from "./_components/RecentClaimsTable";
 import PayPalStatusChip  from "./_components/PayPalStatusChip";
 import AccountStatus     from "./_components/AccountStatus";
+import PushInlinePrompt  from "@/app/_components/PushInlinePrompt";
 
 /**
  * Open notices, plus the one a notification linked to with ?recovery={id}
@@ -96,8 +97,8 @@ export default function EmployeeDashboardPage() {
         </div>
       </section>
 
-      {/* WP5 push prompt slot: drop the inline push prompt here (after the
-          greeting, before account notices), so it never covers content. */}
+      {/* Inline, after the first claim, so it never covers content. */}
+      <PushInlinePrompt hasSubmittedClaim={!!claims && claims.length > 0} className="mb-6" />
 
       {/* Fast-track and overpayment notices sit under the PayPal chip, except on
           first run, where they follow the upload prompt so it stays in view on phones. */}
