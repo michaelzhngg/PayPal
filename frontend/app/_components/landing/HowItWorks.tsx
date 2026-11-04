@@ -38,7 +38,7 @@ const STEPS = [
     name: "PayPal pays",
     tagline: "Sent with PayPal Payouts",
     description:
-      "Approved claims are paid to the employee's verified PayPal account in seconds. Each payout is sent once and recorded in the log.",
+      "Approved claims are paid to the employee's verified PayPal account in under a minute. Each payout is sent once and recorded in the log.",
     points: ["Verified PayPal accounts only", "No payout is sent twice", "Every payout in a tamper-evident log"],
   },
 ];

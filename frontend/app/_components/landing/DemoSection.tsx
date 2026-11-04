@@ -169,11 +169,7 @@ export default function DemoSection() {
         </motion.div>
 
         <p className="mt-8 text-center text-xs text-ink-muted max-w-xl mx-auto">
-          These accounts are seeded by{" "}
-          <code className="px-1.5 py-0.5 rounded bg-line text-[11px]">
-            seed_demo_employees.py
-          </code>{" "}
-          for hackathon evaluation only and are reset on every container rebuild.
+          Demo accounts with sample data. Other visitors use them too.
         </p>
       </div>
     </section>

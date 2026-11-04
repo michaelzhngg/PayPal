@@ -15,7 +15,7 @@ const HR_ITEMS = [
 const EMP_ITEMS = [
   "Upload up to 10 receipts (JPEG, PNG, PDF) per claim",
   "Check what the AI read, and fix it if it's wrong",
-  "Clean claims are paid to your PayPal account in seconds",
+  "Clean claims are paid to your PayPal account in under a minute",
   "Live claim status, so you don't have to chase HR",
 ];
 

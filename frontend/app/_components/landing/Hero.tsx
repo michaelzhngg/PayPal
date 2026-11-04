@@ -11,23 +11,7 @@ export default function Hero({ user }: { user: User | null }) {
   const dashHref = user?.role === "HR" ? "/hr/dashboard" : "/employee/dashboard";
 
   return (
-    <section className="relative split-gradient overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(147,150,255,0.18),transparent_60%),radial-gradient(circle_at_70%_60%,rgba(158,0,180,0.14),transparent_60%)] mix-blend-overlay"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute -bottom-40 -left-40 w-[480px] h-[480px] rounded-full bg-accent blur-[140px] opacity-40"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute -top-32 -right-32 w-[420px] h-[420px] rounded-full bg-accent blur-[120px] opacity-50"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-[linear-gradient(transparent_96%,rgba(255,255,255,0.06)_96%),linear-gradient(90deg,transparent_96%,rgba(255,255,255,0.06)_96%)] bg-[size:32px_32px] opacity-30 pointer-events-none"
-      />
+    <section className="relative bg-ink overflow-hidden">
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 pt-12 pb-16 lg:pt-20 lg:pb-24">
         <div className="grid lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-center">
@@ -55,8 +39,7 @@ export default function Hero({ user }: { user: User | null }) {
               variants={revealItem}
               className="mt-6 font-display text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.1]"
             >
-              Expense claims, paid to PayPal
-              <br className="hidden sm:block" /> in seconds when it&rsquo;s safe.
+              Expense claims paid to PayPal in under a minute, when every check passes
             </motion.h1>
 
             <motion.p
@@ -64,7 +47,7 @@ export default function Hero({ user }: { user: User | null }) {
               className="mt-6 max-w-2xl text-base sm:text-lg opacity-90 font-light leading-relaxed"
             >
               An AI agent checks each claim against your policy. Clean, low-risk claims go
-              straight to the employee&rsquo;s PayPal account in seconds. Everything else goes
+              straight to the employee&rsquo;s PayPal account in under a minute. Everything else goes
               to HR with the evidence attached.
             </motion.p>
 
@@ -74,17 +57,6 @@ export default function Hero({ user }: { user: User | null }) {
             >
               Automation where it&rsquo;s safe, judgment where it matters.
             </motion.p>
-
-            <motion.div variants={revealItem} className="mt-10 lg:hidden">
-              <Image
-                src="/images/example.png"
-                alt="Reclaim Pay dashboard preview"
-                width={580}
-                height={749}
-                className="w-full max-w-md mx-auto h-auto rounded-2xl"
-                priority
-              />
-            </motion.div>
 
             <motion.div variants={revealItem} className="mt-9 flex flex-wrap items-center gap-3">
               <Link
@@ -111,6 +83,17 @@ export default function Hero({ user }: { user: User | null }) {
                 </Link>
               )}
             </motion.div>
+
+            <div className="mt-10 lg:hidden">
+              <Image
+                src="/landing/s1_ride.jpg"
+                alt="The S1 demo taxi receipt from Lintas Teksi Bandar, total RM 48.00"
+                width={720}
+                height={1066}
+                className="w-full max-w-xs mx-auto h-auto rounded-card"
+                priority
+              />
+            </div>
           </motion.div>
 
           <motion.div
@@ -120,11 +103,11 @@ export default function Hero({ user }: { user: User | null }) {
             transition={{ duration: 0.7, ease: "easeOut", delay: 0.2 }}
           >
             <Image
-              src="/images/example.png"
-              alt="Reclaim Pay dashboard preview showing the HR claims queue"
-              width={580}
-              height={749}
-              className="h-[760px] w-auto scale-110 origin-center"
+              src="/landing/s1_ride.jpg"
+              alt="The S1 demo taxi receipt from Lintas Teksi Bandar, total RM 48.00"
+              width={720}
+              height={1066}
+              className="h-[620px] w-auto rounded-card"
               priority
             />
           </motion.div>
