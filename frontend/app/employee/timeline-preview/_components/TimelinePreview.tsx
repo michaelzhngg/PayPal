@@ -106,7 +106,7 @@ export default function TimelinePreview() {
         </button>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-line/15 bg-surface p-4 sm:p-6">
+      <div className="mt-6 rounded-card border border-line bg-surface p-4 sm:p-6">
         <Replay key={`${scenario}-${audience}-${run}`} scenario={scenario} audience={audience} />
       </div>
     </div>
