@@ -19,7 +19,7 @@ export function RiskBar({ score }: { score: number }) {
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={value}
-        className="relative h-1.5 w-10 shrink-0 overflow-hidden rounded-full bg-surface-muted ring-1 ring-inset ring-line/40"
+        className="relative h-1.5 w-10 shrink-0 overflow-hidden rounded-full bg-surface-muted ring-1 ring-inset ring-line"
       >
         <span className={`absolute inset-y-0 left-0 rounded-full ${BAND_FILL[riskBand(value)]}`} style={{ width: `${value}%` }} />
       </span>

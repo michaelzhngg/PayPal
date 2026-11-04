@@ -33,10 +33,10 @@ export default function AgentLogTab() {
       {!isLoading && error && <TabError message={error} onRetry={retry} />}
 
       {!isLoading && !error && data && !data.chain_valid && (
-        <div role="alert" className="flex items-start gap-3 rounded-xl bg-danger text-white px-4 py-3 mb-4">
+        <div role="alert" className="flex items-start gap-3 rounded-card bg-danger text-on-accent px-4 py-3 mb-4">
           <ShieldAlert className="w-5 h-5 mt-0.5 shrink-0" aria-hidden="true" />
           <div className="text-sm">
-            <p className="font-bold">{chainBadgeLabel(false, count, LIMIT)}</p>
+            <p className="font-semibold">{chainBadgeLabel(false, count, LIMIT)}</p>
             <p className="mt-0.5">An entry was changed or removed after it was written, so don&apos;t rely on this log until it has been investigated.</p>
           </div>
         </div>

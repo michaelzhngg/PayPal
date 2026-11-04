@@ -8,7 +8,7 @@ export function payoutDisplay(state: PayoutState | null): Display {
     case "paid":
       return { label: "Paid", className: "text-success", Icon: Banknote };
     case "sending":
-      return { label: "Sending", reason: "PayPal is processing it", className: "text-accent", Icon: Loader2 };
+      return { label: "Sending", reason: "PayPal is processing it", className: "text-ink", Icon: Loader2 };
     case "waiting_link":
       return { label: "Waiting for PayPal link", reason: "Employee has not connected PayPal", className: "text-warning", Icon: Link2Off };
     case "failed":
@@ -34,7 +34,7 @@ export default function PayoutCell({ state }: { state: PayoutState | null }) {
         <Icon className="w-3.5 h-3.5 shrink-0" aria-hidden />
         <span className="line-clamp-2">{label}</span>
       </p>
-      {reason && <p className="text-[11px] text-ink-muted mt-0.5 line-clamp-2">{reason}</p>}
+      {reason && <p className="text-xs text-ink-muted mt-0.5 line-clamp-2">{reason}</p>}
     </div>
   );
 }

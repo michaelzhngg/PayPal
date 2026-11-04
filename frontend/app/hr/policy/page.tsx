@@ -1,7 +1,7 @@
 "use client";
 
 import React, { JSX, useRef, useState, useEffect } from 'react';
-import { Plus, Search, ChevronUp, ChevronDown, ChevronRight, FileText, Shield, Archive, Pencil, Trash2, ArrowLeft, X, SlidersHorizontal, Upload, Settings, CheckCircle2, ScanLine, Sparkles, History, Clock, User, PlusCircle, AlertCircle, ShieldCheck, Users, Calendar, BarChart3, Banknote } from 'lucide-react';
+import { Plus, Search, ChevronUp, ChevronDown, ChevronRight, FileText, Shield, Archive, Pencil, Trash2, ArrowLeft, X, SlidersHorizontal, Upload, Settings, CheckCircle2, History, Clock, User, PlusCircle, AlertCircle, ShieldCheck, Users, Calendar, BarChart3 } from 'lucide-react';
 import { POLICY_STATUS_STYLE, type Policy, type PolicyStatus } from '../hr_components/mockData';
 import type { Policy as BackendPolicy } from '@/lib/api/types';
 import { uploadPolicy } from '@/lib/actions/hr';
@@ -15,112 +15,53 @@ const SAVE_STEPS = [
 
 export function HrProcessingScreen({ currentStep, onBack }: { currentStep: number, onBack: () => void }) {
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col justify-center my-12">
-      <div className="relative rounded-3xl overflow-hidden flex flex-col sm:flex-row min-h-[460px] w-full">
-        <div
-          className="sm:w-[42%] p-8 flex flex-col justify-between relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #4647d3 0%, #9396ff 50%, #9e00b4 100%)" }}
-        >
-          <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-accent/20 rounded-full blur-2xl translate-y-1/4 -translate-x-1/4 pointer-events-none" />
-
-          <div className="relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
-              <ScanLine className="w-6 h-6 text-white" strokeWidth={1.75} />
-            </div>
-            <h2 className="font-display text-2xl font-bold text-white leading-snug">
-              Saving<br />Changes
-            </h2>
-          </div>
-
-          <div className="relative z-10 rounded-xl p-4" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
-            <p className="text-[10px] text-white/70 font-body font-semibold uppercase tracking-widest mb-1">
-              System Status
-            </p>
-            <p className="text-white text-sm font-semibold font-body">Reclaim AI Active</p>
+    <div className="w-full max-w-xl mx-auto flex flex-col justify-center my-8 sm:my-12">
+      <div className="rounded-card border border-line bg-surface p-5 sm:p-8" role="status" aria-live="polite">
+        <div className="flex items-center gap-3 mb-8">
+          <Settings className="w-5 h-5 text-ink-muted shrink-0 motion-safe:animate-spin [animation-duration:3s]" strokeWidth={2} aria-hidden="true" />
+          <div>
+            <h2 className="font-display text-xl font-semibold text-ink leading-tight">Saving changes</h2>
+            <p className="text-ink-muted text-sm font-body mt-0.5">Please do not close this window.</p>
           </div>
         </div>
 
-        <div className="flex-1 bg-surface p-8 sm:p-10 flex flex-col justify-center">
-          <div className="flex items-center gap-4 mb-10">
-            <div
-              className="w-12 h-12 rounded-full bg-surface-muted flex items-center justify-center shrink-0"
-              style={{ animation: "spin 3s linear infinite" }}
-            >
-              <Settings className="w-5 h-5 text-accent" strokeWidth={2} />
-            </div>
-            <div>
-              <h3 className="font-display text-lg font-semibold text-ink leading-tight">
-                Processing Data
-              </h3>
-              <p className="text-ink-muted text-sm font-body mt-0.5">
-                Please do not close this window.
-              </p>
-            </div>
-          </div>
+        <ol className="flex flex-col gap-6">
+          {SAVE_STEPS.map((step, idx) => {
+            const isCompleted = idx < currentStep;
+            const isActive = idx === currentStep;
+            return (
+              <li key={step.id} className="flex items-start gap-4" aria-current={isActive ? "step" : undefined}>
+                {isCompleted ? (
+                  <CheckCircle2 className="w-6 h-6 text-success shrink-0" strokeWidth={2} aria-hidden="true" />
+                ) : isActive ? (
+                  <span className="w-6 h-6 rounded-full border-2 border-accent flex items-center justify-center shrink-0" aria-hidden="true">
+                    <span className="w-2 h-2 rounded-full bg-accent" />
+                  </span>
+                ) : (
+                  <span className="w-6 h-6 rounded-full border border-line-strong shrink-0" aria-hidden="true" />
+                )}
+                <div>
+                  <p className={`font-semibold text-sm leading-tight ${isActive || isCompleted ? "text-ink" : "text-ink-muted"}`}>
+                    {step.label}
+                    {isCompleted && <span className="sr-only"> (done)</span>}
+                  </p>
+                  {(isCompleted || isActive) && (
+                    <p className="text-ink-muted text-xs mt-1 font-body leading-relaxed">{step.subtitle}</p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
 
-          <div className="relative ml-3">
-            <div className="absolute top-3 bottom-3 left-[11px] w-0.5 bg-line rounded-full" />
-            <div
-              className="absolute top-3 left-[11px] w-0.5 bg-accent rounded-full transition-all duration-700 ease-in-out"
-              style={{
-                height:
-                  currentStep === 0 ? "0%" :
-                    currentStep === 1 ? "40%" :
-                      "80%",
-              }}
-            />
-
-            <div className="flex flex-col gap-8">
-              {SAVE_STEPS.map((step, idx) => {
-                const isCompleted = idx < currentStep;
-                const isActive = idx === currentStep;
-                const isPending = idx > currentStep;
-
-                return (
-                  <div key={step.id} className="flex items-start gap-5 relative">
-                    {isCompleted && (
-                      <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center shrink-0 mt-0.5 z-10">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-on-accent" strokeWidth={2.5} />
-                      </div>
-                    )}
-                    {isActive && (
-                      <div className="w-6 h-6 rounded-full bg-accent border-[3px] border-surface flex items-center justify-center shrink-0 mt-0.5 relative z-10">
-                        <div className="absolute inset-[-4px] rounded-full border-2 border-accent/50 animate-ping" />
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      </div>
-                    )}
-                    {isPending && (
-                      <div className="w-6 h-6 rounded-full bg-surface-muted border border-line/30 shrink-0 mt-0.5 z-10" />
-                    )}
-
-                    <div>
-                      <p className={`font-semibold text-sm leading-tight font-display ${isActive ? "text-accent" :
-                        isCompleted ? "text-ink" :
-                          "text-ink-muted/40"
-                        }`}>
-                        {step.label}
-                      </p>
-                      {(isCompleted || isActive) && (
-                        <p className="text-ink-muted text-xs mt-1 font-body leading-relaxed">
-                          {step.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-12 flex justify-center">
-            <button
-              onClick={onBack}
-              className="px-6 py-2 border border-line/30 text-ink-muted text-xs font-semibold uppercase tracking-widest rounded-xl hover:bg-surface-muted transition-colors cursor-pointer"
-            >
-              Abort and Go Back
-            </button>
-          </div>
+        <div className="mt-10 flex justify-center">
+          <button
+            type="button"
+            onClick={onBack}
+            className="min-h-[44px] px-5 border border-line-strong text-ink text-sm font-semibold rounded-control hover:bg-surface-muted transition-colors cursor-pointer"
+          >
+            Abort and Go Back
+          </button>
         </div>
       </div>
     </div>
@@ -263,7 +204,7 @@ export default function PolicyStudio() {
       const parsed = JSON.parse(raw);
       if (typeof parsed === 'object' && parsed !== null) return parsed;
     } catch {
-      // Not valid JSON — ignore
+      // Not valid JSON, ignore
     }
     return null;
   }
@@ -372,19 +313,23 @@ export default function PolicyStudio() {
   const StatusDropdown = () => (
     <div className="relative">
       <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={statusDropdownOpen}
+        aria-label={`Policy status: ${editStatus}`}
         onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-        className={`flex items-center justify-between gap-2 rounded-full px-4 py-2 text-sm font-body font-medium transition-all w-[140px] cursor-pointer ${statusDropdownOpen ? 'bg-surface-muted ring-2 ring-accent/20' : 'bg-surface border border-line hover:bg-surface-muted'
+        className={`flex items-center justify-between gap-2 min-h-[44px] rounded-control px-3 text-sm font-body font-medium transition-colors w-[140px] cursor-pointer border ${statusDropdownOpen ? 'bg-surface-muted border-line-strong' : 'bg-surface border-line-strong hover:bg-surface-muted'
           }`}
       >
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${editStatus === 'Active' ? 'bg-[#137333]' : editStatus === 'Impending' ? 'bg-[#b06000]' : 'bg-line'}`} />
+          <span className={`w-2 h-2 rounded-full ${editStatus === 'Active' ? 'bg-success' : editStatus === 'Impending' ? 'bg-warning' : 'bg-line'}`} />
           <span className="text-ink">{editStatus}</span>
         </div>
         <ChevronDown className={`text-ink-muted transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} size={16} />
       </button>
 
       {statusDropdownOpen && (
-        <div className="absolute bottom-full mb-2 left-0 w-full bg-surface border border-line/50 rounded-xl shadow-overlay py-1 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+        <div className="absolute bottom-full mb-2 left-0 w-full bg-surface border border-line rounded-card shadow-overlay py-1 z-50">
           {(["Active", "Impending", "Expired"] as PolicyStatus[]).map((s) => (
             <button
               key={s}
@@ -392,9 +337,10 @@ export default function PolicyStudio() {
                 setEditStatus(s);
                 setStatusDropdownOpen(false);
               }}
-              className="w-full text-left px-4 py-2.5 text-sm font-body text-ink hover:bg-surface-muted transition-colors flex items-center gap-2 cursor-pointer"
+              type="button"
+              className="w-full text-left min-h-[44px] px-4 text-sm font-body text-ink hover:bg-surface-muted transition-colors flex items-center gap-2 cursor-pointer"
             >
-              <span className={`w-2 h-2 rounded-full ${s === 'Active' ? 'bg-[#137333]' : s === 'Impending' ? 'bg-[#b06000]' : 'bg-line'}`} />
+              <span className={`w-2 h-2 rounded-full ${s === 'Active' ? 'bg-success' : s === 'Impending' ? 'bg-warning' : 'bg-line'}`} />
               {s}
             </button>
           ))}
@@ -579,12 +525,12 @@ export default function PolicyStudio() {
           </div>
           <div className="grid grid-cols-12 gap-8 h-full">
             <div className="col-span-7 flex flex-col gap-8">
-              <div className="h-64 bg-surface-muted animate-pulse rounded-2xl" />
-              <div className="h-96 bg-surface-muted animate-pulse rounded-2xl" />
+              <div className="h-64 bg-surface-muted animate-pulse rounded-card" />
+              <div className="h-96 bg-surface-muted animate-pulse rounded-card" />
             </div>
             <div className="col-span-5 flex flex-col gap-8">
-              <div className="h-48 bg-surface-muted animate-pulse rounded-2xl" />
-              <div className="h-64 bg-surface-muted animate-pulse rounded-2xl" />
+              <div className="h-48 bg-surface-muted animate-pulse rounded-card" />
+              <div className="h-64 bg-surface-muted animate-pulse rounded-card" />
             </div>
           </div>
         </div>
@@ -598,16 +544,16 @@ export default function PolicyStudio() {
           className="flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full min-h-0 overflow-y-auto scroll-smooth"
         >
           <div className="mb-6 flex flex-wrap items-center gap-4 shrink-0">
-            <button onClick={() => setEditingPolicy(null)} className="flex items-center gap-2 text-ink-muted hover:text-accent transition-colors cursor-pointer group" aria-label="Back to Policy Studio">
-              <ArrowLeft size={20} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" />
+            <button type="button" onClick={() => setEditingPolicy(null)} className="flex items-center gap-2 min-h-[44px] -ml-1 px-1 rounded-control text-ink-muted hover:text-ink transition-colors cursor-pointer" aria-label="Back to Policy Studio">
+              <ArrowLeft size={18} strokeWidth={2.25} aria-hidden="true" />
               <span className="font-semibold font-body text-sm">Back to Policy Studio</span>
             </button>
           </div>
 
           <div className="flex items-center gap-4 mb-6">
-            <h2 className="font-display text-[2rem] leading-tight font-bold text-ink tracking-[-0.02em]">
+            <h1 className="font-display text-2xl md:text-3xl leading-tight font-semibold text-ink break-words">
               {isNew ? "Create New Policy" : `${editName || "Edit Policy"}`}
-            </h2>
+            </h1>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0 items-start">
@@ -620,46 +566,46 @@ export default function PolicyStudio() {
 
               {/* Form Details (Only shown here in Edit View) */}
               {!isNew && (
-                <div className="bg-surface rounded-2xl p-6 border border-line/10 shrink-0">
+                <div className="bg-surface rounded-card p-4 sm:p-6 border border-line shrink-0">
                   <h3 className="font-display text-lg font-bold text-ink mb-5">Policy Details</h3>
                   <div className="flex flex-col gap-5">
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Policy Name</label>
+                      <label className="font-body text-sm font-medium text-ink">Policy Name</label>
                       <input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         placeholder="e.g. Remote Work Policy"
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink placeholder:text-ink-muted focus:border-accent outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Department</label>
+                      <label className="font-body text-sm font-medium text-ink">Department</label>
                       <input
                         type="text"
                         value={editDepartment}
                         onChange={(e) => setEditDepartment(e.target.value)}
                         placeholder="e.g. Human Resources"
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink placeholder:text-ink-muted focus:border-accent outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Version</label>
+                      <label className="font-body text-sm font-medium text-ink">Version</label>
                       <input
                         type="text"
                         value={editVersion}
                         onChange={(e) => setEditVersion(e.target.value)}
                         placeholder="e.g. v1.0"
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink placeholder:text-ink-muted focus:border-accent outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Effective Date</label>
+                      <label className="font-body text-sm font-medium text-ink">Effective Date</label>
                       <input
                         type="date"
                         value={editDate}
                         onChange={(e) => setEditDate(e.target.value)}
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink focus:border-accent outline-none"
                       />
                     </div>
                   </div>
@@ -667,7 +613,7 @@ export default function PolicyStudio() {
               )}
 
               {policyFileError && (
-                <div className="flex items-start gap-3 bg-danger/10 border border-danger/30 text-danger rounded-xl px-4 py-3 text-sm font-body">
+                <div className="flex items-start gap-3 bg-danger/10 border border-danger/30 text-danger rounded-control px-4 py-3 text-sm font-body">
                   <span className="shrink-0 font-bold">✕</span>
                   <span className="flex-1">{policyFileError}</span>
                   <button onClick={() => setPolicyFileError(null)} className="shrink-0 font-bold hover:opacity-70">✕</button>
@@ -703,15 +649,15 @@ export default function PolicyStudio() {
                 />
 
                 {mainPolicyFile ? (
-                  <div className="flex flex-col gap-4 border border-line/30 rounded-2xl overflow-hidden bg-surface">
+                  <div className="flex flex-col gap-4 border border-line rounded-card overflow-hidden bg-surface">
                     {mainPolicyFile.type === "application/pdf" && previewUrl ? (
                       <iframe
                         src={previewUrl}
-                        className="w-full h-[400px] border-b border-line/20"
+                        className="w-full h-[400px] border-b border-line"
                       />
                     ) : (
-                      <div className="w-full h-[400px] border-b border-line/20 bg-surface-muted flex flex-col items-center justify-center">
-                        <FileText className="text-accent mb-3" size={48} />
+                      <div className="w-full h-[400px] border-b border-line bg-surface-muted flex flex-col items-center justify-center">
+                        <FileText className="text-ink-muted mb-3" size={48} aria-hidden="true" />
                         <p className="font-body text-base font-medium text-ink">{mainPolicyFile.name}</p>
                         <p className="font-body text-xs text-ink-muted">Preview not available</p>
                       </div>
@@ -722,21 +668,20 @@ export default function PolicyStudio() {
                         <p className="font-body text-xs text-ink-muted">{formatFileSize(mainPolicyFile.size)}</p>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => mainPolicyInputRef.current?.click()} className="px-4 py-1.5 border border-line-strong text-ink rounded-full font-body text-xs font-medium hover:bg-surface-muted transition-colors cursor-pointer">
+                        <button onClick={() => mainPolicyInputRef.current?.click()} type="button" className="min-h-[44px] px-4 border border-line-strong text-ink rounded-control font-body text-sm font-medium hover:bg-surface-muted transition-colors cursor-pointer">
                           Replace
                         </button>
-                        <button onClick={() => setMainPolicyFile(null)} className="px-4 py-1.5 text-danger font-body text-xs font-medium hover:bg-danger-soft/10 rounded-full transition-colors cursor-pointer">
+                        <button onClick={() => setMainPolicyFile(null)} type="button" className="min-h-[44px] px-4 text-danger font-body text-sm font-medium hover:bg-danger-soft rounded-control transition-colors cursor-pointer">
                           Remove
                         </button>
                       </div>
                     </div>
                   </div>
                 ) : !isNew && !existingMainPolicyDeleted ? (
-                  <div className="flex flex-col gap-4 border border-line/30 rounded-2xl overflow-hidden bg-surface">
+                  <div className="flex flex-col gap-4 border border-line rounded-card overflow-hidden bg-surface">
                     {/* PDF Viewer for existing file */}
-                    <div className="w-full h-[400px] border-b border-line/20 bg-surface flex flex-col items-center justify-center p-8 text-center relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-accent/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <FileText className="text-accent/60 mb-4" size={56} strokeWidth={1} />
+                    <div className="w-full h-[400px] border-b border-line bg-surface flex flex-col items-center justify-center p-8 text-center relative overflow-hidden group">
+                      <FileText className="text-ink-muted mb-4" size={56} strokeWidth={1} aria-hidden="true" />
                       <p className="font-display text-lg font-medium text-ink mb-2">{existingMainPolicyFilename || "Policy Document"}</p>
                       <p className="font-body text-sm text-ink-muted mb-6">Existing Document</p>
                     </div>
@@ -746,10 +691,10 @@ export default function PolicyStudio() {
                         <p className="font-body text-xs text-ink-muted">Saved on server</p>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => mainPolicyInputRef.current?.click()} className="px-4 py-1.5 border border-line-strong text-ink rounded-full font-body text-xs font-medium hover:bg-surface-muted transition-colors cursor-pointer">
+                        <button onClick={() => mainPolicyInputRef.current?.click()} type="button" className="min-h-[44px] px-4 border border-line-strong text-ink rounded-control font-body text-sm font-medium hover:bg-surface-muted transition-colors cursor-pointer">
                           Replace
                         </button>
-                        <button onClick={() => setExistingMainPolicyDeleted(true)} className="px-4 py-1.5 text-danger font-body text-xs font-medium hover:bg-danger-soft/10 rounded-full transition-colors cursor-pointer">
+                        <button onClick={() => setExistingMainPolicyDeleted(true)} type="button" className="min-h-[44px] px-4 text-danger font-body text-sm font-medium hover:bg-danger-soft rounded-control transition-colors cursor-pointer">
                           Delete
                         </button>
                       </div>
@@ -758,14 +703,12 @@ export default function PolicyStudio() {
                 ) : (
                   <div
                     onClick={() => mainPolicyInputRef.current?.click()}
-                    className="bg-surface rounded-2xl p-8 flex flex-col items-center justify-center border-2 border-dashed border-line hover:border-accent/40 hover:bg-accent/[0.02] transition-all cursor-pointer group min-h-[240px]"
+                    className="bg-surface rounded-card p-8 flex flex-col items-center justify-center border-2 border-dashed border-line-strong hover:bg-surface-muted transition-colors cursor-pointer min-h-[240px]"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-accent-soft/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Upload className="text-accent" size={28} />
-                    </div>
+                    <Upload className="text-ink-muted mb-4" size={28} aria-hidden="true" />
                     <p className="font-body text-base font-medium text-ink mb-1">Upload Policy Document</p>
                     <p className="font-body text-xs text-ink-muted mb-4">Drag and drop or click to browse</p>
-                    <p className="font-body text-[11px] text-line">Supports PDF • Max 10 MB</p>
+                    <p className="font-body text-xs text-ink-muted">Supports PDF · Max 10 MB</p>
                   </div>
                 )}
               </div>
@@ -801,50 +744,53 @@ export default function PolicyStudio() {
                 <div className="flex flex-col gap-3">
                   {/* Upload button for Appendix */}
                   <button
+                    type="button"
                     onClick={() => appendixInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-line bg-surface-muted/50 hover:bg-surface-muted rounded-xl p-4 flex flex-col items-center justify-center transition-all group shrink-0 cursor-pointer"
+                    className="w-full border-2 border-dashed border-line-strong bg-surface hover:bg-surface-muted rounded-card p-4 flex flex-col items-center justify-center transition-colors shrink-0 cursor-pointer"
                   >
-                    <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                      <Plus className="text-accent" size={20} />
-                    </div>
+                    <Plus className="text-ink-muted mb-2" size={20} aria-hidden="true" />
                     <p className="font-body font-medium text-ink text-sm">Add Source</p>
                     <p className="font-body text-xs text-ink-muted mt-1">Drag and drop or click to upload</p>
                   </button>
 
                   {/* Existing Appendix Items */}
                   {!isNew && existingAppendix.map((item, idx) => (
-                    <div key={`existing-${idx}`} className="bg-surface rounded-xl p-3 border border-line/20 flex items-center justify-between group hover:bg-line transition-colors">
+                    <div key={`existing-${idx}`} className="bg-surface rounded-control p-3 border border-line flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3 min-w-0">
                         <FileText className="text-ink-muted shrink-0" size={18} />
                         <div className="min-w-0">
                           <span className="font-body text-sm font-medium text-ink truncate block">{item.name}</span>
-                          <span className="font-body text-[11px] text-ink-muted">{item.size}</span>
+                          <span className="font-body text-xs text-ink-muted">{item.size}</span>
                         </div>
                       </div>
                       <button
+                        type="button"
+                        aria-label={`Remove ${item.name}`}
                         onClick={() => setExistingAppendix(prev => prev.filter((_, i) => i !== idx))}
-                        className="text-ink-muted hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
+                        className="w-11 h-11 shrink-0 inline-flex items-center justify-center rounded-control text-ink-muted hover:text-danger hover:bg-danger-soft transition-colors cursor-pointer"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={16} aria-hidden="true" />
                       </button>
                     </div>
                   ))}
 
                   {/* Newly uploaded appendix files */}
                   {appendixFiles.map((file, idx) => (
-                    <div key={`edit-${file.name}-${idx}`} className="bg-surface rounded-xl p-3 border border-line/20 flex items-center justify-between group hover:bg-line transition-colors">
+                    <div key={`edit-${file.name}-${idx}`} className="bg-surface rounded-control p-3 border border-line flex items-center justify-between gap-2">
                       <div className="flex items-center gap-3 min-w-0">
-                        <FileText className="text-accent shrink-0" size={18} />
+                        <FileText className="text-ink-muted shrink-0" size={18} aria-hidden="true" />
                         <div className="min-w-0">
                           <span className="font-body text-sm font-medium text-ink truncate block">{file.name}</span>
-                          <span className="font-body text-[11px] text-ink-muted">{formatFileSize(file.size)}</span>
+                          <span className="font-body text-xs text-ink-muted">{formatFileSize(file.size)}</span>
                         </div>
                       </div>
                       <button
+                        type="button"
+                        aria-label={`Remove ${file.name}`}
                         onClick={() => setAppendixFiles(prev => prev.filter((_, i) => i !== idx))}
-                        className="text-ink-muted hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
+                        className="w-11 h-11 shrink-0 inline-flex items-center justify-center rounded-control text-ink-muted hover:text-danger hover:bg-danger-soft transition-colors cursor-pointer"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={16} aria-hidden="true" />
                       </button>
                     </div>
                   ))}
@@ -855,23 +801,22 @@ export default function PolicyStudio() {
 
               {/* ── Danger Zone ─────────────────────────────────────────────── */}
               {!isNew && (
-                <div className="rounded-2xl border border-[#dc2626]/20 bg-[#dc2626]/[0.03] overflow-hidden shrink-0">
-                  <div className="px-6 py-4 border-b border-[#dc2626]/15 flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-[#dc2626]/10 flex items-center justify-center">
-                      <Trash2 size={15} className="text-[#dc2626]" />
-                    </div>
-                    <h3 className="font-display text-sm font-bold text-[#dc2626] uppercase tracking-wider">Danger Zone</h3>
+                <div className="rounded-card border border-danger/30 bg-surface overflow-hidden shrink-0">
+                  <div className="px-4 sm:px-6 py-3 border-b border-danger/20 flex items-center gap-2">
+                    <Trash2 size={15} className="text-danger" aria-hidden="true" />
+                    <h3 className="font-display text-base font-semibold text-danger">Delete policy</h3>
                   </div>
-                  <div className="px-6 py-5 flex items-center justify-between gap-6">
+                  <div className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                       <p className="font-body text-sm font-semibold text-ink">Delete this policy</p>
                       <p className="font-body text-xs text-ink-muted mt-0.5">This action is permanent and cannot be undone.</p>
                     </div>
                     <button
                       onClick={() => { setDeleteError(null); setDeletingPolicyId(editingPolicy); setDeletingPolicyName(editName); setDeleteModalOpen(true); }}
-                      className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl border border-[#dc2626]/30 text-[#dc2626] text-sm font-bold font-body hover:bg-[#dc2626]/10 active:scale-95 transition-all cursor-pointer"
+                      type="button"
+                      className="shrink-0 flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-control border border-danger/40 text-danger text-sm font-semibold font-body hover:bg-danger-soft transition-colors cursor-pointer"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={15} aria-hidden="true" />
                       Delete Policy
                     </button>
                   </div>
@@ -889,46 +834,46 @@ export default function PolicyStudio() {
 
               {/* Form Details (Only shown here in New/Upload View) */}
               {isNew && (
-                <div className="bg-surface rounded-2xl p-6 border border-line/10 shrink-0">
+                <div className="bg-surface rounded-card p-4 sm:p-6 border border-line shrink-0">
                   <h3 className="font-display text-lg font-bold text-ink mb-5">Policy Details</h3>
                   <div className="flex flex-col gap-5">
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Policy Name</label>
+                      <label className="font-body text-sm font-medium text-ink">Policy Name</label>
                       <input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         placeholder="e.g. Remote Work Policy"
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink placeholder:text-ink-muted focus:border-accent outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Department</label>
+                      <label className="font-body text-sm font-medium text-ink">Department</label>
                       <input
                         type="text"
                         value={editDepartment}
                         onChange={(e) => setEditDepartment(e.target.value)}
                         placeholder="e.g. Human Resources"
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink placeholder:text-ink-muted focus:border-accent outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Version</label>
+                      <label className="font-body text-sm font-medium text-ink">Version</label>
                       <input
                         type="text"
                         value={editVersion}
                         onChange={(e) => setEditVersion(e.target.value)}
                         placeholder="e.g. v1.0"
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink placeholder:text-ink-muted focus:border-accent outline-none"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Effective Date</label>
+                      <label className="font-body text-sm font-medium text-ink">Effective Date</label>
                       <input
                         type="date"
                         value={editDate}
                         onChange={(e) => setEditDate(e.target.value)}
-                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        className="bg-surface border border-line-strong rounded-control px-3 min-h-[44px] text-sm font-body text-ink focus:border-accent outline-none"
                       />
                     </div>
                   </div>
@@ -937,32 +882,25 @@ export default function PolicyStudio() {
 
               {/* AI Overview Summary (Beautified) */}
               {!isNew && (
-                <div className="bg-surface rounded-3xl border border-accent/20 overflow-hidden flex flex-col shrink-0 animate-in fade-in slide-in-from-right-4 duration-700">
-                  <div className="p-5 bg-gradient-to-r from-accent/15 via-accent/5 to-transparent border-b border-accent/10 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center">
-                        <Sparkles className="text-accent w-5 h-5 animate-pulse" />
-                      </div>
-                      <div>
-                        <h3 className="font-display font-bold text-accent">AI Policy Insights</h3>
-                        <p className="text-[10px] text-accent/60 font-bold uppercase tracking-widest">Auto-generated Analysis</p>
-                      </div>
-                    </div>
+                <div className="bg-surface rounded-card border border-line overflow-hidden flex flex-col shrink-0">
+                  <div className="px-5 py-4 border-b border-line">
+                    <h3 className="font-display font-semibold text-base text-ink">AI Policy Insights</h3>
+                    <p className="text-xs text-ink-muted mt-0.5">Generated from the policy document. Check before you rely on it.</p>
                   </div>
 
-                  <div className="p-8 flex flex-col gap-8">
+                  <div className="p-5 sm:p-6 flex flex-col gap-6">
                     {editOverviewSummary && (() => {
                       const { intro, bullets } = parseBulletPoints(editOverviewSummary);
                       return (
                         <div className="flex flex-col gap-6">
                           {intro && (
-                            <p className="font-body text-[15px] text-ink leading-relaxed text-pretty">
+                            <p className="font-body text-sm text-ink leading-relaxed text-pretty">
                               {intro}
                             </p>
                           )}
                           {bullets.length > 0 && (
-                            <div className="bg-accent/[0.03] rounded-2xl p-5 border border-accent/5">
-                              <h4 className="text-[11px] font-bold text-accent uppercase tracking-[0.1em] mb-4">Key Takeaways</h4>
+                            <div className="rounded-card p-4 border border-line">
+                              <h4 className="text-sm font-semibold text-ink mb-3">Key Takeaways</h4>
                               <PremiumBulletList items={bullets} />
                             </div>
                           )}
@@ -971,40 +909,40 @@ export default function PolicyStudio() {
                     })()}
 
                     <>
-                      <div className="h-px bg-gradient-to-r from-transparent via-line/20 to-transparent w-full" />
+                      <div className="h-px bg-line w-full" />
 
                       <div>
                         <div className="flex items-center justify-between mb-5">
-                          <h4 className="font-display text-sm font-bold text-ink uppercase tracking-wider">Mandatory Conditions</h4>
-                          <div className="px-2 py-0.5 bg-line rounded-full text-[10px] font-bold text-ink-muted uppercase">
-                            Review Required
-                          </div>
+                          <h4 className="font-display text-base font-semibold text-ink">Mandatory Conditions</h4>
+                          <span className="px-2 py-0.5 bg-warning-soft rounded-full text-xs font-semibold text-warning">
+                            Review required
+                          </span>
                         </div>
 
                         <div className="flex flex-col gap-4">
                           {editConditions && Object.entries(editConditions).length > 0 ? (
                             <>
                               {Object.entries(editConditions).slice(0, 3).map(([category, details]: [string, any]) => (
-                                <div key={category} className="bg-surface-muted/40 rounded-2xl p-5 border border-line/10 hover:bg-surface-muted transition-colors group">
-                                  <h1 className="font-display font-bold text-sm text-ink mb-3 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-accent/40 group-hover:bg-accent transition-colors" />
+                                <div key={category} className="rounded-card p-4 border border-line">
+                                  <h5 className="font-body font-semibold text-sm text-ink mb-3">
                                     {category}
-                                  </h1>
+                                  </h5>
                                   <PremiumBulletList items={details.condition ?? []} />
                                 </div>
                               ))}
                               {Object.entries(editConditions).length > 3 && (
                                 <button
+                                  type="button"
                                   onClick={() => setConditionsModalOpen(true)}
-                                  className="w-full mt-2 py-4 rounded-2xl text-sm text-accent font-bold bg-accent/[0.04] hover:bg-accent/[0.08] border border-accent/10 transition-all flex items-center justify-center gap-3 cursor-pointer group"
+                                  className="w-full mt-2 min-h-[44px] rounded-control text-sm text-ink font-semibold border border-line-strong hover:bg-surface-muted transition-colors flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                   <span>View & Edit All {Object.entries(editConditions).length} Categories</span>
-                                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                  <ChevronRight size={18} aria-hidden="true" />
                                 </button>
                               )}
                             </>
                           ) : (
-                            <p className="text-sm text-ink-muted/60 italic font-body">
+                            <p className="text-sm text-ink-muted font-body">
                               No mandatory conditions have been extracted for this policy.
                             </p>
                           )}
@@ -1017,13 +955,10 @@ export default function PolicyStudio() {
 
               {/* Auto-Approval Budgets Card */}
               {!isNew && Object.keys(categoryBudgets).length > 0 && (
-                <div className="bg-surface rounded-3xl border border-line/10 overflow-hidden flex flex-col shrink-0">
-                  <div className="p-5 border-b border-line/10 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center">
-                      <Banknote className="w-5 h-5 text-accent" />
-                    </div>
+                <div className="bg-surface rounded-card border border-line overflow-hidden flex flex-col shrink-0">
+                  <div className="px-5 py-4 border-b border-line">
                     <div>
-                      <h3 className="font-display font-bold text-base text-ink">Auto-Approval Budgets</h3>
+                      <h3 className="font-display font-semibold text-base text-ink">Auto-Approval Budgets</h3>
                       <p className="text-xs text-ink-muted">Max per category for auto-approval. Blank = unlimited.</p>
                     </div>
                   </div>
@@ -1031,17 +966,18 @@ export default function PolicyStudio() {
                     {Object.keys(categoryBudgets).map((cat) => (
                       <div key={cat} className="flex items-center gap-3">
                         <div className="flex-1">
-                          <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1 block truncate">{cat}</label>
+                          <label htmlFor={`budget-${cat}`} className="text-sm font-medium text-ink mb-1 block truncate">{cat}</label>
                           <div className="relative group">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted/60 text-xs font-medium group-focus-within:text-accent transition-colors">MYR</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs font-medium">MYR</span>
                             <input
+                              id={`budget-${cat}`}
                               type="number"
                               min="0"
                               step="0.01"
                               value={categoryBudgets[cat]}
                               onChange={(e) => setCategoryBudgets(prev => ({ ...prev, [cat]: e.target.value }))}
                               placeholder="Unlimited"
-                              className="w-full pl-10 pr-3 py-2 bg-surface-muted border border-line/20 rounded-xl text-sm text-ink font-mono tabular-nums focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all placeholder:text-ink-muted/40"
+                              className="w-full min-h-[44px] pl-12 pr-3 bg-surface border border-line-strong rounded-control text-sm text-ink font-mono focus:border-accent outline-none placeholder:text-ink-muted"
                             />
                           </div>
                         </div>
@@ -1088,20 +1024,20 @@ export default function PolicyStudio() {
         />
         
         {/* Bottom Action Bar */}
-        <div className="shrink-0 bg-paper/80 border-t border-surface-muted p-4 z-40">
+        <div className="shrink-0 bg-paper border-t border-line p-4 z-40">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-6 px-4 sm:px-8">
-            <button onClick={() => setEditingPolicy(null)} className="px-6 py-3 border border-line text-ink rounded-xl font-body font-medium hover:bg-surface-muted transition-colors active:scale-95 cursor-pointer">
+            <button type="button" onClick={() => setEditingPolicy(null)} className="min-h-[44px] px-6 border border-line-strong text-ink rounded-control font-body font-medium hover:bg-surface-muted transition-colors cursor-pointer">
               Cancel
             </button>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
               {saveError && (
-                <p className="text-xs text-danger font-body max-w-xs text-center sm:text-right">{saveError}</p>
+                <p role="alert" className="text-sm text-danger font-body max-w-xs text-center sm:text-right">{saveError}</p>
               )}
               <div className="flex items-center justify-center sm:justify-start gap-3">
                 <span className="font-body text-sm text-ink-muted hidden sm:block">Policy Status:</span>
                 <StatusDropdown />
               </div>
-              <button onClick={handleSave} className="bg-gradient-to-r from-accent to-accent-hover text-white rounded-xl px-6 sm:px-8 py-3 font-body font-medium active:scale-95 transition-all cursor-pointer">
+              <button type="button" onClick={handleSave} className="bg-accent text-on-accent rounded-control min-h-[44px] px-6 sm:px-8 font-body font-semibold hover:bg-accent-hover transition-colors cursor-pointer">
                 {isNew ? "Create Policy" : "Save Changes"}
               </button>
             </div>
@@ -1119,49 +1055,39 @@ export default function PolicyStudio() {
   });
 
   return (
-    <div className="relative min-h-full p-6 md:p-10 lg:p-12 font-body antialiased selection:bg-accent-soft selection:text-accent-hover">
-      {/* ── Multi-orb gradient anchor ────────────────────────────────────── */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full bg-accent opacity-[0.07] blur-[80px]" />
-        <div className="absolute top-32 right-40 w-[320px] h-[320px] rounded-full bg-accent opacity-[0.06] blur-[64px]" />
-        <div className="absolute -top-8 right-[15%] w-[200px] h-[200px] rounded-full bg-accent-soft opacity-[0.12] blur-[48px]" />
-      </div>
-
-      <div className="layout-container flex h-full grow flex-col relative z-10">
+    <div className="min-h-full px-4 py-5 sm:px-6 md:px-8 md:py-8 font-body antialiased">
+      <div className="layout-container flex h-full grow flex-col">
         <div className="flex flex-1 justify-center">
           <div className="layout-content-container flex flex-col w-full flex-1">
-            <main className="flex-1 flex flex-col gap-8 max-w-[1440px] mx-auto w-full">
+            <div className="flex-1 flex flex-col gap-5 max-w-[1440px] mx-auto w-full">
               {/* Header Section */}
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div className="max-w-2xl">
-                  <h2
-                    className="font-display font-bold text-ink mb-2"
-                    style={{ fontSize: "2.5rem", letterSpacing: "-0.02em" }}
-                  >
-                    Policy Studio
-                  </h2>
-                  <p className="text-ink-muted text-lg font-body">
+                  <h1 className="font-display font-semibold text-2xl md:text-3xl text-ink">Policy Studio</h1>
+                  <p className="mt-1 text-sm text-ink-muted font-body">
                     Manage, review, and distribute company guidelines.
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setEditingPolicy("new")}
-                  className="flex items-center justify-center gap-2 rounded-xl h-12 px-6 bg-gradient-to-r from-accent to-accent-hover text-on-accent font-body text-base font-semibold transition-all hover:scale-[0.98] active:scale-95 cursor-pointer"
+                  className="flex items-center justify-center gap-2 rounded-control min-h-[44px] px-5 bg-accent text-on-accent font-body text-sm font-semibold hover:bg-accent-hover transition-colors cursor-pointer"
                 >
-                  <Plus size={20} />
+                  <Plus size={18} aria-hidden="true" />
                   <span>Create New Policy</span>
                 </button>
               </div>
 
-              {/* Main Content Canvas (Glassmorphic Container) */}
-              <div className="bg-surface/60 rounded-[2rem] p-8 flex flex-col gap-8 overflow-hidden">
+              {/* Main content */}
+              <div className="bg-surface border border-line rounded-card p-4 sm:p-6 flex flex-col gap-5 overflow-hidden">
                 {/* Toolbar Section */}
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                   {/* Search */}
-                  <div className="flex items-center w-full lg:w-96 group bg-surface-muted rounded-xl px-4 transition-colors focus-within:bg-surface">
-                    <Search size={20} className="text-line-strong group-focus-within:text-accent transition-colors" />
+                  <div className="flex items-center w-full lg:w-96 bg-surface border border-line-strong rounded-control px-3 focus-within:border-accent">
+                    <Search size={18} className="text-ink-muted" aria-hidden="true" />
                     <input
-                      className="block w-full px-3 py-3 bg-transparent border-none focus:ring-0 focus:outline-none text-ink placeholder:text-line font-body transition-all"
+                      aria-label="Search policies"
+                      className="block w-full min-h-[44px] px-3 bg-transparent border-none focus:ring-0 focus:outline-none text-ink placeholder:text-ink-muted font-body"
                       placeholder="Search policies..."
                       type="text"
                       value={searchQuery}
@@ -1169,14 +1095,16 @@ export default function PolicyStudio() {
                     />
                   </div>
 
-                  <div className="flex items-center bg-surface-muted rounded-xl p-1 gap-1 w-full lg:w-auto overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x scroll-pl-1">
+                  <div role="group" aria-label="Filter by status" className="flex items-center bg-surface-muted rounded-control p-1 gap-1 w-full lg:w-auto overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x scroll-pl-1">
                     {(["Active", "Impending", "Expired"] as PolicyStatus[]).map((status) => (
                       <button
                         key={status}
+                        type="button"
+                        aria-pressed={activeFilter === status}
                         onClick={() => setActiveFilter(status)}
-                        className={`px-6 py-2 rounded-lg transition-all font-medium text-sm cursor-pointer shrink-0 ${activeFilter === status
-                          ? "bg-surface text-accent"
-                          : "text-ink-muted hover:text-ink hover:bg-line/50"
+                        className={`flex-1 lg:flex-none min-h-[40px] px-5 rounded-control transition-colors font-medium text-sm cursor-pointer shrink-0 ${activeFilter === status
+                          ? "bg-surface text-ink font-semibold border border-line"
+                          : "text-ink-muted hover:text-ink"
                           }`}
                       >
                         {status}
@@ -1190,18 +1118,18 @@ export default function PolicyStudio() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-line">
-                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Name</th>
-                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider cursor-pointer group">
+                        <th className="py-3 px-6 text-xs font-semibold text-ink-muted">Name</th>
+                        <th className="py-3 px-6 text-xs font-semibold text-ink-muted cursor-pointer group">
                           <div className="flex items-center gap-1">
                             Last Modified
                             <div className="flex flex-col -space-y-2 opacity-50 group-hover:opacity-100 transition-opacity">
                               <ChevronUp size={14} className="mb-[-2px]" />
-                              <ChevronDown size={14} className="text-accent" />
+                              <ChevronDown size={14} className="text-ink" />
                             </div>
                           </div>
                         </th>
-                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Status</th>
-                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider text-right">Action</th>
+                        <th className="py-3 px-6 text-xs font-semibold text-ink-muted">Status</th>
+                        <th className="py-3 px-6 text-xs font-semibold text-ink-muted text-right">Action</th>
                       </tr>
                     </thead>
                     <tbody className="font-body text-ink">
@@ -1210,13 +1138,10 @@ export default function PolicyStudio() {
                           <tr
                             key={policy.policy_id}
                             onClick={() => setEditingPolicy(policy.policy_id)}
-                            className="group transition-all duration-200 hover:bg-accent/[0.04] cursor-pointer border-b border-line/50 last:border-0"
+                            className="group transition-colors hover:bg-surface-muted cursor-pointer border-b border-line last:border-0"
                           >
                             <td className="py-5 px-6">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-accent-soft/20 flex items-center justify-center text-accent">
-                                  <policy.icon size={20} />
-                                </div>
                                 <div>
                                   <p className="font-semibold text-base">{policy.alias}</p>
                                   <p className="text-sm text-ink-muted mt-0.5">{policy.version} • {policy.department}</p>
@@ -1232,7 +1157,9 @@ export default function PolicyStudio() {
                             <td className="py-5 px-6 text-right">
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingPolicy(policy.policy_id); }}
-                                className="text-accent font-semibold text-sm group-hover:underline group-hover:translate-x-0.5 transition-all duration-150 active:scale-95 cursor-pointer"
+                                type="button"
+                                aria-label={`Edit ${policy.alias}`}
+                                className="inline-flex items-center min-h-[44px] px-3 rounded-control text-ink font-semibold text-sm underline-offset-2 hover:underline hover:bg-surface-muted cursor-pointer"
                               >
                                 Edit
                               </button>
@@ -1251,27 +1178,25 @@ export default function PolicyStudio() {
                 </div>
 
                 {/* Mobile Card List */}
-                <div className="md:hidden flex flex-col gap-2">
+                <div className="md:hidden flex flex-col divide-y divide-line -mx-4 border-t border-line">
                   {filteredPolicies.length > 0 ? (
                     filteredPolicies.slice(0, 3).map((policy) => (
                       <button
                         key={policy.policy_id}
+                        type="button"
                         onClick={() => setEditingPolicy(policy.policy_id)}
-                        className="bg-surface rounded-xl p-4 border border-line/10 text-left active:scale-[0.98] transition-all flex items-center gap-3"
+                        className="px-4 py-3 text-left hover:bg-surface-muted transition-colors flex items-center gap-3 cursor-pointer"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-accent-soft/20 flex items-center justify-center text-accent shrink-0">
-                          <policy.icon size={20} />
-                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm text-ink truncate">{policy.alias}</p>
                           <p className="text-xs text-ink-muted mt-0.5">{policy.version} · {policy.department}</p>
-                          <p className="text-xs text-ink-muted/70 mt-0.5">{policy.lastModified}</p>
+                          <p className="text-xs text-ink-muted mt-0.5">{policy.lastModified}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5 shrink-0">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${POLICY_STATUS_STYLE[policy.status]}`}>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${POLICY_STATUS_STYLE[policy.status]}`}>
                             {policy.status}
                           </span>
-                          <span className="text-accent font-semibold text-xs">Edit</span>
+                          <span className="text-ink font-semibold text-xs underline underline-offset-2">Edit</span>
                         </div>
                       </button>
                     ))
@@ -1283,23 +1208,18 @@ export default function PolicyStudio() {
                 </div>
 
                 {/* View All Button */}
-                <div className="p-5 text-center border-t border-line/15">
+                <div className="pt-4 text-center border-t border-line">
                   <button
+                    type="button"
                     onClick={() => setModalOpen(true)}
-                    className="inline-flex items-center gap-2 text-sm font-semibold font-display
-                               text-accent hover:text-accent-hover transition-all duration-200
-                               active:scale-95 group/cta px-4 py-2 rounded-xl
-                               hover:bg-accent/5 cursor-pointer"
+                    className="inline-flex items-center gap-2 min-h-[44px] text-sm font-semibold text-ink px-4 rounded-control border border-line-strong hover:bg-surface-muted transition-colors cursor-pointer"
                   >
                     View All {activeFilter} Policies
-                    <ChevronRight
-                      className="w-4 h-4 group-hover/cta:translate-x-0.5 transition-transform duration-150"
-                      strokeWidth={2.5}
-                    />
+                    <ChevronRight className="w-4 h-4" strokeWidth={2.25} aria-hidden="true" />
                   </button>
                 </div>
               </div>
-            </main>
+            </div>
           </div>
         </div>
       </div>
@@ -1349,26 +1269,24 @@ function DeleteConfirmModal({
   const confirmed = typedName.trim() === policyName.trim() && policyName.trim() !== "";
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
       <div
         className="absolute inset-0 bg-ink/50 cursor-pointer"
         onClick={!isDeleting ? onClose : undefined}
       />
-      <div className="relative w-full max-w-md bg-surface rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div role="dialog" aria-modal="true" aria-labelledby="delete-policy-title" className="relative w-full max-w-md bg-surface rounded-dialog border border-line shadow-overlay overflow-hidden">
         {/* Header */}
-        <div className="px-6 pt-6 pb-5 border-b border-[#dc2626]/15 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#dc2626]/10 flex items-center justify-center shrink-0 mt-0.5">
-            <Trash2 size={18} className="text-[#dc2626]" />
-          </div>
+        <div className="px-6 pt-6 pb-5 border-b border-danger/15 flex items-start gap-4">
+          <Trash2 size={20} className="text-danger shrink-0 mt-1" aria-hidden="true" />
           <div className="flex-1 min-w-0">
-            <h3 className="font-display font-bold text-lg text-ink">Delete Policy</h3>
+            <h3 id="delete-policy-title" className="font-display font-semibold text-lg text-ink">Delete Policy</h3>
             <p className="font-body text-sm text-ink-muted mt-0.5 leading-relaxed">
               This will permanently remove <span className="font-semibold text-ink">&ldquo;{policyName}&rdquo;</span> and all its associated data. This action cannot be undone.
             </p>
           </div>
           {!isDeleting && (
-            <button onClick={onClose} className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-muted transition-colors cursor-pointer shrink-0">
-              <X size={18} />
+            <button type="button" onClick={onClose} aria-label="Close" className="w-11 h-11 -mt-2 -mr-2 inline-flex items-center justify-center rounded-control text-ink-muted hover:bg-surface-muted transition-colors cursor-pointer shrink-0">
+              <X size={18} aria-hidden="true" />
             </button>
           )}
         </div>
@@ -1376,32 +1294,33 @@ function DeleteConfirmModal({
         {/* Body */}
         <div className="px-6 py-5 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">
+            <label htmlFor="delete-policy-confirm" className="font-body text-sm font-medium text-ink">
               Type the policy name to confirm
             </label>
             <input
+              id="delete-policy-confirm"
               type="text"
               value={typedName}
               onChange={(e) => setTypedName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && confirmed && !isDeleting) onConfirm(); }}
               placeholder={policyName}
               disabled={isDeleting}
-              className={`bg-surface-muted border rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line outline-none transition-all disabled:opacity-50 ${typedName.length > 0
+              className={`bg-surface border rounded-control px-3 min-h-[44px] text-sm font-body text-ink placeholder:text-ink-muted outline-none disabled:opacity-50 ${typedName.length > 0
                 ? confirmed
-                  ? "border-[#dc2626]/50 ring-2 ring-[#dc2626]/10"
-                  : "border-line/40 ring-2 ring-[#dc2626]/5"
-                : "border-line/30 focus:border-line"
+                  ? "border-danger"
+                  : "border-line-strong"
+                : "border-line-strong focus:border-accent"
                 }`}
             />
             {typedName.length > 0 && !confirmed && (
-              <p className="text-[11px] text-[#dc2626]/70 font-body">Name doesn&apos;t match — check spelling and case.</p>
+              <p className="text-xs text-danger font-body">Name doesn&apos;t match. Check spelling and case.</p>
             )}
           </div>
 
           {deleteError && (
-            <div className="flex items-start gap-2 bg-[#dc2626]/5 border border-[#dc2626]/20 rounded-xl px-4 py-3">
-              <AlertCircle size={15} className="text-[#dc2626] shrink-0 mt-0.5" />
-              <p className="font-body text-xs text-[#dc2626]">{deleteError}</p>
+            <div className="flex items-start gap-2 bg-danger-soft border border-danger/20 rounded-control px-4 py-3">
+              <AlertCircle size={15} className="text-danger shrink-0 mt-0.5" />
+              <p role="alert" className="font-body text-sm text-danger">{deleteError}</p>
             </div>
           )}
         </div>
@@ -1411,18 +1330,20 @@ function DeleteConfirmModal({
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="px-5 py-2.5 rounded-xl border border-line text-ink-muted font-body text-sm font-medium hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            type="button"
+            className="min-h-[44px] px-5 rounded-control border border-line-strong text-ink font-body text-sm font-medium hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={!confirmed || isDeleting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#dc2626] text-white font-body text-sm font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer hover:bg-[#b91c1c] disabled:shadow-none"
+            type="button"
+            className="flex items-center gap-2 min-h-[44px] px-5 rounded-control bg-danger text-on-accent font-body text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer hover:bg-danger/90"
           >
             {isDeleting ? (
               <>
-                <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                <div className="w-4 h-4 rounded-full border-2 border-on-accent/30 border-t-on-accent animate-spin" aria-hidden="true" />
                 Deleting…
               </>
             ) : (
@@ -1555,40 +1476,40 @@ function ConditionsModal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-ink/40 cursor-pointer" onClick={onClose} />
 
-      <div className="relative w-full max-w-2xl max-h-[85vh] bg-surface rounded-[2rem] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-8 border-b border-line/10 flex items-center justify-between bg-gradient-to-r from-accent/10 via-accent/5 to-transparent shrink-0">
+      <div role="dialog" aria-modal="true" aria-labelledby="conditions-title" className="relative w-full max-w-2xl max-h-[85vh] bg-surface rounded-dialog border border-line shadow-overlay flex flex-col overflow-hidden">
+        <div className="px-5 sm:px-8 py-4 sm:py-6 border-b border-line flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-accent/20 flex items-center justify-center">
-              <Sparkles className="text-accent w-6 h-6" />
-            </div>
             <div>
-              <h3 className="font-display font-bold text-2xl text-ink">Mandatory Conditions</h3>
+              <h3 id="conditions-title" className="font-display font-semibold text-xl sm:text-2xl text-ink">Mandatory Conditions</h3>
               <p className="text-sm text-ink-muted font-body">Review and edit AI extracted rules</p>
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-surface-muted flex items-center justify-center text-ink-muted hover:bg-line transition-colors cursor-pointer"
+            aria-label="Close"
+            className="w-11 h-11 shrink-0 rounded-control flex items-center justify-center text-ink-muted hover:bg-surface-muted transition-colors cursor-pointer"
           >
-            <X size={20} />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-8 flex flex-col gap-6">
           {Object.entries(localConditions).map(([category, details]) => (
-            <div key={category} className="bg-surface-muted/50 rounded-2xl p-6 border border-line/10 hover:bg-surface-muted transition-colors group">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-display font-bold text-lg text-ink flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-accent" />
+            <div key={category} className="rounded-card p-4 sm:p-5 border border-line">
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <h4 className="font-display font-semibold text-lg text-ink">
                   {category}
                 </h4>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() => handleAddCondition(category)}
-                    className="p-2 text-accent hover:bg-accent/10 rounded-lg transition-colors cursor-pointer"
+                    className="w-11 h-11 inline-flex items-center justify-center text-ink hover:bg-surface-muted rounded-control transition-colors cursor-pointer"
                     title="Add condition"
+                    aria-label={`Add a condition to ${category}`}
                   >
-                    <Plus size={18} />
+                    <Plus size={18} aria-hidden="true" />
                   </button>
                   <button
                     onClick={() => {
@@ -1600,10 +1521,12 @@ function ConditionsModal({
                         });
                       }
                     }}
-                    className="p-2 text-ink-muted hover:text-danger hover:bg-danger/5 rounded-lg transition-colors cursor-pointer"
+                    type="button"
+                    className="w-11 h-11 inline-flex items-center justify-center text-ink-muted hover:text-danger hover:bg-danger-soft rounded-control transition-colors cursor-pointer"
                     title="Delete category"
+                    aria-label={`Delete the ${category} category`}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -1615,15 +1538,18 @@ function ConditionsModal({
                         type="text"
                         value={cond}
                         onChange={(e) => handleUpdateCondition(category, i, e.target.value)}
-                        className="w-full bg-surface border border-line/20 rounded-xl px-4 py-2.5 text-sm text-ink font-body focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                        aria-label={`${category} condition ${i + 1}`}
+                        className="w-full min-h-[44px] bg-surface border border-line-strong rounded-control px-3 text-sm text-ink font-body focus:border-accent outline-none"
                         placeholder="Enter condition..."
                       />
                     </div>
                     <button
                       onClick={() => handleRemoveCondition(category, i)}
-                      className="p-2.5 text-ink-muted hover:text-danger hover:bg-danger/5 rounded-xl transition-all cursor-pointer shrink-0"
+                      type="button"
+                      aria-label={`Remove ${category} condition ${i + 1}`}
+                      className="w-11 h-11 inline-flex items-center justify-center text-ink-muted hover:text-danger hover:bg-danger-soft rounded-control transition-colors cursor-pointer shrink-0"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={16} aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -1632,13 +1558,10 @@ function ConditionsModal({
           ))}
 
           {/* Auto-Approval Budgets Section */}
-          <div className="bg-gradient-to-br from-accent/5 to-accent/5 rounded-2xl p-6 border border-accent/10">
+          <div className="rounded-card p-4 sm:p-5 border border-line">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-                <Banknote className="w-5 h-5 text-accent" strokeWidth={2} />
-              </div>
               <div>
-                <h4 className="font-display font-bold text-base text-ink">Auto-Approval Budgets</h4>
+                <h4 className="font-display font-semibold text-base text-ink">Auto-Approval Budgets</h4>
                 <p className="text-xs text-ink-muted">
                   Set the maximum amount per category for auto-approval. Leave blank for unlimited.
                 </p>
@@ -1652,21 +1575,22 @@ function ConditionsModal({
                 return (
                   <div key={category} className="flex items-center gap-3">
                     <div className="flex-1">
-                      <label className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1 block">
+                      <label htmlFor={`modal-budget-${category}`} className="text-sm font-medium text-ink mb-1 block">
                         {category}
                       </label>
-                      <div className="relative group">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted/60 text-sm font-medium group-focus-within:text-accent transition-colors">
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-xs font-medium">
                           MYR
                         </span>
                         <input
+                          id={`modal-budget-${category}`}
                           type="number"
                           min="0"
                           step="0.01"
                           value={currentBudget}
                           onChange={(e) => handleUpdateBudget(category, e.target.value)}
                           placeholder="Unlimited"
-                          className="w-full pl-12 pr-4 py-2.5 bg-surface border border-line/20 rounded-xl text-sm text-ink font-mono tabular-nums focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all placeholder:text-ink-muted/40"
+                          className="w-full min-h-[44px] pl-12 pr-3 bg-surface border border-line-strong rounded-control text-sm text-ink font-mono focus:border-accent outline-none placeholder:text-ink-muted"
                         />
                       </div>
                     </div>
@@ -1678,9 +1602,9 @@ function ConditionsModal({
 
           {/* Add New Category UI */}
           {isAddingCategory ? (
-            <div className="bg-accent/5 rounded-2xl p-6 border-2 border-dashed border-accent/20 animate-in slide-in-from-bottom-2 duration-300">
-              <h4 className="text-sm font-bold text-accent mb-4 uppercase tracking-wider">New Mandatory Category</h4>
-              <div className="flex gap-3">
+            <div className="rounded-card p-4 sm:p-5 border-2 border-dashed border-line-strong">
+              <h4 className="text-sm font-semibold text-ink mb-3">New Mandatory Category</h4>
+              <div className="flex flex-wrap sm:flex-nowrap gap-2">
                 <input
                   autoFocus
                   type="text"
@@ -1688,47 +1612,52 @@ function ConditionsModal({
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddNewCategory()}
                   placeholder="e.g. Travel Limits, Eligibility..."
-                  className="flex-1 bg-surface border border-accent/30 rounded-xl px-4 py-3 text-sm text-ink font-body focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
+                  aria-label="New category name"
+                  className="flex-1 min-w-0 min-h-[44px] bg-surface border border-line-strong rounded-control px-3 text-sm text-ink font-body focus:border-accent outline-none"
                 />
                 <button
+                  type="button"
                   onClick={handleAddNewCategory}
-                  className="px-6 bg-accent text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all active:scale-95 cursor-pointer"
+                  className="min-h-[44px] px-5 bg-ink text-paper text-sm font-semibold rounded-control hover:bg-ink/85 transition-colors cursor-pointer"
                 >
                   Add
                 </button>
                 <button
+                  type="button"
+                  aria-label="Cancel new category"
                   onClick={() => { setIsAddingCategory(false); setNewCategoryName(""); }}
-                  className="p-3 text-ink-muted hover:bg-surface-muted rounded-xl transition-all cursor-pointer"
+                  className="w-11 h-11 inline-flex items-center justify-center text-ink-muted hover:bg-surface-muted rounded-control transition-colors cursor-pointer"
                 >
-                  <X size={20} />
+                  <X size={20} aria-hidden="true" />
                 </button>
               </div>
             </div>
           ) : (
             <button
+              type="button"
               onClick={() => setIsAddingCategory(true)}
-              className="w-full py-6 border-2 border-dashed border-line/20 rounded-2xl flex flex-col items-center justify-center gap-2 text-ink-muted hover:border-accent/30 hover:bg-accent/5 hover:text-accent transition-all group cursor-pointer"
+              className="w-full py-5 border-2 border-dashed border-line-strong rounded-card flex flex-col items-center justify-center gap-2 text-ink hover:bg-surface-muted transition-colors cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-full bg-surface-muted flex items-center justify-center group-hover:bg-accent/10 transition-colors">
-                <PlusCircle size={20} />
-              </div>
-              <span className="text-sm font-bold font-display">Add New Mandatory Category</span>
+              <PlusCircle size={20} className="text-ink-muted" aria-hidden="true" />
+              <span className="text-sm font-semibold">Add New Mandatory Category</span>
             </button>
           )}
         </div>
 
-        <div className="p-6 border-t border-line/10 bg-surface-muted/30 flex justify-between items-center shrink-0">
+        <div className="px-5 sm:px-6 py-4 border-t border-line flex flex-col-reverse sm:flex-row justify-between sm:items-center gap-2 shrink-0">
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="px-6 py-3 text-ink-muted font-body font-bold hover:bg-line rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            type="button"
+            className="min-h-[44px] px-6 text-ink font-body font-semibold border border-line-strong hover:bg-surface-muted rounded-control transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={handleSaveBudgets}
             disabled={isSaving}
-            className="px-8 py-3 bg-accent text-white rounded-xl font-body font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+            type="button"
+            className="min-h-[44px] px-6 bg-accent text-on-accent rounded-control font-body font-semibold hover:bg-accent-hover transition-colors cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSaving ? (
               <>
@@ -1770,29 +1699,30 @@ function ViewAllModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-ink/30 cursor-pointer" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="absolute inset-0 bg-ink/40 cursor-pointer" onClick={onClose} />
 
-      <div className="relative w-full max-w-4xl max-h-[85dvh] flex flex-col bg-surface rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-line/15 shrink-0">
+      <div role="dialog" aria-modal="true" aria-labelledby="view-all-title" className="relative w-full max-w-4xl max-h-[85dvh] flex flex-col bg-surface rounded-dialog border border-line shadow-overlay overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-line shrink-0">
           <div>
-            <h3 className="font-display font-bold text-lg text-ink">{title}</h3>
+            <h3 id="view-all-title" className="font-display font-semibold text-lg text-ink">{title}</h3>
             <p className="text-xs text-ink-muted mt-0.5">{filtered.length} total records</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-ink hover:bg-surface-muted transition-all cursor-pointer">
-            <X className="w-5 h-5" strokeWidth={2} />
+          <button type="button" onClick={onClose} aria-label="Close" className="w-11 h-11 inline-flex items-center justify-center rounded-control text-ink hover:bg-surface-muted transition-colors cursor-pointer">
+            <X className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
-        <div className="px-6 py-4 bg-paper border-b border-line/10 shrink-0">
-          <div className="flex items-center gap-2.5 bg-surface-muted rounded-xl px-4 py-2.5 ring-1 ring-line/20 focus-within:ring-accent/40 focus-within:bg-surface transition-all">
-            <Search className="w-4 h-4 text-ink-muted shrink-0" strokeWidth={2} />
+        <div className="px-6 py-4 bg-paper border-b border-line shrink-0">
+          <div className="flex items-center gap-2.5 bg-surface rounded-control px-3 border border-line-strong focus-within:border-accent">
+            <Search className="w-4 h-4 text-ink-muted shrink-0" strokeWidth={2} aria-hidden="true" />
             <input
               type="text"
+              aria-label="Search policies"
               placeholder="Search by name or department..."
               value={modalQuery}
               onChange={(e) => setModalQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink-muted/60 outline-none font-body"
+              className="flex-1 min-h-[44px] bg-transparent text-sm text-ink placeholder:text-ink-muted outline-none font-body"
             />
           </div>
         </div>
@@ -1800,37 +1730,36 @@ function ViewAllModal({
         <div className="flex-1 overflow-y-auto min-h-0">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10">
-              <tr className="bg-surface-muted/80">
-                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Name</th>
-                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Modified</th>
-                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Status</th>
-                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider text-right">Action</th>
+              <tr className="bg-surface-muted">
+                <th className="py-3 px-6 text-xs font-semibold text-ink-muted">Name</th>
+                <th className="py-3 px-6 text-xs font-semibold text-ink-muted">Modified</th>
+                <th className="py-3 px-6 text-xs font-semibold text-ink-muted">Status</th>
+                <th className="py-3 px-6 text-xs font-semibold text-ink-muted text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line/10">
+            <tbody className="divide-y divide-line">
               {filtered.map((policy) => (
-                <tr key={policy.policy_id} className="hover:bg-accent/[0.04] transition-all cursor-default">
+                <tr key={policy.policy_id} className="hover:bg-surface-muted transition-colors cursor-default">
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-accent-soft/20 flex items-center justify-center text-accent">
-                        <policy.icon size={18} />
-                      </div>
                       <div>
                         <p className="font-semibold text-ink text-sm">{policy.alias}</p>
-                        <p className="text-[11px] text-ink-muted mt-0.5">{policy.version} • {policy.department}</p>
+                        <p className="text-xs text-ink-muted mt-0.5">{policy.version} • {policy.department}</p>
                       </div>
                     </div>
                   </td>
                   <td className="py-4 px-6 text-sm text-ink-muted">{policy.lastModified}</td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${POLICY_STATUS_STYLE[policy.status]}`}>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${POLICY_STATUS_STYLE[policy.status]}`}>
                       {policy.status}
                     </span>
                   </td>
                   <td className="py-4 px-6 text-right">
                     <button
+                      type="button"
                       onClick={() => onEdit(policy.policy_id)}
-                      className="text-accent font-bold text-xs hover:underline transition-all cursor-pointer"
+                      aria-label={`Edit ${policy.alias}`}
+                      className="inline-flex items-center min-h-[44px] px-3 rounded-control text-ink font-semibold text-sm underline-offset-2 hover:underline hover:bg-surface-muted cursor-pointer"
                     >
                       Edit
                     </button>
@@ -1841,8 +1770,8 @@ function ViewAllModal({
           </table>
         </div>
 
-        <div className="px-6 py-4 border-t border-line/10 shrink-0 flex items-center justify-end bg-paper">
-          <button onClick={onClose} className="px-6 py-2 rounded-xl bg-accent text-on-accent text-sm font-semibold hover:bg-accent-hover transition-all cursor-pointer">
+        <div className="px-6 py-4 border-t border-line shrink-0 flex items-center justify-end bg-paper">
+          <button type="button" onClick={onClose} className="min-h-[44px] px-6 rounded-control bg-accent text-on-accent text-sm font-semibold hover:bg-accent-hover transition-colors cursor-pointer">
             Done
           </button>
         </div>
@@ -1879,11 +1808,9 @@ function PremiumBulletList({ items }: { items: string[] }) {
   return (
     <div className="flex flex-col gap-3.5">
       {items.map((item, i) => (
-        <div key={i} className="flex gap-4 items-start group/item">
-          <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center group-hover/item:bg-accent/20 transition-all group-hover/item:scale-110 duration-300">
-            <CheckCircle2 className="w-3 h-3 text-accent" strokeWidth={3} />
-          </div>
-          <p className="text-[13px] text-ink-muted font-body leading-relaxed group-hover/item:text-ink transition-colors">
+        <div key={i} className="flex gap-3 items-start">
+          <CheckCircle2 className="mt-0.5 w-4 h-4 shrink-0 text-ink-muted" strokeWidth={2} aria-hidden="true" />
+          <p className="text-sm text-ink font-body leading-relaxed">
             {item}
           </p>
         </div>

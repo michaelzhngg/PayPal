@@ -67,7 +67,7 @@ export default function WaiveDialog({
             )}
             <ErrorLine error={error} />
           </div>
-          <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line/20 sm:flex-row sm:justify-end">
+          <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line sm:flex-row sm:justify-end">
             <button type="button" onClick={close} disabled={busy} className={`${btnBase} text-ink hover:bg-surface-muted focus-visible:outline-accent`}>
               Keep the recovery
             </button>

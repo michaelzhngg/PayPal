@@ -63,13 +63,13 @@ export function CopyBatchId({ value }: { value: string | null }) {
 
 function LedgerCard({ row }: { row: PayoutLedgerRow }) {
   return (
-    <li className="bg-surface rounded-xl border border-line/20 p-4">
+    <li className="bg-surface rounded-card border border-line p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold text-sm text-ink truncate">{row.employee_name}</p>
           <p className="font-mono text-xs text-ink-muted mt-0.5">{formatClaimRef(row.claim_ref)}</p>
         </div>
-        <p className="font-display font-bold text-sm text-ink tabular-nums shrink-0">
+        <p className="font-mono font-medium text-sm text-ink shrink-0">
           {formatMoney(row.currency, row.amount)}
         </p>
       </div>
@@ -107,7 +107,7 @@ export default function LedgerGrid({ rows }: { rows: PayoutLedgerRow[] }) {
         headerName: "Amount",
         width: 112,
         type: "rightAligned",
-        cellClass: "tabular-nums font-semibold",
+        cellClass: "font-mono font-medium",
         valueFormatter: (p) => (p.data ? formatMoney(p.data.currency, p.data.amount) : ""),
       },
       {

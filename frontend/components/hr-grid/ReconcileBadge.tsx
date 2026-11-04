@@ -30,13 +30,13 @@ function Differences({ summary }: { summary: ReconcileSummary }) {
       <ul className="flex flex-col gap-2 pb-1 text-ink">
         {mismatches.map((m) => (
           <li key={m.payout_id} className="break-words">
-            <span className="font-semibold">{m.claim_ref}</span> · {m.employee_name} ·{" "}
+            <span className="font-mono font-medium">{m.claim_ref}</span> · {m.employee_name} ·{" "}
             {formatMoney(m.currency, m.amount)} · sent {formatUpdated(m.created_at)}: not found in PayPal
           </li>
         ))}
         {unknown.map((u) => (
           <li key={u.transaction_id} className="break-words">
-            <span className="font-semibold">{u.transaction_id}</span> · {formatMoney(u.currency, u.amount)} ·{" "}
+            <span className="font-mono font-medium">{u.transaction_id}</span> · {formatMoney(u.currency, u.amount)} ·{" "}
             {formatUpdated(u.occurred_at)}: in PayPal with no matching payout
           </li>
         ))}

@@ -39,7 +39,7 @@ function PayoutTabs() {
 
   return (
     <>
-      <div role="tablist" aria-label="Payouts" className="flex gap-1 overflow-x-auto border-b border-line/30 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div role="tablist" aria-label="Payouts" className="flex gap-1 overflow-x-auto border-b border-line mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
         {TABS.map(({ id, label }, i) => {
           const active = tab === id;
           return (
@@ -57,7 +57,7 @@ function PayoutTabs() {
               onClick={() => choose(id)}
               onKeyDown={(e) => onTabKeyDown(e, i)}
               className={`shrink-0 min-h-[44px] px-2.5 sm:px-3 -mb-px border-b-2 font-body text-sm whitespace-nowrap focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] cursor-pointer ${
-                active ? "border-accent font-semibold text-accent" : "border-transparent text-ink-muted hover:text-ink"
+                active ? "border-ink font-semibold text-ink" : "border-transparent text-ink-muted hover:text-ink hover:border-line-strong"
               }`}
             >
               {label}
@@ -80,9 +80,9 @@ export default function HRPayoutsPage() {
   return (
     <div className="min-h-full px-4 py-6 sm:px-6 md:px-8 md:py-10">
       <header className="mb-6 max-w-3xl">
-        <h2 className="font-display font-bold text-ink text-3xl md:text-4xl">
+        <h1 className="font-display font-semibold text-ink text-2xl md:text-3xl">
           Payouts
-        </h2>
+        </h1>
         <p className="text-ink-muted text-base font-body mt-2">
           Every PayPal payout, the auto-paid claims picked for audit, and any overpayments being recovered.
         </p>

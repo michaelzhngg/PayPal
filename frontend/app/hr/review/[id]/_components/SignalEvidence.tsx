@@ -2,11 +2,11 @@ import Link from "next/link";
 import type { RiskSignal, Severity } from "@/lib/api/reclaim-pay-types";
 import { SEVERITY_LABEL, signalEvidence, signalLabel } from "@/lib/hr/evidence";
 
-// Severity is written out in the chip; the tone only backs it up.
+// Severity is a small written label; the text colour only backs it up.
 const SEVERITY_TONE: Record<Severity, string> = {
-  HIGH: "bg-danger-soft text-danger border-danger/30",
-  MEDIUM: "bg-warning-soft text-warning border-warning/30",
-  LOW: "bg-surface-muted text-ink-muted border-line/40",
+  HIGH: "text-danger",
+  MEDIUM: "text-warning",
+  LOW: "text-ink-muted",
 };
 
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
@@ -17,16 +17,16 @@ export function SignalEvidence({ id, signal, currency }: { id: string; signal: R
   const headingId = `${id}-heading`;
 
   return (
-    <article aria-labelledby={headingId} className="rounded-lg border border-line/30 bg-surface p-4 min-w-0">
-      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <h5 id={headingId} className="font-display font-bold text-sm text-ink">
+    <article aria-labelledby={headingId} className="rounded-card border border-line bg-surface p-4 min-w-0">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+        <h5 id={headingId} className="font-body font-semibold text-sm text-ink">
           {signalLabel(signal.code)}
         </h5>
-        <span className="flex items-center gap-2 text-xs">
-          <span className={`px-1.5 py-0.5 rounded border font-semibold ${SEVERITY_TONE[signal.severity] ?? SEVERITY_TONE.LOW}`}>
-            {SEVERITY_LABEL[signal.severity] ?? signal.severity}
+        <span className="flex items-baseline gap-2 text-xs">
+          <span className={`font-semibold ${SEVERITY_TONE[signal.severity] ?? SEVERITY_TONE.LOW}`}>
+            {SEVERITY_LABEL[signal.severity] ?? signal.severity} severity
           </span>
-          {signal.points > 0 && <span className="tabular-nums font-semibold text-ink-muted">+{signal.points}</span>}
+          {signal.points > 0 && <span className="font-mono text-ink-muted">+{signal.points}</span>}
         </span>
       </div>
 
@@ -39,7 +39,7 @@ export function SignalEvidence({ id, signal, currency }: { id: string; signal: R
           {view.snippets.map((s, i) => (
             <pre
               key={i}
-              className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-md bg-surface-muted px-3 py-2 font-mono text-xs text-ink"
+              className="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere] rounded-control bg-surface-muted px-3 py-2 font-mono text-xs text-ink"
             >
               {s}
             </pre>
@@ -48,11 +48,11 @@ export function SignalEvidence({ id, signal, currency }: { id: string; signal: R
       )}
 
       {view.facts.length > 0 && (
-        <dl className="mt-3 divide-y divide-line/20 border-y border-line/20 text-sm">
+        <dl className="mt-3 divide-y divide-line border-y border-line text-sm">
           {view.facts.map((f) => (
             <div key={f.label} className="flex items-baseline justify-between gap-4 py-1.5">
               <dt className="text-ink-muted min-w-0">{f.label}</dt>
-              <dd className={`text-right tabular-nums min-w-0 break-words ${f.emphasis ? "font-bold text-danger" : "font-medium text-ink"}`}>
+              <dd className={`text-right font-mono min-w-0 break-words ${f.emphasis ? "font-semibold text-danger" : "font-medium text-ink"}`}>
                 {f.value}
               </dd>
             </div>
@@ -69,7 +69,7 @@ export function SignalEvidence({ id, signal, currency }: { id: string; signal: R
             <Link
               key={c.href}
               href={c.href}
-              className={`inline-flex min-h-11 items-center font-mono font-semibold text-accent underline underline-offset-2 hover:text-accent-hover rounded ${FOCUS}`}
+              className={`inline-flex min-h-11 items-center font-mono font-medium text-ink underline underline-offset-2 hover:text-accent-hover rounded ${FOCUS}`}
             >
               {c.ref}
             </Link>

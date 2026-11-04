@@ -51,7 +51,7 @@ export default function RecoveriesTab({ onOpenAudit }: { onOpenAudit: () => void
             <button
               type="button"
               onClick={onOpenAudit}
-              className="inline-flex items-center justify-center min-h-[44px] px-4 rounded-lg border border-line text-sm font-semibold text-ink hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 cursor-pointer"
+              className="inline-flex items-center justify-center min-h-[44px] px-4 rounded-control border border-line text-sm font-semibold text-ink hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 cursor-pointer"
             >
               Open the Audit queue
             </button>

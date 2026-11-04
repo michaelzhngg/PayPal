@@ -35,8 +35,8 @@ function NumberField({ name, label, hint, prefix, step = 1, register, errors, sa
         </p>
       )}
       <div
-        className={`mt-1.5 flex items-center min-h-[44px] rounded-lg border bg-surface focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent ${
-          error ? "border-danger" : dirty ? "border-accent" : "border-line/60"
+        className={`mt-1.5 flex items-center min-h-[44px] rounded-control border bg-surface focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent ${
+          error ? "border-danger" : dirty ? "border-ink" : "border-line-strong"
         }`}
       >
         {prefix && <span className="pl-3 text-sm text-ink-muted select-none">{prefix}</span>}
@@ -48,7 +48,7 @@ function NumberField({ name, label, hint, prefix, step = 1, register, errors, sa
           step={step}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm tabular-nums text-ink outline-none"
+          className="w-full min-w-0 bg-transparent px-3 py-2 text-sm font-mono text-ink outline-none"
           {...register(name, { valueAsNumber: true, deps: RELATED_FIELDS[name] as NumberKey[] | undefined })}
         />
       </div>
@@ -79,7 +79,7 @@ export default function LimitsForm({ register, errors, saved, dirtyKeys, currenc
   return (
     <div className="flex flex-col gap-6">
       <fieldset>
-        <legend className="font-display font-bold text-base text-ink">Pay automatically up to</legend>
+        <legend className="font-display font-semibold text-base text-ink">Pay automatically up to</legend>
         <p className="text-sm text-ink-muted mt-1">
           Per claim, by how much history the employee has. Anything above goes to quick HR approval.
         </p>
@@ -99,7 +99,7 @@ export default function LimitsForm({ register, errors, saved, dirtyKeys, currenc
       </fieldset>
 
       <fieldset>
-        <legend className="font-display font-bold text-base text-ink">Caps</legend>
+        <legend className="font-display font-semibold text-base text-ink">Caps</legend>
         <p className="text-sm text-ink-muted mt-1">Once a cap is reached, the next claim waits for HR.</p>
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <NumberField {...f("employee_daily_cap")} label="Per employee, per day" prefix={currency} />
@@ -109,7 +109,7 @@ export default function LimitsForm({ register, errors, saved, dirtyKeys, currenc
       </fieldset>
 
       <fieldset>
-        <legend className="font-display font-bold text-base text-ink">Risk score bands</legend>
+        <legend className="font-display font-semibold text-base text-ink">Risk score bands</legend>
         <p className="text-sm text-ink-muted mt-1">
           Each claim gets a risk score from 0 to 100. From these scores up, it goes to the matching HR lane.
         </p>

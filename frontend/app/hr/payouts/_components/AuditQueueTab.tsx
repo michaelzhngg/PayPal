@@ -47,7 +47,7 @@ export default function AuditQueueTab() {
       {!isLoading && error && <TabError message={error} onRetry={retry} />}
       {!isLoading && !error && data?.length === 0 && (
         <TabEmpty title="No claims picked for audit">
-          Auto-paid claims appear here when the agent samples them or a later claim shows they were part of a split.
+          Auto-paid claims appear here when they are sampled at random or a later claim shows they were part of a split.
         </TabEmpty>
       )}
       {!isLoading && !error && !!data?.length && <AuditQueueGrid rows={data} onRecord={onRecord} />}

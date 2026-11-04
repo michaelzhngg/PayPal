@@ -36,7 +36,7 @@ export default function BottomNav() {
       {/* FAB exception: `fixed` is allowed here per layout constraints */}
       <nav
         aria-label="Mobile bottom navigation"
-        className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-line/10 rounded-t-3xl shadow-overlay pb-safe"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-surface border-t border-line pb-safe"
       >
         <div className="flex justify-between items-center px-2 h-16 max-w-lg mx-auto">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -46,9 +46,10 @@ export default function BottomNav() {
               <>
                 <Icon
                   className="w-[22px] h-[22px]"
-                  strokeWidth={isActive ? 2.5 : 1.5}
+                  strokeWidth={isActive ? 2.25 : 1.5}
+                  aria-hidden="true"
                 />
-                <span className="text-[10px] font-body font-semibold uppercase tracking-wider whitespace-nowrap max-w-[64px] overflow-hidden text-ellipsis">
+                <span className="text-xs font-body font-medium whitespace-nowrap max-w-[72px] overflow-hidden text-ellipsis">
                   {label}
                 </span>
               </>
@@ -59,10 +60,10 @@ export default function BottomNav() {
                 key={href}
                 href={href}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex-1 flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-2xl transition-all duration-200 ${
+                className={`relative flex-1 flex flex-col items-center justify-center gap-1 min-h-[52px] px-1 py-1.5 rounded-control transition-colors ${
                   isActive
-                    ? "text-accent bg-accent/10 scale-110"
-                    : "text-ink/50 hover:text-ink"
+                    ? "text-ink font-semibold bg-surface-muted"
+                    : "text-ink-muted hover:text-ink"
                 }`}
               >
                 {content}
