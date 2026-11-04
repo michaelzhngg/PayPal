@@ -15,13 +15,15 @@ export default function EmployeeError({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-8 text-center">
-      <h2 className="text-xl font-bold text-ink">Something went wrong</h2>
+      <h2 className="font-display text-xl font-semibold text-ink">This page did not load</h2>
       <p className="text-sm text-ink-muted max-w-sm">
-        An unexpected error occurred. Your data is safe — please try again.
+        Something failed while loading this page. Claims you already submitted are saved.
+        Press Try again to reload it. If it keeps failing, sign out and back in, or contact HR.
       </p>
       <button
+        type="button"
         onClick={reset}
-        className="px-4 py-2 bg-accent text-white rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors"
+        className="inline-flex items-center justify-center min-h-[44px] px-4 bg-accent text-on-accent rounded-control text-sm font-semibold hover:bg-accent-hover transition-colors"
       >
         Try again
       </button>
