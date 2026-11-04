@@ -11,6 +11,13 @@
 
 ---
 
+## 0. Latest progress (Wed 4 Nov, evening)
+
+- Merged since this file was written: `main` (homeserver deploy), and `feat/reconcile-channel3` (Server SDK reconciliation, Channel3 check, off without a key).
+- **Staging is live at https://reclaimai.dev but runs older code.** It deploys from `main`. Open PR #9 (`hackathon/reclaim-pay` -> `main`) deploys this branch. Ask the user before merging it.
+- **Not merged yet, may still be in progress on local branches or worktrees:** `feat/hr-payouts-tabs`, `feat/signin-paypal`, `feat/bryntum-calendar`, `feat/postman-polish`. Check each under `.claude/worktrees/`, run the tests, then merge with `--no-ff`.
+- **After those:** write the Devpost write-up and the README as a business pitch for judges who won't read code. Don't claim anything works live until it has been tested. The video waits for the user's call.
+
 ## 1. Where things stand
 
 - **Integration branch:** `hackathon/reclaim-pay`, pushed to `origin` (github.com/michaelzhngg/PayPal). Every feature branch so far has been merged into it.
