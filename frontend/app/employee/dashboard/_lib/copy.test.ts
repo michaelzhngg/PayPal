@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import type { Recovery, TrustInfo } from "@/lib/api/reclaim-pay-types";
 import {
   deadlineLine,
+  disputeErrorLine,
+  statusLines,
   formatDeadline,
   formatLimit,
   isDisputeOpen,
@@ -80,5 +82,29 @@ describe("overpayment notice copy", () => {
     const after = new Date("2026-11-08T10:00:01Z");
     expect(isDisputeOpen(recovery, after)).toBe(false);
     expect(deadlineLine(recovery, after, KL)).toBe("The dispute window closed on 8 Nov, 6:00 pm.");
+  });
+});
+
+describe("recovery status lines", () => {
+  const now = new Date("2026-11-05T00:00:00Z");
+  it("covers every status without raw codes", () => {
+    expect(statusLines({ ...recovery, status: "DISPUTED" }, now).line).toBe("Disputed · HR will review");
+    expect(statusLines({ ...recovery, status: "OFFSET", offset_reim_id: "9c8b7a6d-0000" }, now)).toEqual({
+      line: "Deducted from claim RC-9C8B7A6D.", detail: "Nothing more to do." });
+    expect(statusLines({ ...recovery, status: "OFFSET" }, now).line).toBe("Deducted from a later claim.");
+    expect(statusLines({ ...recovery, status: "INVOICED" }, now).line).toBe("We sent you a PayPal invoice for MYR 30.00.");
+    expect(statusLines({ ...recovery, status: "RECOVERED" }, now).line).toBe("Repaid.");
+    expect(statusLines({ ...recovery, status: "WAIVED" }, now)).toEqual({ line: "You don't owe anything.", detail: null });
+  });
+  it("explains what happens after the window closes", () => {
+    const after = statusLines(recovery, new Date("2026-11-09T00:00:00Z"), KL);
+    expect(after.line).toBe("The dispute window closed on 8 Nov, 6:00 pm.");
+    expect(after.detail).toMatch(/next claim.*PayPal invoice/);
+    expect(statusLines(recovery, now, KL)).toEqual({ line: "You can dispute until 8 Nov, 6:00 pm.", detail: null });
+  });
+  it("words dispute refusals calmly", () => {
+    for (const code of ["WINDOW_CLOSED", "NOT_DISPUTABLE", "FAILED"] as const) {
+      expect(disputeErrorLine(code)).not.toMatch(/[A-Z]{2,}_[A-Z]/);
+    }
   });
 });

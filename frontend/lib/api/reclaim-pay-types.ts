@@ -213,6 +213,9 @@ export interface TrustInfo {
 
 export type RecoveryStatus = "NOTICE_SENT" | "DISPUTED" | "OFFSET" | "INVOICED" | "RECOVERED" | "WAIVED";
 
+/** Why POST /recoveries/{id}/dispute failed: the 409 codes DISPUTE_WINDOW_CLOSED and NOT_DISPUTABLE, or anything else. */
+export type DisputeError = "WINDOW_CLOSED" | "NOT_DISPUTABLE" | "FAILED";
+
 /** GET /recoveries, POST /recoveries/{id}/dispute */
 export interface Recovery {
   recovery_id: string;

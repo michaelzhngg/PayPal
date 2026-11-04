@@ -2,31 +2,31 @@
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { disputeRecovery } from "@/lib/actions/recoveries";
-import type { Recovery } from "@/lib/api/reclaim-pay-types";
-import { AFTER_WINDOW_LINE, DISPUTED_LINE, deadlineLine, isDisputeOpen, noticeLine } from "../_lib/copy";
+import type { DisputeError, Recovery } from "@/lib/api/reclaim-pay-types";
+import { disputeErrorLine, isDisputeOpen, noticeLine, statusLines } from "../_lib/copy";
 
 const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
 
 /**
  * An overpayment the employee is asked to return. Written to inform, not
- * accuse: the amount, the claim, what happened and the dispute deadline.
- * Opens the dispute form on its own when the URL has ?recovery={id}.
+ * accuse: the amount, the claim, what happened and where it stands.
+ * `linked` marks the notice a notification pointed at (?recovery={id}): it is
+ * scrolled into view, outlined, and its dispute form opens if a dispute is possible.
  */
-/** True when a notification linked here with ?recovery={id} and the dispute is still possible. */
-function linkedHere(rec: Recovery): boolean {
-  if (typeof window === "undefined") return false;
-  const wanted = new URLSearchParams(window.location.search).get("recovery");
-  return wanted === rec.recovery_id && rec.status === "NOTICE_SENT" && isDisputeOpen(rec);
-}
-
-export default function RecoveryNotice({ recovery: initial }: { recovery: Recovery }) {
+export default function RecoveryNotice({ recovery: initial, linked = false }: { recovery: Recovery; linked?: boolean }) {
   const [recovery, setRecovery] = useState(initial);
-  const [formOpen, setFormOpen] = useState(() => linkedHere(initial));
+  const [formOpen, setFormOpen] = useState(
+    () => linked && initial.status === "NOTICE_SENT" && isDisputeOpen(initial),
+  );
   const [note, setNote] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  // An empty note is a form problem, kept apart from the server's refusals.
+  const [emptyNote, setEmptyNote] = useState(false);
+  const [error, setError] = useState<DisputeError | null>(null);
   const [sending, setSending] = useState(false);
   // Checked again on submit, so a window that closes while the page is open shows as closed.
   const [now, setNow] = useState(() => new Date());
+  // The backend said the window closed, even if this device's clock disagrees.
+  const [closedByServer, setClosedByServer] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -34,12 +34,16 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
   const returnFocus = useRef(false);
   const ids = useId();
 
-  const disputed = recovery.status === "DISPUTED";
-  const open = isDisputeOpen(recovery, now);
+  const canDispute = recovery.status === "NOTICE_SENT" && isDisputeOpen(recovery, now) && !closedByServer;
+  const { line, detail } = statusLines(recovery, closedByServer ? new Date(recovery.dispute_until) : now);
+  const formError = emptyNote
+    ? "Add a short note so HR knows what to check."
+    : error === "FAILED" ? disputeErrorLine("FAILED") : null;
+  const cardError = error && error !== "FAILED" ? disputeErrorLine(error) : null;
 
   useEffect(() => {
-    if (linkedHere(initial)) sectionRef.current?.scrollIntoView({ block: "center" });
-  }, [initial]);
+    if (linked) sectionRef.current?.scrollIntoView({ block: "center" });
+  }, [linked]);
 
   useEffect(() => {
     if (formOpen) {
@@ -54,6 +58,7 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
   function closeForm() {
     returnFocus.current = true;
     setFormOpen(false);
+    setEmptyNote(false);
     setError(null);
   }
 
@@ -61,7 +66,7 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
     e.preventDefault();
     const text = note.trim();
     if (!text) {
-      setError("Add a short note so HR knows what to check.");
+      setEmptyNote(true);
       textareaRef.current?.focus();
       return;
     }
@@ -69,18 +74,22 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
     setNow(current);
     if (!isDisputeOpen(recovery, current)) {
       setFormOpen(false);
+      setError("WINDOW_CLOSED");
       return;
     }
     setSending(true);
     setError(null);
     const res = await disputeRecovery(recovery.recovery_id, text);
     setSending(false);
-    if (res.error || !res.recovery) {
-      setError("We couldn't send your dispute. Please try again.");
+    if (res.recovery) {
+      setRecovery(res.recovery);
+      setFormOpen(false);
       return;
     }
-    setRecovery(res.recovery);
-    setFormOpen(false);
+    const err = res.error ?? "FAILED";
+    setError(err);
+    if (err === "WINDOW_CLOSED") setClosedByServer(true);
+    if (err !== "FAILED") setFormOpen(false);
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLFormElement>) {
@@ -91,7 +100,9 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
     <section
       ref={sectionRef}
       aria-labelledby={`${ids}-heading`}
-      className="rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-4 md:p-5"
+      className={`rounded-2xl border bg-surface-container-lowest p-4 md:p-5 ${
+        linked ? "border-primary ring-1 ring-primary" : "border-outline-variant/40"
+      }`}
     >
       <h3 id={`${ids}-heading`} className="font-headline text-base font-bold text-on-surface">
         Overpayment notice
@@ -100,19 +111,12 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
       <p className="mt-1 font-body text-sm leading-relaxed text-on-surface-variant">{recovery.reason}</p>
 
       <div aria-live="polite">
-        {disputed ? (
-          <p className="mt-3 font-body text-sm font-semibold text-on-surface">{DISPUTED_LINE}</p>
-        ) : open ? (
-          <p className="mt-3 font-body text-sm font-semibold text-on-surface">{deadlineLine(recovery, now)}</p>
-        ) : (
-          <>
-            <p className="mt-3 font-body text-sm font-semibold text-on-surface">{deadlineLine(recovery, now)}</p>
-            <p className="mt-1 font-body text-sm leading-relaxed text-on-surface-variant">{AFTER_WINDOW_LINE}</p>
-          </>
-        )}
+        <p className="mt-3 font-body text-sm font-semibold text-on-surface">{line}</p>
+        {detail && <p className="mt-1 font-body text-sm leading-relaxed text-on-surface-variant">{detail}</p>}
+        {cardError && <p className="mt-2 font-body text-sm leading-relaxed text-on-surface">{cardError}</p>}
       </div>
 
-      {!disputed && open && !formOpen && (
+      {canDispute && !formOpen && (
         <button
           ref={disputeButtonRef}
           type="button"
@@ -123,7 +127,7 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
         </button>
       )}
 
-      {!disputed && open && formOpen && (
+      {canDispute && formOpen && (
         <form onSubmit={submit} onKeyDown={onKeyDown} noValidate className="mt-3 flex flex-col gap-2">
           <label htmlFor={`${ids}-note`} className="font-body text-sm font-semibold text-on-surface">
             What should HR know?
@@ -134,18 +138,19 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
             value={note}
             onChange={e => {
               setNote(e.target.value);
-              if (error) setError(null);
+              setEmptyNote(false);
+              if (error === "FAILED") setError(null);
             }}
             rows={3}
             maxLength={1000}
-            aria-invalid={error ? true : undefined}
-            aria-describedby={error ? `${ids}-error` : undefined}
+            aria-invalid={formError ? true : undefined}
+            aria-describedby={formError ? `${ids}-error` : undefined}
             placeholder="For example: breakfast wasn't included in my room rate."
             className={`w-full rounded-xl border border-outline bg-surface-container-lowest px-3 py-2 font-body text-base md:text-sm text-on-surface placeholder:text-on-surface-variant ${focusRing}`}
           />
-          {error && (
+          {formError && (
             <p id={`${ids}-error`} role="alert" className="font-body text-sm text-error">
-              {error}
+              {formError}
             </p>
           )}
           <div className="flex flex-wrap gap-2">

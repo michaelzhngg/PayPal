@@ -15,6 +15,19 @@ import RecentClaimsTable from "./_components/RecentClaimsTable";
 import PayPalStatusChip  from "./_components/PayPalStatusChip";
 import AccountStatus     from "./_components/AccountStatus";
 
+/**
+ * Open notices, plus the one a notification linked to with ?recovery={id}
+ * when it has moved past NOTICE_SENT (disputed, offset, invoiced, waived…).
+ */
+async function loadRecoveries(): Promise<{ items: Recovery[] | null; linkedId: string | null }> {
+  const linkedId = new URLSearchParams(window.location.search).get("recovery");
+  const open = await listRecoveries("NOTICE_SENT");
+  if (!linkedId || open?.some(r => r.recovery_id === linkedId)) return { items: open, linkedId };
+  const linked = (await listRecoveries())?.find(r => r.recovery_id === linkedId);
+  if (!linked) return { items: open, linkedId: null };
+  return { items: [linked, ...(open ?? [])], linkedId };
+}
+
 export default function EmployeeDashboardPage() {
   const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -24,6 +37,7 @@ export default function EmployeeDashboardPage() {
   // undefined while loading, null when the endpoint failed: both cards then stay hidden
   const [trust, setTrust] = useState<TrustInfo | null | undefined>(undefined);
   const [recoveries, setRecoveries] = useState<Recovery[] | null | undefined>(undefined);
+  const [linkedRecoveryId, setLinkedRecoveryId] = useState<string | null>(null);
 
   // Show only the first name in the greeting
   const firstName = user?.name?.split(" ")[0] ?? "there";
@@ -32,7 +46,12 @@ export default function EmployeeDashboardPage() {
     getDashboardStats().then(setStats);
     getRecentClaims(3).then(setClaims).catch(() => setClaims([]));
     getMyTrust().then(setTrust).catch(() => setTrust(null));
-    listRecoveries("NOTICE_SENT").then(setRecoveries).catch(() => setRecoveries(null));
+    loadRecoveries()
+      .then(({ items, linkedId }) => {
+        setRecoveries(items);
+        setLinkedRecoveryId(linkedId);
+      })
+      .catch(() => setRecoveries(null));
   }, []);
 
   // Render date client-only to avoid hydration mismatch
@@ -82,7 +101,9 @@ export default function EmployeeDashboardPage() {
 
       {/* Fast-track and overpayment notices sit under the PayPal chip, except on
           first run, where they follow the upload prompt so it stays in view on phones. */}
-      {!isEmpty && <AccountStatus trust={trust} recoveries={recoveries} className="mb-6 md:mb-10" />}
+      {!isEmpty && (
+        <AccountStatus trust={trust} recoveries={recoveries} linkedRecoveryId={linkedRecoveryId} className="mb-6 md:mb-10" />
+      )}
 
       {isEmpty ? (
         /* ── First run: one clear next step instead of zero cards ── */
@@ -139,7 +160,9 @@ export default function EmployeeDashboardPage() {
         </>
       )}
 
-      {isEmpty && <AccountStatus trust={trust} recoveries={recoveries} className="mt-6 max-w-xl md:max-w-none" />}
+      {isEmpty && (
+        <AccountStatus trust={trust} recoveries={recoveries} linkedRecoveryId={linkedRecoveryId} className="mt-6 max-w-xl md:max-w-none" />
+      )}
 
     </div>
   );

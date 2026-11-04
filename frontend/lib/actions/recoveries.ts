@@ -7,7 +7,7 @@
 
 import { apiGet, apiPost, API_PREFIX } from "@/lib/api/client";
 import { pickFixture, withFixture } from "@/lib/api/fixtures";
-import type { Recovery, RecoveryStatus } from "@/lib/api/reclaim-pay-types";
+import type { DisputeError, Recovery, RecoveryStatus } from "@/lib/api/reclaim-pay-types";
 import { recoveryVariants } from "@/src/mocks/reclaimPayFixtures";
 
 /**
@@ -24,18 +24,23 @@ export async function listRecoveries(status?: RecoveryStatus): Promise<Recovery[
   });
 }
 
-/** POST /recoveries/{id}/dispute. The recovery moves to DISPUTED and HR is told. */
+/**
+ * POST /recoveries/{id}/dispute. The recovery moves to DISPUTED and HR is told.
+ * The backend's 409 codes come back as DisputeError values, never as raw text.
+ */
 export async function disputeRecovery(
   recoveryId: string,
   note: string,
-): Promise<{ recovery: Recovery | null; error: string | null }> {
+): Promise<{ recovery: Recovery | null; error: DisputeError | null }> {
   const base = recoveryVariants.open?.[0];
   const fixture = base
     ? { recovery: { ...base, recovery_id: recoveryId, status: "DISPUTED" as const, dispute_note: note }, error: null }
-    : { recovery: null, error: "No recovery to dispute." };
+    : { recovery: null, error: "FAILED" as const };
   return withFixture(fixture, async () => {
     const result = await apiPost<Recovery>(`${API_PREFIX}/recoveries/${encodeURIComponent(recoveryId)}/dispute`, { note });
-    if (result.error || !result.data) return { recovery: null, error: result.error ?? "No response from the server." };
-    return { recovery: result.data, error: null };
+    if (result.data && !result.error) return { recovery: result.data, error: null };
+    if (result.error?.includes("DISPUTE_WINDOW_CLOSED")) return { recovery: null, error: "WINDOW_CLOSED" };
+    if (result.error?.includes("NOT_DISPUTABLE")) return { recovery: null, error: "NOT_DISPUTABLE" };
+    return { recovery: null, error: "FAILED" };
   });
 }

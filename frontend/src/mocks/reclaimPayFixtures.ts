@@ -317,9 +317,18 @@ const recoveryBase: Recovery = {
   updated_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
 };
 
-/** GET /recoveries?status=NOTICE_SENT for the employee. `none` stands in for a 404. */
+/** Settled recoveries, reachable on the dashboard only through ?recovery={id}. */
+const settledRecoveries: Recovery[] = [
+  { ...recoveryBase, recovery_id: "rec-disputed", status: "DISPUTED", dispute_note: "Breakfast wasn't included." },
+  { ...recoveryBase, recovery_id: "rec-offset", status: "OFFSET", offset_reim_id: "9c8b7a6d-1e2f-4a3b-8c4d-5e6f7a8b9c0d" },
+  { ...recoveryBase, recovery_id: "rec-invoiced", status: "INVOICED", paypal_invoice_id: "INV2-DEMO-0001" },
+  { ...recoveryBase, recovery_id: "rec-recovered", status: "RECOVERED" },
+  { ...recoveryBase, recovery_id: "rec-waived", status: "WAIVED" },
+];
+
+/** GET /recoveries for the employee (actions filter by status). `none` stands in for a 404. */
 export const recoveryVariants: Record<"open" | "closed" | "empty" | "none", Recovery[] | null> = {
-  open: [recoveryBase],
+  open: [recoveryBase, ...settledRecoveries],
   closed: [{ ...recoveryBase, dispute_until: new Date(Date.now() - 2 * 3600 * 1000).toISOString() }],
   empty: [],
   none: null,

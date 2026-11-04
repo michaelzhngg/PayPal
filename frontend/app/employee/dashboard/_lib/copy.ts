@@ -2,7 +2,7 @@
 // Strings follow DETAIL-PLAN §13.4. Kept pure so the wording is unit-tested.
 
 import { formatClaimRef, formatMoney } from "@/lib/format";
-import type { Recovery, TrustInfo, TrustTier } from "@/lib/api/reclaim-pay-types";
+import type { DisputeError, Recovery, TrustInfo, TrustTier } from "@/lib/api/reclaim-pay-types";
 
 const TIER_LABEL: Record<TrustTier, string> = { NEW: "New", STANDARD: "Standard", TRUSTED: "Trusted" };
 
@@ -90,3 +90,46 @@ export const AFTER_WINDOW_LINE =
   "After HR reviews it, the amount comes off your next claim. If no claim covers it, you'll get a PayPal invoice instead.";
 
 export const DISPUTED_LINE = "Disputed · HR will review";
+
+/**
+ * Where the recovery stands, as a bold line and an optional follow-up.
+ * NOTICE_SENT depends on the clock: open until `dispute_until`, then closed.
+ */
+export function statusLines(rec: Recovery, now: Date = new Date(), timeZone?: string): { line: string; detail: string | null } {
+  switch (rec.status) {
+    case "NOTICE_SENT":
+      return isDisputeOpen(rec, now)
+        ? { line: deadlineLine(rec, now, timeZone), detail: null }
+        : { line: deadlineLine(rec, now, timeZone), detail: AFTER_WINDOW_LINE };
+    case "DISPUTED":
+      return { line: DISPUTED_LINE, detail: null };
+    case "OFFSET":
+      return {
+        line: rec.offset_reim_id
+          ? `Deducted from claim ${formatClaimRef(rec.offset_reim_id)}.`
+          : "Deducted from a later claim.",
+        detail: "Nothing more to do.",
+      };
+    case "INVOICED":
+      return {
+        line: `We sent you a PayPal invoice for ${formatMoney(rec.currency, rec.amount)}.`,
+        detail: "Check your email to pay it.",
+      };
+    case "RECOVERED":
+      return { line: "Repaid.", detail: "Nothing more to do." };
+    case "WAIVED":
+      return { line: "You don't owe anything.", detail: null };
+  }
+}
+
+/** Calm wording for a dispute the backend refused. Never shows the raw code. */
+export function disputeErrorLine(err: DisputeError): string {
+  switch (err) {
+    case "WINDOW_CLOSED":
+      return "The dispute window closed before your note arrived, so it wasn't sent.";
+    case "NOT_DISPUTABLE":
+      return "This notice has already been handled. Refresh the page to see where it stands.";
+    case "FAILED":
+      return "We couldn't send your dispute. Please try again.";
+  }
+}
