@@ -14,6 +14,7 @@ import {
   Plus,
   Users,
   Banknote,
+  Gauge,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -22,6 +23,7 @@ const NAV_LINKS = [
   { href: "/hr/manage_employee", label: "Manage Employee", icon: Users },
   { href: "/hr/history",   label: "History",    icon: History          },
   { href: "/hr/payouts",   label: "Payouts",    icon: Banknote         },
+  { href: "/hr/autonomy",  label: "Autonomy",   icon: Gauge            },
   { href: "/hr/settings",  label: "Settings",   icon: Settings         },
 ];
 

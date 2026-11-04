@@ -233,6 +233,98 @@ export interface Recovery {
   updated_at: string;
 }
 
+/** The autonomy engine's tunable limits (DETAIL-PLAN §7.1). `enabled` and `version` are server-owned on save. */
+export interface AutonomyConfig {
+  enabled: boolean;
+  currency: string;
+  auto_limit_new: number;
+  auto_limit_standard: number;
+  auto_limit_trusted: number;
+  dual_approval_above: number;
+  employee_daily_cap: number;
+  employee_monthly_cap: number;
+  agent_daily_budget: number;
+  quick_min_score: number;
+  review_min_score: number;
+  dual_min_score: number;
+  review_cost: number;
+  review_minutes: number;
+  recovery_rate: number;
+  audit_sample_rate: number;
+  payee_cooldown_hours: number;
+  breaker_window: number;
+  breaker_high_ratio: number;
+  breaker_pause_minutes: number;
+  dispute_window_hours: number;
+  version: number;
+}
+
+/** GET/PUT /autonomy/settings and POST /autonomy/kill-switch */
+export interface AutonomySettings {
+  config: AutonomyConfig;
+  enabled: boolean;
+  version: number;
+  /** ISO time the circuit breaker lifts, or null when it isn't tripped. */
+  breaker_until: string | null;
+}
+
+/** GET /autonomy/status */
+export interface AutonomyStatus {
+  enabled: boolean;
+  breaker_until: string | null;
+  auto_paid_today: number;
+  agent_daily_budget: number;
+  decisions_today_by_tier: Partial<Record<AutonomyTier, number>>;
+}
+
+/** One point of the back-test sweep over the standard limit. */
+export interface BacktestPoint {
+  auto_limit_standard: number;
+  automation_rate: number;
+  projected_leakage: number;
+}
+
+/** POST /autonomy/backtest: the last 90 days replayed under a candidate config. */
+export interface BacktestResult {
+  total_claims: number;
+  auto_paid_count: number;
+  automation_rate: number;
+  auto_paid_amount: number;
+  bad_auto_paid_count: number;
+  projected_leakage: number;
+  caught_bad_count: number;
+  hr_reviews_avoided: number;
+  hr_hours_saved: number;
+  by_tier: Partial<Record<AutonomyTier, number>>;
+  curve: BacktestPoint[];
+  assumptions: string[];
+}
+
+export type AgentActionType =
+  | "CONFIG_CHANGED"
+  | "KILL_SWITCH"
+  | "BREAKER_TRIPPED"
+  | "PAYOUT_CREATED"
+  | (string & {});
+
+/** One entry of the hash-chained agent log. */
+export interface AgentAction {
+  action_id: number;
+  action_type: AgentActionType;
+  actor: string;
+  reim_id: string | null;
+  payload: Record<string, unknown>;
+  prev_hash?: string;
+  hash: string;
+  created_at: string;
+}
+
+/** GET /autonomy/actions */
+export interface AgentActionsResult {
+  chain_valid: boolean;
+  actions: AgentAction[];
+}
+
 /** Formats an amount the way the backend writes it in notifications, e.g. "MYR 48.00". */
 export function formatMoney(currency: string, amount: number): string {
   return `${currency} ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

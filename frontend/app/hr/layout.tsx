@@ -2,6 +2,7 @@ import SideNav    from "./hr_components/SideNav";
 import TopNav     from "./hr_components/TopNav";
 import BottomNav  from "./hr_components/BottomNav";
 import HRRoleGuard from "./hr_components/HRRoleGuard";
+import AutonomyBanner from "./hr_components/AutonomyBanner";
 
 export default function HRLayout({
   children,
@@ -20,6 +21,9 @@ export default function HRLayout({
 
           {/* Sticky top navigation */}
           <TopNav />
+
+          {/* Auto-pay paused or held by the circuit breaker */}
+          <AutonomyBanner />
 
           <main
             id="main-content"
