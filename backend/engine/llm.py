@@ -99,10 +99,10 @@ def get_chat_llm() -> _GLMWithGeminiFallback:
 
 @lru_cache(maxsize=1)
 def get_vision_llm() -> ChatOpenAI:
-    """Vision LLM for receipt OCR — OpenRouter only, no GLM fallback needed."""
+    """Vision LLM for receipt OCR — VISION_BASE_URL/VISION_API_KEY if set, else OpenRouter."""
     return ChatOpenAI(
-        base_url=settings.OPENROUTER_BASE_URL,
-        api_key=settings.OPENROUTER_API_KEY,
+        base_url=settings.VISION_BASE_URL or settings.OPENROUTER_BASE_URL,
+        api_key=settings.VISION_API_KEY or settings.OPENROUTER_API_KEY,
         max_tokens=40000,
         model=settings.VISION_MODEL,
         model_kwargs=_JSON_MODE,
