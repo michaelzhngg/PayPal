@@ -11,12 +11,12 @@ in [homeserver.md](homeserver.md).
 | 2 | Turn on Tailscale Funnel | ✅ done (you) |
 | 3 | Stop the laptop from sleeping | ✅ done (you) |
 | 4 | API keys in `~/reclaim/.env` (OpenRouter as main model) | ✅ done (you + Claude) |
-| 5 | Tailscale policy: create `tag:ci`, limit what it can reach | ⬜ |
-| 6 | Tailscale trust credential for GitHub Actions + 2 GitHub secrets | ⬜ |
-| 7 | Merge the deploy branch → first deploy | ⬜ |
-| 8 | Seed demo users, check the site | ⬜ |
-| 9 | PayPal sandbox (optional, when ready) | ⬜ |
-| 10 | Cloudflare Tunnel on reclaimai.dev (when ready) | ⬜ |
+| 5 | Tailscale policy: create `tag:ci`, limit what it can reach | ✅ done (you) |
+| 6 | Tailscale trust credential for GitHub Actions + 2 GitHub secrets | ✅ done (you) |
+| 7 | Merge the deploy branch → first deploy | ✅ live (sha-67049f0) |
+| 8 | Seed demo users, check the site | ✅ done (you) |
+| 9 | PayPal sandbox (after step 10) | ⬜ |
+| 10 | Cloudflare Tunnel on reclaimai.dev | ✅ live (www redirect pending) |
 
 ---
 
@@ -175,8 +175,12 @@ identity token for **this repo's production deploy job only**.
    | Description | `Paypal Hackathon` (anything) |
    | Issuer | **GitHub** |
    | Issuer URL | `https://token.actions.githubusercontent.com` (filled in for you) |
-   | Subject | `repo:michaelzhngg/PayPal:environment:production` |
+   | Subject | `repo:michaelzhngg@142100201/PayPal@1443110379:environment:production` |
    | Custom claims | none (don't click *Add claim key*) |
+
+   This repo uses GitHub's *immutable subject* format (owner and repo IDs after the
+   `@`), so the plain `repo:michaelzhngg/PayPal:…` form is rejected with a 403. Check the
+   current prefix with `gh api repos/michaelzhngg/PayPal/actions/oidc/customization/sub`.
 
    Type the subject exactly, case included. The placeholder `…:environment:*` would
    allow any environment; we pin it to `production`, the one the deploy job uses.
@@ -235,7 +239,7 @@ database). Expect 5–10 minutes.
 
 | Fails at | Likely cause | Fix |
 |---|---|---|
-| Join tailnet | Subject or tag mismatch in step 6, or secrets missing | Re-check step 6 values; subject must be exactly `repo:michaelzhngg/PayPal:environment:production` |
+| Join tailnet | Subject or tag mismatch in step 6, or secrets missing | Re-check step 6 values; subject must be exactly `repo:michaelzhngg@142100201/PayPal@1443110379:environment:production` |
 | Wait for the server to be reachable | Policy doesn't allow `tag:ci` → `100.87.169.54:22` | Re-check step 5 |
 | Deploy: `.env still has placeholder secrets` | `.env` was recreated | Re-run `install.sh` or fix `.env` |
 | Deploy: `pull failed` | Image not pushed / GHCR permission | Check the **Build** jobs ran on `main` and pushed |
@@ -284,11 +288,14 @@ back to `/employee/settings?paypal=…`.
 
 ---
 
-## Step 10: Cloudflare Tunnel on reclaimai.dev (when ready)
+## Step 10: Cloudflare Tunnel on reclaimai.dev
+
+Do this **before** step 9 (PayPal), so the PayPal URLs are registered once, on the
+final domain.
 
 `reclaimai.dev` is active on Cloudflare (DNS setup: Full) with two placeholder
-records: `reclaimai.dev AAAA 100::` and `www.reclaimai.dev AAAA 100::`, both proxied,
-and no rules use them.
+records, `reclaimai.dev AAAA 100::` and `www.reclaimai.dev AAAA 100::`. Both are
+proxied, and no rules use them.
 
 **You don't add A records.** An A record would point at your home IP and need
 port-forwarding. A tunnel is an outbound connection from the server, and Cloudflare
@@ -298,13 +305,14 @@ creates a proxied CNAME to it.
 
 1. https://dash.cloudflare.com → **reclaimai.dev** → **DNS** → **Records**.
 2. Row `reclaimai.dev` / `AAAA` / `100::` → **Edit** → **Delete** → confirm.
-3. Keep `www.reclaimai.dev` (used for the www → root redirect in 10.5).
+3. Keep `www.reclaimai.dev` (used for the www → root redirect in 10.6).
 
 ### 10.2 Create the tunnel
 
-1. Left sidebar → **Zero Trust** → **Networks** → **Tunnels** (if asked to choose a
-   Zero Trust team name/plan, pick the **Free** plan).
-2. **Create a tunnel** → **Cloudflared** → name `reclaim-homeserver` → **Save tunnel**.
+1. Go back to the account (top-left account name), then in the sidebar:
+   **Networking** → **Tunnels**. (Older layout: **Zero Trust** → **Networks** →
+   **Tunnels**. If asked to pick a Zero Trust plan, choose **Free**.)
+2. **Create a tunnel** → type **Cloudflared** → name `reclaim-homeserver` → **Save**.
 3. On **Install and run connectors**, choose **Docker**. The command looks like
    `docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token eyJhIjoi…`.
    Copy **only the token** (the long `eyJ…` string). **Don't run the command**: the
@@ -313,18 +321,23 @@ creates a proxied CNAME to it.
 
 ### 10.3 Route the domain to the app
 
-On **Route traffic** / **Public hostname**:
+Open the tunnel → **Routes** tab → **Add route** → **Published application**:
 
 | Field | Value |
 |---|---|
 | Subdomain | (empty) |
 | Domain | `reclaimai.dev` |
 | Path | (empty) |
-| Service type | `HTTP` |
-| URL | `caddy:80` |
+| Service URL | `http://caddy:80` |
 
-**Save tunnel**. Cloudflare creates the `reclaimai.dev CNAME <id>.cfargotunnel.com`
-record. If it says a record already exists, 10.1 wasn't done.
+Leave **Additional application settings** as they are, then **Add route**. Cloudflare
+creates the proxied `reclaimai.dev` CNAME to the tunnel. If it says a record already
+exists, 10.1 wasn't done.
+
+`caddy` is the Caddy container's name on the app's Docker network. This only resolves
+from the stack's own cloudflared (10.4), **not** from a connector started with the
+`docker run` command Cloudflare shows. That one sits on Docker's default network and
+gets a 502.
 
 ### 10.4 Start the connector on the server
 
@@ -333,7 +346,7 @@ ssh homelab
 nano ~/reclaim/.env
 ```
 
-Uncomment and set (and change `PUBLIC_URL`):
+Change `PUBLIC_URL`, and uncomment and fill the two Cloudflare lines (remove the `# `):
 
 ```bash
 PUBLIC_URL=https://reclaimai.dev
@@ -341,31 +354,52 @@ COMPOSE_PROFILES=cloudflare
 CLOUDFLARE_TUNNEL_TOKEN=eyJ...
 ```
 
+Then apply:
+
 ```bash
 ~/reclaim/bin/deploy.sh apply
 ```
 
-Then on your laptop:
+This starts `cloudflared` next to the rest and restarts the backend with the new URL.
+
+On your laptop, point the pipeline's public check at the domain:
 
 ```powershell
 gh variable set PUBLIC_URL -R michaelzhngg/PayPal -b https://reclaimai.dev
 ```
 
 **Check:**
-- Zero Trust → Tunnels shows `reclaim-homeserver` as **Healthy**.
-- https://reclaimai.dev opens the app.
-- If you did step 9: change the PayPal return URL and webhook URL to
-  `https://reclaimai.dev/api/v1/paypal/...`.
+- `ssh homelab '~/reclaim/bin/deploy.sh status'` lists `reclaim-cloudflared-1` as Up.
+- Cloudflare → Networking → Tunnels shows `reclaim-homeserver` as **Healthy**.
+- https://reclaimai.dev opens the landing page, and
+  https://reclaimai.dev/api/v1/openapi.json returns JSON.
 
-### 10.5 Optional extras
+If the tunnel stays down: `ssh homelab 'docker logs reclaim-cloudflared-1 --tail 30'`.
+`Unauthorized` / `invalid token` means the token was copied wrong (often cut short).
 
-- **www → root:** reclaimai.dev → **Rules** → **Overview** → template **Redirect from
-  WWW to root** → **Create from template** → Deploy.
+### 10.5 Don't let Cloudflare block PayPal
+
+PayPal's webhook calls are automated requests, and Cloudflare's bot protection can
+challenge them, which drops them without any error you'd see.
+
+- reclaimai.dev → **Security** → **Settings** (or **Bots**): make sure **Bot Fight
+  Mode** is **off**. It can't be bypassed per path on the free plan.
+- If you turn on other WAF or bot rules later, add a rule that **skips** them for
+  URI path `/api/v1/paypal/webhook`.
+
+### 10.6 Optional extras
+
+- **www → root:** keep `www` as a proxied CNAME to `reclaimai.dev` (no tunnel route for
+  it), then reclaimai.dev → **Rules** → **Overview** → template **Redirect from WWW to
+  root** → **Create from template** → Deploy. Without the rule, `www` returns a 404 from
+  the tunnel.
 - **SSL/TLS** → **Edge Certificates**: turn on **Always Use HTTPS**.
 - **Funnel afterwards:** keep it as a backup URL (no action), or make it tailnet-only
   with `sudo tailscale funnel reset && sudo tailscale serve --bg 8080`.
 
 No rebuild is needed for the domain switch. The frontend uses relative URLs.
+
+Now do step 9 with `https://reclaimai.dev` in place of the Funnel URL.
 
 ---
 

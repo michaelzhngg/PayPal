@@ -14,7 +14,7 @@ SRC="$(cd "$(dirname "$0")" && pwd)"
 
 ssh "$HOST" 'mkdir -p ~/reclaim/bin ~/reclaim/backups && chmod 700 ~/reclaim ~/reclaim/backups'
 scp -q "$SRC/compose.yml" "$SRC/Caddyfile" "$SRC/.env.example" "$HOST:reclaim/"
-scp -q "$SRC/bin/deploy.sh" "$SRC/bin/ssh-gate.sh" "$HOST:reclaim/bin/"
+scp -q "$SRC/bin/deploy.sh" "$SRC/bin/ssh-gate.sh" "$SRC/bin/paypal-webhook.sh" "$HOST:reclaim/bin/"
 
 ssh "$HOST" 'bash -s' <<'REMOTE'
 set -euo pipefail
