@@ -9,3 +9,9 @@ export function payeeCardState(status: PayeeStatus, now: Date): PayeeCardState {
   if (!status.verified) return "unverified";
   return "verified";
 }
+
+/** When this session may next change the PayPal link, or null if it isn't paused. Separate from the auto-pay cool-down. */
+export function linkChangesPausedUntil(status: PayeeStatus, now: Date): string | null {
+  const until = status.link_changes_paused_until;
+  return until && new Date(until).getTime() > now.getTime() ? until : null;
+}

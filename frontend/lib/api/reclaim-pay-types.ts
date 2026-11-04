@@ -122,6 +122,8 @@ export interface PayeeStatus {
   verified: boolean;
   linked_at: string | null;
   cooldown_until: string | null;
+  /** Set only in a session started with Sign in with PayPal. */
+  link_changes_paused_until?: string | null;
 }
 
 /** GET /payouts/{reim_id} */

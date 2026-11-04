@@ -6,7 +6,7 @@ import { AlertCircle, BadgeCheck, Clock, Loader2, Wallet } from "lucide-react";
 import { getConnectUrl, getPayeeStatus, unlinkPayPal } from "@/lib/actions/paypal";
 import type { PayeeStatus } from "@/lib/api/reclaim-pay-types";
 import { useToast } from "@/components/toast/ToastProvider";
-import { payeeCardState } from "./payeeCardState";
+import { linkChangesPausedUntil, payeeCardState } from "./payeeCardState";
 import { callbackToast, connectFailedToast, UNLINK_FAILED_TOAST, UNLINKED_TOAST } from "./paypalToasts";
 
 function formatWhen(iso: string): string {
@@ -85,6 +85,7 @@ export default function PayPalConnectCard() {
   }, [reload, toast]);
 
   const cardState = status ? payeeCardState(status, new Date()) : null;
+  const pausedUntil = status ? linkChangesPausedUntil(status, new Date()) : null;
 
   return (
     <section
@@ -101,6 +102,16 @@ export default function PayPalConnectCard() {
       </div>
 
       <div className="p-6 space-y-4" aria-live="polite">
+        {loadState === "ready" && pausedUntil && (
+          <p className="flex items-start gap-2 rounded-xl px-4 py-3 bg-amber-50 text-amber-800 text-sm font-body">
+            <Clock className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>
+              You signed in with PayPal, so payout account changes are paused until {formatWhen(pausedUntil)}. Approved
+              claims still pay to this account. To change it sooner, sign out and sign in with your password.
+            </span>
+          </p>
+        )}
+
         {loadState === "loading" && (
           <div className="flex items-center gap-3 p-4 rounded-xl bg-surface-container-low text-sm text-on-surface-variant">
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -136,14 +147,16 @@ export default function PayPalConnectCard() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleConnect}
-              disabled={connecting}
-              className="min-h-11 flex items-center justify-center gap-2 bg-primary text-on-primary px-5 rounded-xl font-bold text-sm hover:shadow-md active:scale-95 transition-all disabled:opacity-60 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
-              {connecting && <Loader2 className="w-4 h-4 animate-spin" />}
-              {connecting ? "Opening PayPal…" : "Connect PayPal"}
-            </button>
+            {!pausedUntil && (
+              <button
+                onClick={handleConnect}
+                disabled={connecting}
+                className="min-h-11 flex items-center justify-center gap-2 bg-primary text-on-primary px-5 rounded-xl font-bold text-sm hover:shadow-md active:scale-95 transition-all disabled:opacity-60 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                {connecting && <Loader2 className="w-4 h-4 animate-spin" />}
+                {connecting ? "Opening PayPal…" : "Connect PayPal"}
+              </button>
+            )}
           </div>
         )}
 
@@ -184,17 +197,19 @@ export default function PayPalConnectCard() {
                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                   Verify your PayPal account to get instant payouts. Once PayPal has verified it, reconnect here.
                 </p>
-                <button
-                  onClick={handleConnect}
-                  disabled={connecting}
-                  className="min-h-11 px-4 rounded-xl text-sm font-semibold bg-amber-800 text-white hover:bg-amber-900 transition-colors disabled:opacity-60 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-800"
-                >
-                  {connecting ? "Opening PayPal…" : "Reconnect PayPal"}
-                </button>
+                {!pausedUntil && (
+                  <button
+                    onClick={handleConnect}
+                    disabled={connecting}
+                    className="min-h-11 px-4 rounded-xl text-sm font-semibold bg-amber-800 text-white hover:bg-amber-900 transition-colors disabled:opacity-60 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-800"
+                  >
+                    {connecting ? "Opening PayPal…" : "Reconnect PayPal"}
+                  </button>
+                )}
               </div>
             )}
 
-            {!confirmingUnlink ? (
+            {pausedUntil ? null : !confirmingUnlink ? (
               <div className="flex justify-end">
                 <button
                   onClick={() => setConfirmingUnlink(true)}
