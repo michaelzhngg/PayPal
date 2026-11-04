@@ -88,7 +88,7 @@ Priorities:
 | [x] | Signed webhook endpoint, plus a status refresh as a fallback _(signature check is skipped only when `PAYPAL_MOCK_MODE=true`)_ | Must | 2 |
 | [x] | "Log in with PayPal" to verify the employee's account; 72-hour pause after the account changes | Must | 2 |
 | [x] | Payout ledger endpoint for HR | Should | 2 |
-| [ ] | "Sign in with PayPal" on the login page, next to the password: employees only, matched by an already-linked and verified `paypal_payer_id` (never by email), and a PayPal sign-in starts the 72-hour pause before payout details can change. HR stays on password | Should | 3 |
+| [x] | "Sign in with PayPal" on the login page, next to the password: employees only, matched by an already-linked and verified `paypal_payer_id` (never by email), and a PayPal sign-in starts the 72-hour pause before payout details can change. HR stays on password _(built and tested in mock mode; not yet run against live sandbox keys)_ | Should | 3 |
 | [x] | Mock mode, so the frontend can work without sandbox keys | Must | 1 |
 | [ ] | Reconcile payouts against the company's PayPal ledger (PayPal Server SDK) | Could | 3 |
 

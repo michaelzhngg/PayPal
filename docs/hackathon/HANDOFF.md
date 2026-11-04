@@ -50,7 +50,7 @@ PLAN.md §4 is ticked up to date. Unticked rows are the remaining work.
    - Then restart the backend: `docker compose restart backend`.
 2. **`SECRET_KEY` is also the public example value.** Staging must use a real, private one, or logins can be forged. Tell Filbert.
 3. **The staging URL** (Filbert is deploying). It's needed for:
-   - the PayPal sandbox app's Log in with PayPal **Return URL**: `<URL>/api/v1/paypal/callback`;
+   - the PayPal sandbox app's Log in with PayPal **Return URLs**: `<URL>/api/v1/paypal/callback` and `<URL>/login/paypal/callback`;
    - the webhook: `<URL>/api/v1/paypal/webhook`;
    - `BACKEND_PUBLIC_URL`.
 4. **Fresh-database migrations.** The Alembic chain can't build a database from empty: an old migration fails on `policy_sections`. The local Docker DB works because it already exists. Staging needs a fix or a schema dump.

@@ -91,6 +91,7 @@ A screenshot or a WhatsApp photo without camera data gets only a minor flag, nev
 |---|---|
 | PayPal Payouts: client, idempotent payouts, webhook with signature check, status refresh | Built and tested in mock mode. Sandbox keys work; the first live sandbox payout is next. |
 | Log in with PayPal payee linking, 72-hour pause | Built. Needs the public staging URL for the sandbox return URL. |
+| Sign in with PayPal for employees with a linked account | Built and tested in mock mode. Needs its own sandbox return URL. |
 | Risk engine (`decide()`), trust levels, breaker, audit sampling | Built and tested |
 | Receipt Shield, all six checks | Built and tested |
 | Autonomy settings, kill switch, status and action-log API | Built and tested |

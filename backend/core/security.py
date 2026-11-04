@@ -3,9 +3,13 @@ from typing import Any, Optional, Union
 from jose import jwt
 import bcrypt
 from core.config import settings
+from core.enums import UserRole
+
+PAYPAL_AUTH_METHOD = "paypal"
+
 
 def create_access_token(
-    subject: Union[str, Any], expires_delta: Optional[timedelta] = None
+    subject: Union[str, Any], expires_delta: Optional[timedelta] = None, extra_claims: Optional[dict] = None
 ) -> str:
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -13,7 +17,7 @@ def create_access_token(
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    to_encode = {"exp": expire, "sub": str(subject)}
+    to_encode = {**(extra_claims or {}), "exp": expire, "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -22,3 +26,20 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+def is_paypal_session(claims: dict) -> bool:
+    return claims.get("auth_method") == PAYPAL_AUTH_METHOD
+
+
+def paypal_signin_rejection(user: Any, payer_id: Optional[str]) -> Optional[str]:
+    """Why this user can't hold a PayPal session for this payer ID, or None when they can."""
+    if user.role != UserRole.Employee:
+        return "not_employee"
+    if not user.is_active:
+        return "inactive"
+    if not payer_id or user.paypal_payer_id != payer_id:
+        return "payer_mismatch"
+    if not user.paypal_verified:
+        return "link_not_verified"
+    return None

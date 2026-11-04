@@ -21,6 +21,9 @@ const DEMO_CREDENTIALS: Record<"hr" | "employee", { email: string; password: str
   employee: { email: "employee@example.com", password: "password" },
 };
 
+const PAYPAL_FAILED_MESSAGE =
+  "We couldn't sign you in with PayPal. Use your email and password, or ask HR to check your PayPal link.";
+
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -28,6 +31,7 @@ export default function LoginPage() {
   const [restrictionToast, setRestrictionToast] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [demoBanner, setDemoBanner] = useState<"hr" | "employee" | null>(null);
+  const [openingPayPal, setOpeningPayPal] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -72,6 +76,11 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const demo = params.get("demo");
 
+    if (params.get("paypal") === "failed") {
+      setError(PAYPAL_FAILED_MESSAGE);
+      window.history.replaceState(null, "", "/login");
+    }
+
     if (demo === "hr" || demo === "employee") {
       const creds = DEMO_CREDENTIALS[demo];
       form.setValue("email", creds.email);
@@ -85,6 +94,13 @@ export default function LoginPage() {
       }).finally(() => setIsValidating(false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Coming back from PayPal with the browser's Back button restores this page from memory, mid-"Opening".
+  useEffect(() => {
+    const reset = () => setOpeningPayPal(false);
+    window.addEventListener("pageshow", reset);
+    return () => window.removeEventListener("pageshow", reset);
   }, []);
 
   useEffect(() => {
@@ -190,7 +206,7 @@ export default function LoginPage() {
                     Signing in as {demoBanner === "hr" ? "HR" : "Employee"} demo…
                   </div>
                 )}
-                {error && <div className="bg-error-container text-error p-3 rounded-lg text-sm text-center">{error}</div>}
+                {error && <div role="alert" className="bg-error-container text-on-error-container p-3 rounded-lg text-sm text-center">{error}</div>}
 
                 <div className="space-y-2">
                   <label className="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant" htmlFor="email">Email Address</label>
@@ -227,6 +243,24 @@ export default function LoginPage() {
                   )}
                 </button>
               </form>
+
+              <div className="mt-6 pt-5 border-t border-outline-variant/30 text-center">
+                {/* A plain link: this route handler redirects to PayPal, so client-side navigation and prefetch must stay off it. */}
+                <a
+                  href="/login/paypal/start"
+                  aria-disabled={openingPayPal}
+                  onClick={(event) => {
+                    if (openingPayPal) event.preventDefault();
+                    setOpeningPayPal(true);
+                  }}
+                  className="w-full min-h-11 flex items-center justify-center py-2.5 px-4 rounded-xl border border-outline text-sm font-semibold text-on-surface hover:bg-surface-container transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  {openingPayPal ? "Opening PayPal…" : "Sign in with PayPal"}
+                </a>
+                <p className="mt-2 text-xs text-on-surface-variant">
+                  For employees who have already linked PayPal in Settings.
+                </p>
+              </div>
             </div>
           </div>
         </div>

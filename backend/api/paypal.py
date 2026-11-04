@@ -1,4 +1,7 @@
+import hashlib
+import hmac
 import logging
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from urllib.parse import quote, urlencode
@@ -11,6 +14,8 @@ from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from api import deps
+from api.rate_limit import limiter
+from core import security
 from core.config import settings
 from core.enums import AgentActionType
 from core.models import User
@@ -27,6 +32,9 @@ logger = logging.getLogger(__name__)
 PAYEE_COOLDOWN_HOURS = 72
 _STATE_TTL = timedelta(minutes=10)
 _STATE_PURPOSE = "paypal_link"
+_SIGNIN_STATE_PURPOSE = "paypal_signin"
+_SIGNIN_FAILED = "PayPal sign-in failed"
+MOCK_SIGNIN_CODE = "mock-signin"
 _SCOPE = "openid email https://uri.paypal.com/services/paypalattributes"
 
 
@@ -35,20 +43,45 @@ def make_state(user_id: UUID, secret: str, now: datetime) -> str:
     return jwt.encode(claims, secret, algorithm="HS256")
 
 
-def read_state(token: str, secret: str, now: datetime) -> UUID:
+def _read_state_claims(token: str, secret: str, now: datetime, purpose: str) -> dict:
     try:
         # Expiry is checked against `now` below so tests and callers control the clock.
         claims = jwt.decode(token, secret, algorithms=["HS256"], options={"verify_exp": False})
     except JWTError as e:
         raise ValueError("invalid state") from e
-    if claims.get("purpose") != _STATE_PURPOSE:
+    if claims.get("purpose") != purpose:
         raise ValueError("wrong state purpose")
     if int(claims.get("exp", 0)) < now.timestamp():
         raise ValueError("state expired")
+    return claims
+
+
+def read_state(token: str, secret: str, now: datetime) -> UUID:
+    claims = _read_state_claims(token, secret, now, _STATE_PURPOSE)
     try:
         return UUID(claims["sub"])
     except (KeyError, ValueError) as e:
         raise ValueError("invalid state subject") from e
+
+
+def _binding_hash(binding: str) -> str:
+    return hashlib.sha256(binding.encode()).hexdigest()
+
+
+def make_signin_state(binding: str, secret: str, now: datetime) -> str:
+    # The state travels through PayPal and browser history, so it holds only a hash of the browser's cookie value.
+    claims = {
+        "purpose": _SIGNIN_STATE_PURPOSE,
+        "binding": _binding_hash(binding),
+        "exp": int((now + _STATE_TTL).timestamp()),
+    }
+    return jwt.encode(claims, secret, algorithm="HS256")
+
+
+def read_signin_state(token: str, binding: str, secret: str, now: datetime) -> None:
+    claims = _read_state_claims(token, secret, now, _SIGNIN_STATE_PURPOSE)
+    if not binding or not hmac.compare_digest(_binding_hash(binding), str(claims.get("binding", ""))):
+        raise ValueError("state not bound to this browser")
 
 
 def link_update(current_payer_id: str | None, ever_linked: bool, user: PayPalUser, now: datetime) -> dict:
@@ -85,6 +118,11 @@ def _callback_url() -> str:
     return f"{settings.BACKEND_PUBLIC_URL.rstrip('/')}{settings.API_V1_STR}/paypal/callback"
 
 
+def _signin_callback_url() -> str:
+    # Next.js owns this URL: only it can set the HttpOnly session cookie on the frontend's origin.
+    return f"{settings.FRONTEND_PUBLIC_URL.rstrip('/')}/login/paypal/callback"
+
+
 def _settings_redirect(result: str) -> RedirectResponse:
     return RedirectResponse(f"{settings.FRONTEND_PUBLIC_URL.rstrip('/')}/employee/settings?paypal={result}",
                             status_code=302)
@@ -96,9 +134,27 @@ class PayPalStatus(BaseModel):
     verified: bool
     linked_at: Optional[datetime] = None
     cooldown_until: Optional[datetime] = None
+    link_changes_paused_until: Optional[datetime] = None
 
 
-@router.get("/connect-url")
+class SigninStart(BaseModel):
+    url: str
+    binding: str
+
+
+class SigninComplete(BaseModel):
+    code: str
+    state: str
+    binding: str
+
+
+class SigninSession(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
+@router.get("/connect-url", dependencies=[Depends(deps.require_payout_changes_allowed)])
 def get_connect_url(current_user: User = Depends(deps.get_current_user)):
     state = make_state(current_user.user_id, settings.SECRET_KEY, datetime.now(timezone.utc))
     if settings.PAYPAL_MOCK_MODE:
@@ -164,10 +220,89 @@ async def paypal_callback(
     return _settings_redirect("linked")
 
 
+@router.get("/signin/start", response_model=SigninStart)
+@limiter.limit("10/minute")
+def signin_start(request: Request):
+    binding = secrets.token_urlsafe(32)
+    state = make_signin_state(binding, settings.SECRET_KEY, datetime.now(timezone.utc))
+    if settings.PAYPAL_MOCK_MODE:
+        query = urlencode({"code": MOCK_SIGNIN_CODE, "state": state})
+        return SigninStart(url=f"{_signin_callback_url()}?{query}", binding=binding)
+    if not settings.PAYPAL_CLIENT_ID:
+        raise HTTPException(status_code=503, detail=_SIGNIN_FAILED)
+    url = build_connect_url(settings.PAYPAL_WEB_URL, settings.PAYPAL_CLIENT_ID, _signin_callback_url(), state)
+    return SigninStart(url=url, binding=binding)
+
+
+async def _signin_identity(code: str) -> PayPalUser | None:
+    if settings.PAYPAL_MOCK_MODE:
+        # The fake PayPal's answer never comes from the request, so no code can pick a payer ID to sign in as.
+        if code != MOCK_SIGNIN_CODE or not settings.PAYPAL_MOCK_SIGNIN_PAYER_ID:
+            return None
+        return PayPalUser(payer_id=settings.PAYPAL_MOCK_SIGNIN_PAYER_ID, email=None, verified=True)
+    client = get_paypal_client()
+    return await client.get_userinfo(await client.exchange_auth_code(code))
+
+
+@router.post("/signin/complete", response_model=SigninSession)
+@limiter.limit("10/minute")
+async def signin_complete(request: Request, body: SigninComplete, db: Session = Depends(deps.get_db)):
+    """Every failure answers the same way, so a caller can't learn which payer IDs or accounts exist."""
+    failed = HTTPException(status_code=401, detail=_SIGNIN_FAILED)
+    now = datetime.now(timezone.utc)
+    try:
+        read_signin_state(body.state, body.binding, settings.SECRET_KEY, now)
+    except ValueError:
+        logger.warning("[PAYPAL_SIGNIN] Rejected invalid, expired or unbound state")
+        raise failed
+    try:
+        identity = await _signin_identity(body.code)
+    except PayPalError:
+        logger.exception("[PAYPAL_SIGNIN] Code exchange or userinfo failed")
+        raise failed
+    if not identity or not identity.payer_id:
+        raise failed
+
+    # The lookup is by payer ID alone, not role, so a payer ID shared with an HR user is refused outright.
+    matches = db.exec(select(User).where(User.paypal_payer_id == identity.payer_id)).all()
+    user = matches[0] if len(matches) == 1 else None
+    if user is None:
+        reason = "ambiguous_payer" if matches else "unknown_payer"
+    elif not identity.verified:
+        reason = "paypal_not_verified"
+    else:
+        reason = security.paypal_signin_rejection(user, identity.payer_id)
+    if reason:
+        actor = str(user.user_id) if user else "unknown"
+        record_action(db, AgentActionType.PAYPAL_SIGNIN, actor, None, {"outcome": "rejected", "reason": reason})
+        raise failed
+
+    lifetime = timedelta(hours=PAYEE_COOLDOWN_HOURS)
+    token = security.create_access_token(
+        subject=user.email,
+        expires_delta=lifetime,
+        extra_claims={"auth_method": security.PAYPAL_AUTH_METHOD, "paypal_payer_id": identity.payer_id},
+    )
+    until = cooldown_until(now, PAYEE_COOLDOWN_HOURS)
+    record_action(db, AgentActionType.PAYPAL_SIGNIN, str(user.user_id), None, {
+        "outcome": "signed_in",
+        "link_changes_paused_until": until,
+    })
+    notify(
+        db, user.user_id, "warning", "New sign-in with PayPal",
+        "Someone signed in to your account with PayPal. That session can't change your payout account, "
+        f"and it ends {until:%d %b %Y %H:%M} UTC. If this wasn't you, sign in with your password, "
+        "unlink PayPal in Settings and contact HR.",
+        link="/employee/settings",
+    )
+    return SigninSession(access_token=token, expires_in=int(lifetime.total_seconds()))
+
+
 @router.get("/status", response_model=PayPalStatus)
 def paypal_status(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
+    claims: dict = Depends(deps.get_session_claims),
 ):
     employee = db.get(User, current_user.user_id)
     until = cooldown_until(employee.payout_destination_changed_at, PAYEE_COOLDOWN_HOURS)
@@ -179,10 +314,11 @@ def paypal_status(
         verified=bool(employee.paypal_payer_id and employee.paypal_verified),
         linked_at=employee.paypal_linked_at,
         cooldown_until=until,
+        link_changes_paused_until=deps.payout_changes_paused_until(claims),
     )
 
 
-@router.delete("/link", status_code=204)
+@router.delete("/link", status_code=204, dependencies=[Depends(deps.require_payout_changes_allowed)])
 def unlink_paypal(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),

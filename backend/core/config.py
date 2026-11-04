@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     PAYPAL_CLIENT_SECRET: str = ""
     PAYPAL_WEBHOOK_ID: str = ""
     PAYPAL_CURRENCY: str = "MYR"
+    # The only identity mock mode's fake PayPal reports at sign-in (the seeded demo employee). Empty turns it off.
+    PAYPAL_MOCK_SIGNIN_PAYER_ID: str = "DEMOMOCKS123"
     BACKEND_PUBLIC_URL: str = "http://localhost:8000"
     FRONTEND_PUBLIC_URL: str = "http://localhost:3000"
 

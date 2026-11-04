@@ -1,9 +1,11 @@
+from datetime import datetime, timezone
 from typing import Generator
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from sqlmodel import Session, select
 
+from core import security
 from core.config import settings
 from core.database import engine
 from core.enums import UserRole
@@ -40,7 +42,39 @@ def get_current_user(
     user = db.exec(statement).first()
     if user is None:
         raise credentials_exception
+    # Unlinking from a password session, or a role change, ends any PayPal session at once.
+    if security.is_paypal_session(payload) and security.paypal_signin_rejection(user, payload.get("paypal_payer_id")):
+        raise credentials_exception
     return user
+
+
+def get_session_claims(token: str = Depends(oauth2_scheme)) -> dict:
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+def payout_changes_paused_until(claims: dict) -> datetime | None:
+    """A PayPal session expires when its pause ends, so it can never change payout details."""
+    if not security.is_paypal_session(claims):
+        return None
+    return datetime.fromtimestamp(claims["exp"], timezone.utc)
+
+
+def require_payout_changes_allowed(claims: dict = Depends(get_session_claims)) -> None:
+    until = payout_changes_paused_until(claims)
+    if until:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Payout account changes are paused until {until:%d %b %Y %H:%M} UTC after a PayPal sign-in. "
+                   "Sign in with your password to change it sooner.",
+        )
+
 
 def get_current_hr_user(
     current_user = Depends(get_current_user),

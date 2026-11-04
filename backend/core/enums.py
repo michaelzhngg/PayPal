@@ -54,6 +54,7 @@ class AgentActionType(str, enum.Enum):
     RECOVERY_STATUS = "RECOVERY_STATUS"
     HR_APPROVAL = "HR_APPROVAL"
     PAYEE_LINKED = "PAYEE_LINKED"
+    PAYPAL_SIGNIN = "PAYPAL_SIGNIN"
 
 
 class JudgmentResult(str, enum.Enum):
