@@ -29,6 +29,8 @@ Path = Literal["WAIT", "OFFSET", "INVOICE", "BLOCKED"]
 # Malaysia has no daylight saving, so a fixed offset is exact.
 MYT = timezone(timedelta(hours=8), "MYT")
 OFFSET_TARGET_STATUSES = (ReimbursementStatus.APPROVED.value, ReimbursementStatus.REVIEW.value)
+# Once a claim is paying out, its offset has really been deducted.
+OFFSET_APPLIED_STATUSES = (ReimbursementStatus.DISBURSING, ReimbursementStatus.PAID)
 WAIVABLE = {RecoveryStatus.NOTICE_SENT, RecoveryStatus.DISPUTED}
 NOTE_MAX_CHARS = 600
 LLM_TIMEOUT_SECONDS = 20
@@ -350,6 +352,24 @@ async def execute_recovery(db: Session, recovery_id: UUID, hr: User, now: dateti
             f"We sent a PayPal invoice for {rec.currency} {format_amount(amount)} for claim {ref}.",
             link=f"/employee/dashboard?recovery={rec.recovery_id}")
     return rec
+
+
+def release_offsets(db: Session, reim: Reimbursement, hr: User, now: datetime) -> list[Recovery]:
+    """`reim` was rejected before paying out, so its offsets deducted nothing: reopen those recoveries."""
+    recs = db.exec(select(Recovery).where(
+        Recovery.offset_reim_id == reim.reim_id, Recovery.status == RecoveryStatus.OFFSET.value,
+    ).with_for_update()).all()
+    target_ref = claim_ref(reim.reim_id)
+    for rec in recs:
+        rec.offset_reim_id = None
+        _set_status(db, rec, RecoveryStatus.NOTICE_SENT, str(hr.user_id), now,
+                    released_offset_reim_id=str(reim.reim_id))
+        _notify(db, rec.user_id, "info", "Overpayment still open",
+                f"Claim {target_ref} was rejected, so we can't deduct {rec.currency} "
+                f"{format_amount(_money(rec.amount))} from it. The overpayment on claim "
+                f"{claim_ref(rec.reim_id)} is still open.",
+                link=f"/employee/dashboard?recovery={rec.recovery_id}")
+    return recs
 
 
 def mark_recovered(db: Session, paypal_invoice_id: str) -> None:

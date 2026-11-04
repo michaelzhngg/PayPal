@@ -37,6 +37,7 @@ from engine.services.approvals import register_approval, required_approvals, spl
 from engine.risk.timeline import make_step
 from engine.services.payout_service import initiate_payout_sync
 from engine.services.paypal_client import mask_email
+from engine.services.recovery_service import OFFSET_APPLIED_STATUSES, release_offsets
 from core.push_service import fire_and_forget_push
 
 router = APIRouter()
@@ -493,6 +494,7 @@ def update_reimbursement_status(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reimbursement not found")
 
     approving = body.status == ReimbursementStatus.APPROVED
+    prior_status = r.status
     complete = True
     if approving:
         if r.status == ReimbursementStatus.REVIEW and any(
@@ -517,6 +519,8 @@ def update_reimbursement_status(
     if approving:
         _log_approval(db, r, current_user, complete=complete, batch=False)
     else:
+        if body.status == ReimbursementStatus.REJECTED and prior_status not in OFFSET_APPLIED_STATUSES:
+            release_offsets(db, r, current_user, datetime.now(timezone.utc))
         db.commit()
     db.refresh(r)
     _after_commit(db, r, pushes)
