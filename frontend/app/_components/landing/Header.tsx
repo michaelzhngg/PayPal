@@ -1,23 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Menu, X } from "lucide-react";
+import Link from "next/link";
 import type { User } from "@/lib/api/types";
 
+// Only sections that exist on this page.
 const NAV_LINKS = [
-  { href: "#problem", label: "Problem" },
   { href: "#how-it-works", label: "How it works" },
-  { href: "#features", label: "Features" },
+  { href: "#lanes", label: "Lanes" },
   { href: "#safety", label: "Safety" },
-  { href: "#demo", label: "Demo" },
+  { href: "#try", label: "Try it" },
 ];
 
 export default function Header({ user }: { user: User | null }) {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -26,104 +23,43 @@ export default function Header({ user }: { user: User | null }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const dashHref = user?.role === "HR" ? "/hr/dashboard" : "/employee/dashboard";
-  const ctaLabel = user
-    ? user.role === "HR"
-      ? "Go to HR Dashboard"
-      : "Go to Dashboard"
-    : "Sign In";
-  const ctaHref = user ? dashHref : "/login";
+  const signInHref = user ? (user.role === "HR" ? "/hr/dashboard" : "/employee/dashboard") : "/login";
+  const signInLabel = user ? "Your dashboard" : "Sign in";
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-        scrolled
-          ? "bg-paper border-b border-line/60"
-          : "bg-transparent"
+      className={`sticky top-0 z-50 w-full border-b bg-paper transition-colors duration-200 ${
+        scrolled ? "border-line" : "border-transparent"
       }`}
     >
-      <div className="mx-auto max-w-7xl flex items-center justify-between px-5 sm:px-8 lg:px-12 h-16 lg:h-20">
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image
-            src="/images/logo.svg"
-            alt=""
-            width={32}
-            height={32}
-            className="w-8 h-8 object-contain"
-            priority
-          />
-          <span className="font-display text-xl lg:text-2xl font-bold text-ink">
-            Reclaim Pay<span className="text-accent">.</span>
-          </span>
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-8 lg:px-12">
+        <Link href="/" className="flex min-h-11 items-center gap-2 rounded-control">
+          <Image src="/images/logo.svg" alt="" width={28} height={28} className="h-7 w-7" />
+          <span className="font-display text-xl font-semibold text-ink">Reclaim Pay</span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8" aria-label="Page sections">
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="relative text-sm font-medium text-ink-muted hover:text-ink transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded px-1"
-            >
-              {l.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
-            </a>
-          ))}
+        <nav className="hidden md:block" aria-label="Page sections">
+          <ul className="flex items-center gap-1">
+            {NAV_LINKS.map((l) => (
+              <li key={l.href}>
+                <a
+                  href={l.href}
+                  className="inline-flex min-h-11 items-center rounded-control px-3 text-sm font-medium text-ink-muted transition-colors hover:text-ink"
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </nav>
 
-        <div className="hidden lg:flex items-center">
-          <Link
-            href={ctaHref}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-accent to-accent-hover text-white rounded-full text-sm font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
-          >
-            {ctaLabel}
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setMobileOpen((v) => !v)}
-          className="lg:hidden p-2 rounded-lg text-ink hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-          aria-label="Toggle menu"
-          aria-expanded={mobileOpen}
+        <Link
+          href={signInHref}
+          className="inline-flex min-h-11 items-center rounded-control border border-line-strong px-4 text-sm font-semibold text-ink transition-colors hover:bg-surface-muted"
         >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+          {signInLabel}
+        </Link>
       </div>
-
-      {mobileOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.25 }}
-          className="lg:hidden border-t border-line bg-surface/95 overflow-hidden"
-        >
-          <nav className="flex flex-col px-5 py-4 gap-1">
-            {NAV_LINKS.map((l, i) => (
-              <motion.a
-                key={l.href}
-                href={l.href}
-                onClick={() => setMobileOpen(false)}
-                initial={{ opacity: 0, x: -15 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.25 }}
-                className="px-3 py-2.5 rounded-lg text-sm font-medium text-ink-muted hover:text-ink hover:bg-line transition-colors"
-              >
-                {l.label}
-              </motion.a>
-            ))}
-            <Link
-              href={ctaHref}
-              onClick={() => setMobileOpen(false)}
-              className="mt-2 inline-flex items-center justify-center gap-1.5 px-5 py-3 bg-gradient-to-r from-accent to-accent-hover text-white rounded-full text-sm font-semibold"
-            >
-              {ctaLabel}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </nav>
-        </motion.div>
-      )}
     </header>
   );
 }

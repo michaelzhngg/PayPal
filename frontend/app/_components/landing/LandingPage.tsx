@@ -1,36 +1,35 @@
 import type { User } from "@/lib/api/types";
-import BuiltWith from "./BuiltWith";
-import DemoSection from "./DemoSection";
-import FeaturesSection from "./FeaturesSection";
+import ClaimScene from "./ClaimScene";
 import Footer from "./Footer";
-import ForWhomSection from "./ForWhomSection";
 import Header from "./Header";
 import Hero from "./Hero";
-import HowItWorks from "./HowItWorks";
+import Lanes from "./Lanes";
 import LandingMotion from "./LandingMotion";
-import ProblemSection from "./ProblemSection";
-import StatsBand from "./StatsBand";
+import LiedScene from "./LiedScene";
+import SafetyControls from "./SafetyControls";
+import TryIt from "./TryIt";
+import WhereAiStops from "./WhereAiStops";
 
+// Server component. Every section renders its finished state in the HTML;
+// LandingMotion adds scroll motion after hydration where it is allowed.
 export default function LandingPage({ user }: { user: User | null }) {
   return (
-    <LandingMotion>
-      <div className="min-h-screen flex flex-col bg-paper">
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        <Header user={user} />
-        <main id="main" tabIndex={-1} className="flex-1 scroll-smooth focus:outline-none">
-          <Hero user={user} />
-          <ProblemSection />
-          <HowItWorks />
-          <FeaturesSection />
-          <StatsBand />
-          <ForWhomSection />
-          <DemoSection />
-          <BuiltWith />
-        </main>
-        <Footer />
-      </div>
-    </LandingMotion>
+    <div className="flex min-h-screen flex-col overflow-x-clip bg-paper text-ink">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      <Header user={user} />
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
+        <Hero />
+        <ClaimScene />
+        <LiedScene />
+        <WhereAiStops />
+        <Lanes />
+        <SafetyControls />
+        <TryIt />
+      </main>
+      <Footer />
+      <LandingMotion />
+    </div>
   );
 }
