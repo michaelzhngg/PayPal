@@ -242,6 +242,57 @@ def test_an_offset_claim_is_not_reused_beyond_its_amount(env, monkeypatch):
     assert offset_for_reim(db, db.get(Reimbursement, target.reim_id))[0] == Decimal("20.00")
 
 
+def _offset_onto(client, db, emp, target_status, monkeypatch):
+    paid = _claim(db, emp, days_ago=30)
+    target = _claim(db, emp, status=target_status, amount=48.0, days_ago=5)
+    rec = _open(client, paid)
+    _close_window(db, rec["recovery_id"])
+    _no_paypal(monkeypatch)
+    resp = client.post(f"/api/v1/recoveries/{rec['recovery_id']}/execute")
+    assert resp.json()["offset_reim_id"] == str(target.reim_id), resp.text
+    return rec["recovery_id"], paid, target
+
+
+def test_rejecting_the_offset_claim_reopens_the_recovery(env, monkeypatch):
+    client, db, users, _ = env
+    emp = users["emp"]
+    recovery_id, paid, target = _offset_onto(client, db, emp, "REVIEW", monkeypatch)
+
+    resp = client.patch(f"/api/v1/reimbursements/{target.reim_id}/status",
+                        json={"status": "REJECTED", "hr_note": "Not a business expense"})
+    assert resp.status_code == 200, resp.text
+
+    rec = db.get(Recovery, recovery_id)
+    db.refresh(rec)
+    assert rec.status == "NOTICE_SENT" and rec.offset_reim_id is None
+    released = _actions(db, "RECOVERY_STATUS")[-1]
+    assert released.reim_id == paid.reim_id
+    assert released.payload == {"recovery_id": recovery_id, "from": "OFFSET", "to": "NOTICE_SENT",
+                                "released_offset_reim_id": str(target.reim_id)}
+    assert verify_chain(db)
+    assert any(n.title == "Overpayment still open" for n in _notes(db, emp))
+
+    # Nothing is deducted any more, so HR's next step is the invoice path.
+    _net, applied = offset_for_reim(db, db.get(Reimbursement, target.reim_id))
+    assert applied == []
+    assert client.get(f"/api/v1/recoveries/{recovery_id}/invoice-preview").json()["path"] == "INVOICE"
+
+
+def test_rejecting_a_paid_offset_claim_keeps_the_offset(env, monkeypatch):
+    client, db, users, _ = env
+    recovery_id, _paid, target = _offset_onto(client, db, users["emp"], "APPROVED", monkeypatch)
+    row = db.get(Reimbursement, target.reim_id)
+    row.status = "PAID"
+    db.add(row)
+    db.commit()
+
+    resp = client.patch(f"/api/v1/reimbursements/{target.reim_id}/status", json={"status": "REJECTED"})
+    assert resp.status_code == 200, resp.text
+    rec = db.get(Recovery, recovery_id)
+    db.refresh(rec)
+    assert rec.status == "OFFSET" and rec.offset_reim_id == target.reim_id
+
+
 def test_invoice_in_mock_mode_after_preview(env):
     client, db, users, _ = env
     reim = _claim(db, users["emp"])

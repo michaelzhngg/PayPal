@@ -37,6 +37,7 @@ from engine.services.approvals import register_approval, required_approvals, spl
 from engine.risk.timeline import make_step
 from engine.services.payout_service import initiate_payout_sync
 from engine.services.paypal_client import mask_email
+from engine.services.recovery_service import OFFSET_APPLIED_STATUSES, release_offsets
 from core.push_service import fire_and_forget_push
 
 router = APIRouter()
@@ -493,6 +494,7 @@ def update_reimbursement_status(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reimbursement not found")
 
     approving = body.status == ReimbursementStatus.APPROVED
+    prior_status = r.status
     complete = True
     if approving:
         if r.status == ReimbursementStatus.REVIEW and any(
@@ -517,6 +519,8 @@ def update_reimbursement_status(
     if approving:
         _log_approval(db, r, current_user, complete=complete, batch=False)
     else:
+        if body.status == ReimbursementStatus.REJECTED and prior_status not in OFFSET_APPLIED_STATUSES:
+            release_offsets(db, r, current_user, datetime.now(timezone.utc))
         db.commit()
     db.refresh(r)
     _after_commit(db, r, pushes)
@@ -578,6 +582,20 @@ def _auto_payout(db: Session, reim: Reimbursement, loop, emit) -> bool:
     else:
         emit(make_step("payout.create", "fail", "PayPal couldn't take the payment. Your claim stays approved and HR can resend it."))
     return True
+
+
+def _notify_claims_for_review(db: Session, user_id: UUID, results: list[dict]) -> None:
+    """Tell the employee which claims went to HR. Auto-paid claims get the payout notifications instead."""
+    count = sum(r.get("status") == ReimbursementStatus.REVIEW.value for r in results)
+    if not count:
+        return
+    title = "Claim submitted for review"
+    message = (f"We received your claim with {count} receipt{'s' if count != 1 else ''} for processing. "
+               "You'll be notified when it's reviewed.")
+    db.add(Notification(user_id=user_id, type="success", title=title, message=message,
+                        link="/employee/history", is_read=False))
+    db.commit()
+    fire_and_forget_push(user_id, title, message, link="/employee/history")
 
 
 @router.post("/analyze")
@@ -797,25 +815,8 @@ async def analyze_reimbursement(
 
                 logger.info("[API_ANALYZE_BG] Publishing complete with %d reimbursements", len(all_results))
 
-                # Notify employee that claim submission was processed
                 try:
-                    reim_count = len(all_results)
-                    notif = Notification(
-                        user_id=UUID(user_id_str),
-                        type="success",
-                        title="Claim submitted for review",
-                        message=f"We received your claim with {reim_count} receipt{'s' if reim_count != 1 else ''} for processing. You'll be notified when it's reviewed.",
-                        link="/employee/history",
-                        is_read=False,
-                    )
-                    bg_db.add(notif)
-                    bg_db.commit()
-                    fire_and_forget_push(
-                        UUID(user_id_str),
-                        "Claim submitted for review",
-                        f"We received your claim with {reim_count} receipt{'s' if reim_count != 1 else ''} for processing. You'll be notified when it's reviewed.",
-                        link="/employee/history",
-                    )
+                    _notify_claims_for_review(bg_db, UUID(user_id_str), all_results)
                 except Exception:
                     logger.exception("[API_ANALYZE_BG] Failed to send submission notification")
 

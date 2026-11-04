@@ -53,7 +53,7 @@ PLAN.md §4 is ticked up to date. Unticked rows are the remaining work.
    - the PayPal sandbox app's Log in with PayPal **Return URLs**: `<URL>/api/v1/paypal/callback` and `<URL>/login/paypal/callback`;
    - the webhook: `<URL>/api/v1/paypal/webhook`;
    - `BACKEND_PUBLIC_URL`.
-4. **Fresh-database migrations.** The Alembic chain can't build a database from empty: an old migration fails on `policy_sections`. The local Docker DB works because it already exists. Staging needs a fix or a schema dump.
+4. **Fresh-database migrations: fixed.** `alembic upgrade head` on an empty database now builds the schema from the models and stamps head (`backend/alembic/env.py`), because the chain itself starts from an old `create_all` schema. Databases that already have tables run the chain as before.
 5. **S3 needs a real AI image** carrying C2PA credentials (OpenAI image generation or Adobe Firefly). The steps are in [`demo/README.md`](../../demo/README.md).
 
 PayPal sandbox keys **are** already in the local `.env` and verified (token OK, `payouts` scope). `PAYPAL_MOCK_MODE` is still `true`.
@@ -81,14 +81,12 @@ PayPal sandbox keys **are** already in the local `.env` and verified (token OK, 
 3. **Still unbuilt (PLAN.md, unticked):**
    - **HR Payouts tabs: audit queue, recoveries (invoice preview → send), agent log** (HR-4). The recovery API exists, but HR has no screen for it yet.
    - `PUT /autonomy/settings` should accept and log the save **reason**. The frontend already sends it, and the backend drops it.
-   - Postman collection plus Newman, APIMatic clip, QA runs, video, Devpost write-up.
+   - Publish the Postman collection (`postman/`, run with `./postman/run-local.sh`), APIMatic clip, QA runs, video, Devpost write-up.
    - Optional (Could): Sign in with PayPal on the login page, Channel3 price check, Bryntum calendar, reconciliation.
 4. **QA:** run DETAIL-PLAN §18.3 on staging, with S7 (the flood) last.
 
 ### Known gaps, deliberately left for after the hackathon
-- An offset recovery stays OFFSET if the target claim is later rejected.
 - Daily caps can be passed by two claims processed at the exact same moment.
-- The "Claim submitted for review" notification also fires for auto-paid claims.
 - Two `/hr/view` and `/hr/review` pages still use some legacy layout.
 
 ---

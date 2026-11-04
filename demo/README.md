@@ -151,6 +151,25 @@ Once the recovery API lands:
 
 To open a fresh recovery against any auto-paid claim, run `--reim-id <uuid>`. A recovery opened that way can't be executed for 120 hours, so recordings use the seeded one.
 
+## API regression run (Postman and Newman)
+
+From the repo root, with the stack running:
+
+```bash
+./postman/run-local.sh
+```
+
+This creates six throwaway claims with `backend/seeds/newman_fixtures.py`, runs `postman/reclaim-pay.postman_collection.json` with Newman against `http://localhost:8000`, and removes the claims even if the run fails. It exits with Newman's status. Set `NEWMAN_DATABASE_URL` if your database isn't at the default local address.
+
+- Every request that changes a claim targets a claim tagged `ai_reasoning.newman_fixture`. Seeded claims are only read.
+- The fixture employee has no linked PayPal account, so no payout starts, and the recovery that executes takes the offset path, so no invoice goes out. The invoice preview does make one LLM call.
+- The kill switch goes off and straight back on, and the run ends by checking that it's on.
+- Each run adds rows to the agent action log (10 in a full run). The log is hash-chained, so `down` leaves them there, and they may show claim IDs that no longer exist. Don't run this just before recording a take that shows the log.
+- Login allows 10 calls a minute and a run uses 6, so wait a minute between runs, or later logins fail with 429.
+- The collection skips S1 to S8 uploads, because those need the AI pipeline and create claims the API can't delete. Those scenarios stay manual.
+
+Without the fixtures, `npx newman@6 run postman/reclaim-pay.postman_collection.json -e postman/env.local.json` still runs the read-only checks, the kill switch and the permission checks, and skips the requests that need fixtures. Use this form for staging: copy `postman/env.staging.json`, set `base_url`, and pass the password with `--env-var demo_password=...`. Don't commit it.
+
 ## Regenerating
 
 ```bash

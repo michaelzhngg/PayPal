@@ -1,0 +1,4289 @@
+{
+  "info": {
+    "name": "Reclaim Pay API",
+    "description": "Regression suite for the Reclaim Pay backend (DETAIL-PLAN section 9). All payments are PayPal sandbox or mock. Run it with postman/run-local.sh, see demo/README.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Tokens live in collection variables, so nothing secret is written to disk.",
+      "item": [
+        {
+          "name": "Login employee 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"returns a bearer token\", () => {",
+                  "  pm.expect(b.access_token).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(b.token_type).to.eql(\"bearer\");",
+                  "});",
+                  "pm.collectionVariables.set(\"token_emp\", b.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{employee_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{demo_password}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login employee 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"returns a bearer token\", () => {",
+                  "  pm.expect(b.access_token).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(b.token_type).to.eql(\"bearer\");",
+                  "});",
+                  "pm.collectionVariables.set(\"token_emp2\", b.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{employee2_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{demo_password}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login HR 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"returns a bearer token\", () => {",
+                  "  pm.expect(b.access_token).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(b.token_type).to.eql(\"bearer\");",
+                  "});",
+                  "pm.collectionVariables.set(\"token_hr\", b.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{hr_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{demo_password}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login HR 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"returns a bearer token\", () => {",
+                  "  pm.expect(b.access_token).to.be.a(\"string\").and.not.empty;",
+                  "  pm.expect(b.token_type).to.eql(\"bearer\");",
+                  "});",
+                  "pm.collectionVariables.set(\"token_hr2\", b.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{hr2_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{demo_password}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login with a wrong password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 401\", () => pm.response.to.have.status(401));",
+                  "pm.test(\"no token\", () => pm.expect(pm.response.json().access_token).to.be.undefined);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{employee_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "not-the-password"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Who am I (employee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"role is Employee\", () => pm.expect(b.role).to.eql(\"Employee\"));",
+                  "pm.test(\"email matches\", () => pm.expect(b.email).to.eql(pm.variables.get(\"employee_email\")));",
+                  "pm.collectionVariables.set(\"emp_id\", b.user_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Who am I (HR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"role is HR\", () => pm.expect(b.role).to.eql(\"HR\"));",
+                  "pm.collectionVariables.set(\"hr_id\", b.user_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Who am I (HR 2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"second HR user is a different person\", () => pm.expect(b.user_id).to.not.eql(pm.collectionVariables.get(\"hr_id\")));",
+                  "pm.collectionVariables.set(\"hr2_id\", b.user_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr2}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "No token is refused",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Find test data",
+      "description": "Read-only. Finds seeded claims for skip checks and the throwaway fixtures from seeds/newman_fixtures.py. Requests that change data run only on claims tagged ai_reasoning.newman_fixture, and skip when there are none.",
+      "item": [
+        {
+          "name": "Find fixture claims waiting for HR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test(\"response is a list\", () => pm.expect(rows).to.be.an(\"array\"));",
+                  "const required = pm.variables.get(\"require_fixtures\") === \"true\";",
+                  "for (const key of [\"quick\", \"dual\", \"self\", \"offset_target\"]) {",
+                  "  const row = rows.find((r) => (r.ai_reasoning || {}).newman_fixture === key);",
+                  "  pm.collectionVariables.set(\"fx_\" + key, row ? row.reim_id : \"\");",
+                  "  if (required) { pm.test(\"fixture \" + key + \" exists\", () => pm.expect(row).to.be.an(\"object\")); }",
+                  "}",
+                  "if (!required && !pm.collectionVariables.get(\"fx_quick\")) {",
+                  "  console.log(\"No Newman fixtures found: requests that change claims are skipped. Use postman/run-local.sh for the full run.\");",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?status=REVIEW&limit=200",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "REVIEW"
+                },
+                {
+                  "key": "limit",
+                  "value": "200"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find paid fixture claims",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "const required = pm.variables.get(\"require_fixtures\") === \"true\";",
+                  "for (const key of [\"paid_open\", \"paid_expired\"]) {",
+                  "  const row = rows.find((r) => (r.ai_reasoning || {}).newman_fixture === key);",
+                  "  pm.collectionVariables.set(\"fx_\" + key, row ? row.reim_id : \"\");",
+                  "  if (required) { pm.test(\"fixture \" + key + \" exists\", () => pm.expect(row).to.be.an(\"object\")); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?status=PAID&limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PAID"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login fixture employee",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_quick\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set(\"token_fx\", pm.response.json().access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{fixture_employee_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{demo_password}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find seeded and fixture recoveries",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "const expired = pm.collectionVariables.get(\"fx_paid_expired\");",
+                  "const fixture = rows.find((r) => expired && r.reim_id === expired);",
+                  "pm.collectionVariables.set(\"fx_recovery_expired\", fixture ? fixture.recovery_id : \"\");",
+                  "const seeded = rows.find((r) => r.reason.startsWith(\"Breakfast was included\"));",
+                  "pm.collectionVariables.set(\"seed_recovery\", seeded ? seeded.recovery_id : \"\");",
+                  "pm.test(\"every row is NOTICE_SENT\", () => rows.forEach((r) => pm.expect(r.status).to.eql(\"NOTICE_SENT\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries?status=NOTICE_SENT",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "NOTICE_SENT"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find a seeded auto-paid claim",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const row = pm.response.json().find((r) => !(r.ai_reasoning || {}).newman_fixture);",
+                  "pm.test(\"the seed has auto-paid claims\", () => pm.expect(row).to.be.an(\"object\"));",
+                  "pm.collectionVariables.set(\"seed_auto_paid\", row.reim_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?status=PAID&tier=AUTO_PAY&limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PAID"
+                },
+                {
+                  "key": "tier",
+                  "value": "AUTO_PAY"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find a seeded HR_QUICK paid claim",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const row = pm.response.json()[0];",
+                  "pm.test(\"the seed has paid HR_QUICK claims\", () => pm.expect(row).to.be.an(\"object\"));",
+                  "pm.collectionVariables.set(\"seed_quick_paid\", row.reim_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?status=PAID&tier=HR_QUICK&limit=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PAID"
+                },
+                {
+                  "key": "tier",
+                  "value": "HR_QUICK"
+                },
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "PayPal link",
+      "description": "Read-only. The connect URL is signed on demand and changes nothing until PayPal calls back.",
+      "item": [
+        {
+          "name": "Link status (employee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"has the status fields\", () => pm.expect(b).to.include.keys(\"linked\", \"email_masked\", \"verified\", \"linked_at\", \"cooldown_until\"));",
+                  "pm.test(\"seeded employee is linked and verified\", () => pm.expect(b.linked && b.verified).to.eql(true));",
+                  "pm.test(\"email is masked\", () => pm.expect(b.email_masked).to.include(\"***\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/paypal/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "paypal",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Connect URL (employee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"returns a URL with a signed state\", () => {",
+                  "  pm.expect(b.url).to.match(/^https?:\\/\\//);",
+                  "  pm.expect(b.url).to.include(\"state=\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/paypal/connect-url",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "paypal",
+                "connect-url"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Link status needs a token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/paypal/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "paypal",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payouts",
+      "description": "Read-only.",
+      "item": [
+        {
+          "name": "Ledger, succeeded payouts (HR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test(\"ledger has seeded payouts\", () => pm.expect(rows.length).to.be.above(100));",
+                  "pm.test(\"every row is SUCCEEDED\", () => rows.forEach((r) => pm.expect(r.status).to.eql(\"SUCCEEDED\")));",
+                  "pm.test(\"rows carry the ledger fields\", () => pm.expect(rows[0]).to.include.keys(",
+                  "  \"payout_id\", \"reim_id\", \"claim_ref\", \"employee_name\", \"amount\", \"currency\", \"tier\",",
+                  "  \"provider_batch_id\", \"provider_item_id\", \"attempt\", \"audit_selected\", \"created_at\", \"updated_at\"));",
+                  "pm.test(\"newest first\", () => {",
+                  "  const times = rows.map((r) => Date.parse(r.created_at));",
+                  "  pm.expect(times).to.eql([...times].sort((a, b) => b - a));",
+                  "});",
+                  "pm.collectionVariables.set(\"seed_payout_reim\", rows[0].reim_id);",
+                  "const other = rows.find((r) => r.employee_name !== \"Demo Employee\");",
+                  "pm.collectionVariables.set(\"other_employee_reim\", other.reim_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payouts/?status=SUCCEEDED",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payouts",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "SUCCEEDED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ledger date filter excludes everything before 2020",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"empty result\", () => pm.expect(pm.response.json()).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payouts/?to=2019-12-31",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payouts",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "to",
+                  "value": "2019-12-31"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "One payout (HR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"matches the claim\", () => pm.expect(b.reim_id).to.eql(pm.collectionVariables.get(\"seed_payout_reim\")));",
+                  "pm.test(\"provider is PayPal\", () => pm.expect(b.provider).to.eql(\"PAYPAL\"));",
+                  "pm.test(\"status is final\", () => pm.expect(b.status).to.eql(\"SUCCEEDED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payouts/{{seed_payout_reim}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payouts",
+                "{{seed_payout_reim}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Another employee's payout is refused",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payouts/{{other_employee_reim}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payouts",
+                "{{other_employee_reim}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payout for an unknown claim",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payouts/00000000-0000-4000-8000-000000000000",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payouts",
+                "00000000-0000-4000-8000-000000000000"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Autonomy",
+      "description": "Settings are read, and a rejected PUT proves validation. A real PUT is left out because it raises the config version for good.",
+      "item": [
+        {
+          "name": "Settings (HR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"has the settings shape\", () => pm.expect(b).to.include.keys(\"config\", \"enabled\", \"version\", \"breaker_until\"));",
+                  "pm.test(\"config has the limits\", () => pm.expect(b.config).to.include.keys(",
+                  "  \"auto_limit_new\", \"auto_limit_standard\", \"auto_limit_trusted\", \"dual_approval_above\", \"dispute_window_hours\"));",
+                  "pm.test(\"auto-pay starts enabled\", () => pm.expect(b.enabled).to.eql(true));",
+                  "pm.test(\"breaker starts clear\", () => pm.expect(b.breaker_until).to.eql(null));",
+                  "pm.collectionVariables.set(\"config\", JSON.stringify(b.config));",
+                  "pm.collectionVariables.set(\"config_version\", b.version);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT settings rejects a non-numeric limit",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const config = JSON.parse(pm.collectionVariables.get(\"config\"));",
+                  "config.auto_limit_standard = \"not-a-number\";",
+                  "pm.collectionVariables.set(\"bad_config\", JSON.stringify(config));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{{bad_config}}"
+            }
+          }
+        },
+        {
+          "name": "The rejected PUT changed nothing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"version unchanged\", () => pm.expect(b.version).to.eql(Number(pm.collectionVariables.get(\"config_version\"))));",
+                  "pm.test(\"limit unchanged\", () => pm.expect(b.config.auto_limit_standard).to.be.above(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status (HR)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"has the status fields\", () => pm.expect(b).to.include.keys(",
+                  "  \"enabled\", \"breaker_until\", \"auto_paid_today\", \"agent_daily_budget\", \"decisions_today_by_tier\"));",
+                  "pm.test(\"every tier is counted\", () => pm.expect(b.decisions_today_by_tier).to.include.keys(\"AUTO_PAY\", \"HR_QUICK\", \"HR_REVIEW\", \"DUAL_REVIEW\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Back-test with the current config",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"backtest_body\", JSON.stringify({ config: JSON.parse(pm.collectionVariables.get(\"config\")) }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"runs over the seeded history\", () => pm.expect(b.total_claims).to.be.at.least(100));",
+                  "pm.test(\"curve has 8 points\", () => pm.expect(b.curve).to.have.lengthOf(8));",
+                  "pm.test(\"automation rate is a fraction\", () => pm.expect(b.automation_rate).to.be.within(0, 1));",
+                  "pm.test(\"tiers add up to the total\", () => {",
+                  "  const sum = Object.values(b.by_tier).reduce((a, c) => a + c, 0);",
+                  "  pm.expect(sum).to.eql(b.total_claims);",
+                  "});",
+                  "pm.test(\"states its assumptions\", () => pm.expect(b.assumptions).to.be.an(\"array\").and.not.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/backtest",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "backtest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{{backtest_body}}"
+            }
+          }
+        },
+        {
+          "name": "Back-test rejects an empty body",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/backtest",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "backtest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Trust card (employee)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"has a trust tier\", () => pm.expect(b.trust_tier).to.be.oneOf([\"NEW\", \"STANDARD\", \"TRUSTED\"]));",
+                  "pm.test(\"has an auto limit\", () => pm.expect(b.auto_limit).to.be.above(0));",
+                  "pm.test(\"has no risk data\", () => pm.expect(b).to.not.have.any.keys(\"risk_score\", \"signals\", \"summary\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trust card is refused for HR",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Action log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"hash chain is valid\", () => pm.expect(b.chain_valid).to.eql(true));",
+                  "pm.test(\"newest first, and each row links to the one before\", () => {",
+                  "  b.actions.slice(0, -1).forEach((row, i) => pm.expect(row.prev_hash).to.eql(b.actions[i + 1].hash));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/actions?limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Action log rejects a zero limit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/actions?limit=0",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kill switch",
+      "description": "Turns auto-pay off, then straight back on. Each toggle adds a row to the action log.",
+      "item": [
+        {
+          "name": "A blank reason is refused",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/kill-switch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "kill-switch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false,\n  \"reason\": \"   \"\n}"
+            }
+          }
+        },
+        {
+          "name": "Status is still on after the refusal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"still enabled\", () => pm.expect(pm.response.json().enabled).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Kill switch off",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"auto-pay is off\", () => pm.expect(pm.response.json().enabled).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/kill-switch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "kill-switch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false,\n  \"reason\": \"Newman regression run: checking the kill switch\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Status shows off",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status agrees\", () => pm.expect(pm.response.json().enabled).to.eql(false));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Kill switch on",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"auto-pay is back on\", () => pm.expect(pm.response.json().enabled).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/kill-switch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "kill-switch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"reason\": \"Newman regression run: restoring auto-pay\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Status shows on",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status agrees\", () => pm.expect(pm.response.json().enabled).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Both toggles are logged",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"hash chain is valid\", () => pm.expect(b.chain_valid).to.eql(true));",
+                  "pm.test(\"newest row is the switch going on\", () => {",
+                  "  pm.expect(b.actions[0].action_type).to.eql(\"KILL_SWITCH\");",
+                  "  pm.expect(b.actions[0].payload.enabled).to.eql(true);",
+                  "});",
+                  "pm.test(\"row before it is the switch going off, with its reason\", () => {",
+                  "  pm.expect(b.actions[1].action_type).to.eql(\"KILL_SWITCH\");",
+                  "  pm.expect(b.actions[1].payload.enabled).to.eql(false);",
+                  "  pm.expect(b.actions[1].payload.reason).to.include(\"Newman\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/actions?limit=2",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "2"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Triage list",
+      "description": "Read-only.",
+      "item": [
+        {
+          "name": "HR sees decision fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test(\"list is not empty\", () => pm.expect(rows).to.not.be.empty);",
+                  "pm.test(\"rows carry the triage fields\", () => pm.expect(rows[0]).to.include.keys(",
+                  "  \"tier\", \"risk_score\", \"autonomy\", \"audit_selected\", \"approvals\", \"employee_name\", \"total_claimed_amount\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by tier and status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test(\"only HR_QUICK in REVIEW\", () => rows.forEach((r) => {",
+                  "  pm.expect(r.tier).to.eql(\"HR_QUICK\");",
+                  "  pm.expect(r.status).to.eql(\"REVIEW\");",
+                  "}));",
+                  "const quick = pm.collectionVariables.get(\"fx_quick\");",
+                  "if (quick) { pm.test(\"fixture appears in the quick tab\", () => pm.expect(rows.map((r) => r.reim_id)).to.include(quick)); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?tier=HR_QUICK&status=REVIEW&limit=200",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "tier",
+                  "value": "HR_QUICK"
+                },
+                {
+                  "key": "status",
+                  "value": "REVIEW"
+                },
+                {
+                  "key": "limit",
+                  "value": "200"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by audit flag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"only audit-selected claims\", () => pm.response.json().forEach((r) => pm.expect(r.audit_selected).to.eql(true)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?audit_selected=true&limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "audit_selected",
+                  "value": "true"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "HR sees the risk on a dual claim",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_dual\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"tier is DUAL_REVIEW\", () => pm.expect(b.tier).to.eql(\"DUAL_REVIEW\"));",
+                  "pm.test(\"risk score is present\", () => pm.expect(b.risk_score).to.eql(85));",
+                  "pm.test(\"signals are present\", () => pm.expect(b.autonomy.signals[0].code).to.eql(\"PROMPT_INJECTION\"));",
+                  "pm.test(\"summary is present\", () => pm.expect(b.summary).to.be.a(\"string\").and.not.empty);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_dual}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_dual}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Batch approve",
+      "description": "The first request only sends claims that must be skipped, so it changes nothing. The others touch fixtures only.",
+      "item": [
+        {
+          "name": "Nothing eligible, nothing changes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "const reason = (id) => (b.skipped.find((s) => s.reim_id === id) || {}).reason;",
+                  "pm.test(\"nothing approved\", () => pm.expect(b.approved).to.eql([]));",
+                  "pm.test(\"auto-paid claim is not HR_QUICK\", () => pm.expect(reason(pm.collectionVariables.get(\"seed_auto_paid\"))).to.eql(\"NOT_HR_QUICK\"));",
+                  "pm.test(\"paid HR_QUICK claim is not in review\", () => pm.expect(reason(pm.collectionVariables.get(\"seed_quick_paid\"))).to.eql(\"NOT_IN_REVIEW\"));",
+                  "pm.test(\"unknown ID is skipped\", () => pm.expect(reason(\"00000000-0000-4000-8000-000000000000\")).to.eql(\"NOT_HR_QUICK\"));",
+                  "pm.test(\"malformed ID is skipped\", () => pm.expect(reason(\"not-a-uuid\")).to.eql(\"NOT_HR_QUICK\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/batch-approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "batch-approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_ids\": [\n    \"{{seed_auto_paid}}\",\n    \"{{seed_quick_paid}}\",\n    \"00000000-0000-4000-8000-000000000000\",\n    \"not-a-uuid\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Approves only the eligible fixture",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_quick\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "const reason = (id) => (b.skipped.find((s) => s.reim_id === id) || {}).reason;",
+                  "pm.test(\"approves the HR_QUICK fixture\", () => pm.expect(b.approved).to.eql([pm.collectionVariables.get(\"fx_quick\")]));",
+                  "pm.test(\"refuses HR's own claim\", () => pm.expect(reason(pm.collectionVariables.get(\"fx_self\"))).to.eql(\"SELF_APPROVAL\"));",
+                  "pm.test(\"refuses a dual claim\", () => pm.expect(reason(pm.collectionVariables.get(\"fx_dual\"))).to.eql(\"NOT_HR_QUICK\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/batch-approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "batch-approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_ids\": [\n    \"{{fx_quick}}\",\n    \"{{fx_self}}\",\n    \"{{fx_dual}}\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "The fixture is approved",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_quick\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"status moved on from REVIEW\", () => pm.expect(b.status).to.eql(\"APPROVED\"));",
+                  "pm.test(\"one approval by HR 1\", () => {",
+                  "  pm.expect(b.approvals).to.have.lengthOf(1);",
+                  "  pm.expect(b.approvals[0].hr_id).to.eql(pm.collectionVariables.get(\"hr_id\"));",
+                  "});",
+                  "pm.test(\"no payout started: the fixture employee has no PayPal\", () => pm.expect(b.payout).to.be.oneOf([undefined, null]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_quick}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_quick}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "A second batch skips it",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_quick\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"nothing approved\", () => pm.expect(b.approved).to.eql([]));",
+                  "pm.test(\"reason is NOT_IN_REVIEW\", () => pm.expect(b.skipped[0].reason).to.eql(\"NOT_IN_REVIEW\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/batch-approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "batch-approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_ids\": [\n    \"{{fx_quick}}\"\n  ]\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Two-person approval",
+      "description": "Runs on fixture claims only.",
+      "item": [
+        {
+          "name": "HR cannot approve their own claim",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_self\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));",
+                  "pm.test(\"detail is SELF_APPROVAL\", () => pm.expect(pm.response.json().detail).to.eql(\"SELF_APPROVAL\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_self}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_self}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"hr_note\": \"Newman regression run\"\n}"
+            }
+          }
+        },
+        {
+          "name": "The refused claim did not change",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_self\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"still in REVIEW\", () => pm.expect(b.status).to.eql(\"REVIEW\"));",
+                  "pm.test(\"no approvals\", () => pm.expect(b.approvals).to.eql([]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_self}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_self}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "First approval by HR 1",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_dual\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"stays in REVIEW\", () => pm.expect(b.status).to.eql(\"REVIEW\"));",
+                  "pm.test(\"waits for a second approval\", () => pm.expect(b.awaiting_second_approval).to.eql(true));",
+                  "pm.test(\"not ready for payout\", () => pm.expect(b.ready_for_payout).to.eql(false));",
+                  "pm.test(\"one approval\", () => pm.expect(b.approvals).to.have.lengthOf(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_dual}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_dual}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"hr_note\": \"Newman regression run\"\n}"
+            }
+          }
+        },
+        {
+          "name": "HR 1 cannot approve twice",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_dual\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"detail is ALREADY_APPROVED\", () => pm.expect(pm.response.json().detail).to.eql(\"ALREADY_APPROVED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_dual}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_dual}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"hr_note\": \"Newman regression run\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Still one approval",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_dual\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"still in REVIEW\", () => pm.expect(b.status).to.eql(\"REVIEW\"));",
+                  "pm.test(\"still one approval\", () => pm.expect(b.approvals).to.have.lengthOf(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_dual}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_dual}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "The employee sees no sign of it",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_dual\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"tier reads HR_REVIEW, never DUAL_REVIEW\", () => pm.expect(b.tier).to.eql(\"HR_REVIEW\"));",
+                  "pm.test(\"no summary\", () => pm.expect(b.summary).to.eql(null));",
+                  "pm.test(\"no risk score\", () => pm.expect(b.risk_score).to.eql(null));",
+                  "pm.test(\"no signals, hard stops or explanation\", () => pm.expect(b.autonomy).to.not.have.any.keys(\"signals\", \"hard_stops\", \"explanation\", \"risk_score\"));",
+                  "pm.test(\"no approvals list\", () => pm.expect(b.approvals).to.eql([]));",
+                  "pm.test(\"no fixture signal text anywhere\", () => pm.expect(pm.response.text()).to.not.include(\"HR-only\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_fx}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_dual}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_dual}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Second approval by HR 2",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_dual\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"claim is approved\", () => pm.expect(b.status).to.eql(\"APPROVED\"));",
+                  "pm.test(\"ready for payout\", () => pm.expect(b.ready_for_payout).to.eql(true));",
+                  "pm.test(\"two different approvers\", () => {",
+                  "  const ids = b.approvals.map((a) => a.hr_id);",
+                  "  pm.expect(ids).to.have.members([pm.collectionVariables.get(\"hr_id\"), pm.collectionVariables.get(\"hr2_id\")]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{fx_dual}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{fx_dual}}",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\",\n  \"hr_note\": \"Newman regression run\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Approvals are logged",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_dual\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"hash chain is valid\", () => pm.expect(b.chain_valid).to.eql(true));",
+                  "const dual = b.actions.filter((a) => a.reim_id === pm.collectionVariables.get(\"fx_dual\") && a.action_type === \"HR_APPROVAL\");",
+                  "pm.test(\"both approvals are in the log\", () => pm.expect(dual.map((a) => a.payload.complete)).to.eql([true, false]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/actions?limit=3",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Recoveries",
+      "description": "Runs on fixture claims and recoveries only. The seeded S8 recovery is only read.",
+      "item": [
+        {
+          "name": "HR list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test(\"seed has recoveries\", () => pm.expect(rows.length).to.be.at.least(6));",
+                  "pm.test(\"rows carry the recovery fields\", () => pm.expect(rows[0]).to.include.keys(",
+                  "  \"recovery_id\", \"reim_id\", \"user_id\", \"amount\", \"currency\", \"reason\", \"status\", \"dispute_until\",",
+                  "  \"dispute_note\", \"offset_reim_id\", \"paypal_invoice_id\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"only RECOVERED\", () => pm.response.json().forEach((r) => pm.expect(r.status).to.eql(\"RECOVERED\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries?status=RECOVERED",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "RECOVERED"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "An employee only sees their own",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"every row is theirs\", () => pm.response.json().forEach((r) => pm.expect(r.user_id).to.eql(pm.collectionVariables.get(\"emp_id\"))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ]
+            }
+          }
+        },
+        {
+          "name": "An amount above the approved total is refused",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_paid_open\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 422\", () => pm.response.to.have.status(422));",
+                  "pm.test(\"detail is AMOUNT_EXCEEDS_APPROVED\", () => pm.expect(pm.response.json().detail).to.eql(\"AMOUNT_EXCEEDS_APPROVED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_id\": \"{{fx_paid_open}}\",\n  \"amount\": 5000,\n  \"reason\": \"Newman regression run: overpaid fixture\"\n}"
+            }
+          }
+        },
+        {
+          "name": "An unpaid claim cannot be recovered",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_offset_target\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"detail is NOT_PAID\", () => pm.expect(pm.response.json().detail).to.eql(\"NOT_PAID\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_id\": \"{{fx_offset_target}}\",\n  \"amount\": 10,\n  \"reason\": \"Newman regression run: overpaid fixture\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Open a recovery",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_paid_open\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"notice is sent\", () => pm.expect(b.status).to.eql(\"NOTICE_SENT\"));",
+                  "pm.test(\"amount and claim match\", () => {",
+                  "  pm.expect(b.amount).to.eql(30);",
+                  "  pm.expect(b.reim_id).to.eql(pm.collectionVariables.get(\"fx_paid_open\"));",
+                  "});",
+                  "pm.test(\"dispute window is open\", () => pm.expect(Date.parse(b.dispute_until)).to.be.above(Date.now()));",
+                  "pm.collectionVariables.set(\"fx_recovery\", b.recovery_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_id\": \"{{fx_paid_open}}\",\n  \"amount\": 30,\n  \"reason\": \"Newman regression run: overpaid fixture\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Execute waits for the dispute window",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"detail is DISPUTE_WINDOW_OPEN\", () => pm.expect(pm.response.json().detail).to.eql(\"DISPUTE_WINDOW_OPEN\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/{{fx_recovery}}/execute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "{{fx_recovery}}",
+                "execute"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Invoice preview for HR",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"path is WAIT inside the window\", () => pm.expect(b.path).to.eql(\"WAIT\"));",
+                  "pm.test(\"amount and currency match\", () => {",
+                  "  pm.expect(b.amount).to.eql(30);",
+                  "  pm.expect(b.currency).to.eql(\"MYR\");",
+                  "});",
+                  "pm.test(\"note is written\", () => pm.expect(b.note).to.be.a(\"string\").and.not.empty);",
+                  "pm.test(\"recipient is masked\", () => pm.expect(b.recipient_email_masked).to.include(\"***\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/{{fx_recovery}}/invoice-preview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "{{fx_recovery}}",
+                "invoice-preview"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Another employee cannot dispute it",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp2}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/{{fx_recovery}}/dispute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "{{fx_recovery}}",
+                "dispute"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Not mine\"\n}"
+            }
+          }
+        },
+        {
+          "name": "The employee disputes it",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"status is DISPUTED\", () => pm.expect(b.status).to.eql(\"DISPUTED\"));",
+                  "pm.test(\"note is stored\", () => pm.expect(b.dispute_note).to.eql(\"Breakfast was not included\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_fx}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/{{fx_recovery}}/dispute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "{{fx_recovery}}",
+                "dispute"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Breakfast was not included\"\n}"
+            }
+          }
+        },
+        {
+          "name": "A disputed recovery cannot be executed",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"detail is DISPUTED\", () => pm.expect(pm.response.json().detail).to.eql(\"DISPUTED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/{{fx_recovery}}/execute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "{{fx_recovery}}",
+                "execute"
+              ]
+            }
+          }
+        },
+        {
+          "name": "HR waives it",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"status is WAIVED\", () => pm.expect(pm.response.json().status).to.eql(\"WAIVED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/{{fx_recovery}}/waive",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "{{fx_recovery}}",
+                "waive"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Execute after the window offsets against an unpaid claim",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery_expired\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"status is OFFSET\", () => pm.expect(b.status).to.eql(\"OFFSET\"));",
+                  "pm.test(\"offset uses the oldest unpaid fixture\", () => pm.expect(b.offset_reim_id).to.eql(pm.collectionVariables.get(\"fx_offset_target\")));",
+                  "pm.test(\"no invoice\", () => pm.expect(b.paypal_invoice_id).to.eql(null));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/{{fx_recovery_expired}}/execute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "{{fx_recovery_expired}}",
+                "execute"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Recovery log chain still holds",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"fx_recovery_expired\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"hash chain is valid\", () => pm.expect(b.chain_valid).to.eql(true));",
+                  "pm.test(\"latest row is the offset\", () => {",
+                  "  pm.expect(b.actions[0].action_type).to.eql(\"RECOVERY_STATUS\");",
+                  "  pm.expect(b.actions[0].payload.to).to.eql(\"OFFSET\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/actions?limit=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Permissions",
+      "description": "An employee gets 403 on HR routes, and the guard runs before anything is read or changed.",
+      "item": [
+        {
+          "name": "Employee: settings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee: PUT settings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{{config}}"
+            }
+          }
+        },
+        {
+          "name": "Employee: status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee: action log",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/actions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "actions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee: back-test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/backtest",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "backtest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"config\": {{config}}}"
+            }
+          }
+        },
+        {
+          "name": "Employee: kill switch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/kill-switch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "kill-switch"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": false,\n  \"reason\": \"Should be refused\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Employee: batch approve",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/batch-approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "batch-approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_ids\": [\n    \"00000000-0000-4000-8000-000000000000\"\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Employee: approve a claim",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/00000000-0000-4000-8000-000000000000/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "00000000-0000-4000-8000-000000000000",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPROVED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Employee: payouts ledger",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payouts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payouts",
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee: start a payout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payouts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payouts",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_id\": \"00000000-0000-4000-8000-000000000000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Employee: open a recovery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reim_id\": \"00000000-0000-4000-8000-000000000000\",\n  \"amount\": 1,\n  \"reason\": \"Should be refused\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Employee: invoice preview",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/00000000-0000-4000-8000-000000000000/invoice-preview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "00000000-0000-4000-8000-000000000000",
+                "invoice-preview"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee: execute a recovery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/00000000-0000-4000-8000-000000000000/execute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "00000000-0000-4000-8000-000000000000",
+                "execute"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee: waive a recovery",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries/00000000-0000-4000-8000-000000000000/waive",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries",
+                "00000000-0000-4000-8000-000000000000",
+                "waive"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee: another employee's claim",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 403\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{other_employee_reim}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{other_employee_reim}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee claim list hides HR data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const rows = pm.response.json();",
+                  "pm.test(\"the seeded employee has claims\", () => pm.expect(rows).to.not.be.empty);",
+                  "pm.test(\"only their own claims\", () => rows.forEach((r) => pm.expect(r.user_id).to.eql(pm.collectionVariables.get(\"emp_id\"))));",
+                  "pm.test(\"no summary\", () => rows.forEach((r) => pm.expect(r.summary).to.eql(null)));",
+                  "pm.test(\"no risk score\", () => rows.forEach((r) => pm.expect(r.risk_score).to.eql(null)));",
+                  "pm.test(\"no signals, hard stops or explanation\", () => rows.forEach((r) =>",
+                  "  pm.expect(r.autonomy).to.not.have.any.keys(\"signals\", \"hard_stops\", \"explanation\", \"risk_score\", \"score_breakdown\")));",
+                  "pm.test(\"no AI reasoning beyond the HR note\", () => rows.forEach((r) => {",
+                  "  if (r.ai_reasoning) { pm.expect(Object.keys(r.ai_reasoning)).to.eql([\"hr_note\"]); }",
+                  "}));",
+                  "pm.test(\"DUAL_REVIEW is never shown\", () => pm.expect(pm.response.text()).to.not.include(\"DUAL_REVIEW\"));",
+                  "pm.collectionVariables.set(\"emp_claim\", rows[0].reim_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/?limit=200",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "200"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Employee claim detail hides HR data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"no summary\", () => pm.expect(b.summary).to.eql(null));",
+                  "pm.test(\"no risk score\", () => pm.expect(b.risk_score).to.eql(null));",
+                  "pm.test(\"no signals\", () => pm.expect(b.autonomy).to.not.have.any.keys(\"signals\", \"hard_stops\", \"explanation\"));",
+                  "pm.test(\"no rejection reasons on line items\", () => (b.line_items || []).forEach((li) => pm.expect(li.rejection_reason).to.eql(null)));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_emp}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reimbursements/{{emp_claim}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reimbursements",
+                "{{emp_claim}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Final state",
+      "description": "The run ends here: auto-pay on, breaker clear, log intact, seeded S8 recovery untouched.",
+      "item": [
+        {
+          "name": "Auto-pay is on and the breaker is clear",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"kill switch left on\", () => pm.expect(b.enabled).to.eql(true));",
+                  "pm.test(\"breaker clear\", () => pm.expect(b.breaker_until).to.eql(null));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Config version unchanged",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"version unchanged\", () => pm.expect(pm.response.json().version).to.eql(Number(pm.collectionVariables.get(\"config_version\"))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "settings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Hash chain valid",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"chain is valid\", () => pm.expect(pm.response.json().chain_valid).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/autonomy/actions?limit=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "autonomy",
+                "actions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Seeded S8 recovery untouched",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get(\"seed_recovery\")) { pm.execution.skipRequest(); }"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status is 200\", () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().map((r) => r.recovery_id);",
+                  "pm.test(\"still NOTICE_SENT\", () => pm.expect(ids).to.include(pm.collectionVariables.get(\"seed_recovery\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_hr}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/recoveries?status=NOTICE_SENT",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "recoveries"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "NOTICE_SENT"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "token_emp",
+      "value": ""
+    },
+    {
+      "key": "token_emp2",
+      "value": ""
+    },
+    {
+      "key": "token_hr",
+      "value": ""
+    },
+    {
+      "key": "token_hr2",
+      "value": ""
+    },
+    {
+      "key": "token_fx",
+      "value": ""
+    },
+    {
+      "key": "emp_id",
+      "value": ""
+    },
+    {
+      "key": "hr_id",
+      "value": ""
+    },
+    {
+      "key": "hr2_id",
+      "value": ""
+    },
+    {
+      "key": "fx_quick",
+      "value": ""
+    },
+    {
+      "key": "fx_dual",
+      "value": ""
+    },
+    {
+      "key": "fx_self",
+      "value": ""
+    },
+    {
+      "key": "fx_offset_target",
+      "value": ""
+    },
+    {
+      "key": "fx_paid_open",
+      "value": ""
+    },
+    {
+      "key": "fx_paid_expired",
+      "value": ""
+    },
+    {
+      "key": "fx_recovery",
+      "value": ""
+    },
+    {
+      "key": "fx_recovery_expired",
+      "value": ""
+    },
+    {
+      "key": "seed_recovery",
+      "value": ""
+    },
+    {
+      "key": "seed_auto_paid",
+      "value": ""
+    },
+    {
+      "key": "seed_quick_paid",
+      "value": ""
+    },
+    {
+      "key": "seed_payout_reim",
+      "value": ""
+    },
+    {
+      "key": "other_employee_reim",
+      "value": ""
+    },
+    {
+      "key": "emp_claim",
+      "value": ""
+    },
+    {
+      "key": "config",
+      "value": ""
+    },
+    {
+      "key": "bad_config",
+      "value": ""
+    },
+    {
+      "key": "backtest_body",
+      "value": ""
+    },
+    {
+      "key": "config_version",
+      "value": ""
+    }
+  ]
+}
