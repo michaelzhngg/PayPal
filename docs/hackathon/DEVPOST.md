@@ -33,7 +33,7 @@ Reimbursement treats a RM48 taxi ride and a fabricated hotel bill the same way: 
 
 **Receipts are now an attack surface.** When an AI reads a receipt, the receipt can try to give it orders. OWASP lists prompt injection as LLM01 in its Top 10 for LLM applications, and includes instructions hidden in files [5].
 
-**Why this matters at home.** We are from Malaysia, where micro, small and medium businesses account for 48.7% of employment and 39.5% of GDP (DOSM, 2024) [6]. Smaller firms have the least room for manual receipt checks and the least tolerance for losses.
+**Why this matters at home.** In Malaysia, where we built this, micro, small and medium businesses account for 48.7% of employment and 39.5% of GDP (DOSM, 2024) [6]. Smaller firms have the least room for manual receipt checks and the least tolerance for losses.
 
 Companies are stuck choosing between paying fast and getting cheated, or checking everything and making staff wait. We built an agent that makes that choice claim by claim, and that knows when to stop and ask a person.
 
@@ -180,7 +180,7 @@ Optional and off without a key, so not part of the demo: Channel3 for the market
 
 ## What's new since the original Reclaim (April 2026)
 
-Reclaim began as an expense review product for UM Hackathon 2026. It recommended decisions to HR but had no real payment path.
+Reclaim began in April 2026 as our own expense review product. It recommended decisions to HR but had no real payment path.
 
 **What already existed:**
 - Receipt reading with AI
