@@ -53,8 +53,8 @@ Also keep it on the charger (the battery was at 72%).
 
 | Model | Provider | Settings in `.env` |
 |---|---|---|
-| Chat (policy, compliance, agent) | Gemini API, `gemini-3.8-flash` | `LLM_BASE_URL`, `LLM_API_KEY=${GEMINI_API_KEY}`, `CHAT_MODEL` |
-| Receipt vision | Gemini API, `gemini-3.8-flash` | `VISION_BASE_URL`, `VISION_API_KEY=${GEMINI_API_KEY}`, `VISION_MODEL` |
+| Chat (policy, compliance, agent) | Gemini API, `gemini-3.6-flash` | `LLM_BASE_URL`, `LLM_API_KEY=${GEMINI_API_KEY}`, `CHAT_MODEL` |
+| Receipt vision | Gemini API, `gemini-3.6-flash` | `VISION_BASE_URL`, `VISION_API_KEY=${GEMINI_API_KEY}`, `VISION_MODEL` |
 | Chat fallback | OpenRouter, `google/gemini-3.1-flash-lite-preview` | hard-coded in `backend/engine/llm.py`, uses `OPENROUTER_API_KEY` |
 | Embeddings | OpenRouter, `openai/text-embedding-3-small` | `EMBEDDING_MODEL`, `OPENROUTER_API_KEY` |
 
@@ -64,7 +64,7 @@ copying it, and must come **after** the line that defines the key.
 config"; on older releases vision stays on OpenRouter whatever they say.
 
 To go back to OpenRouter for chat: `LLM_BASE_URL=https://openrouter.ai/api/v1`,
-`LLM_API_KEY=${OPENROUTER_API_KEY}`, `CHAT_MODEL=google/gemini-3.8-flash`. For vision,
+`LLM_API_KEY=${OPENROUTER_API_KEY}`, `CHAT_MODEL=google/gemini-3.6-flash`. For vision,
 empty `VISION_BASE_URL` and `VISION_API_KEY`, and set `VISION_MODEL` to an OpenRouter id.
 Apply with `~/reclaim/bin/deploy.sh apply`.
 
