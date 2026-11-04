@@ -1,5 +1,6 @@
 "use client";
 
+import PayPalMark from "@/components/ui/PayPalMark";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -255,6 +256,7 @@ export default function LoginPage() {
                   }}
                   className="w-full min-h-11 flex items-center justify-center py-2.5 px-4 rounded-xl border border-outline text-sm font-semibold text-on-surface hover:bg-surface-container transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
+                  <PayPalMark className="w-5 h-5 mr-2 shrink-0" />
                   {openingPayPal ? "Opening PayPal…" : "Sign in with PayPal"}
                 </a>
                 <p className="mt-2 text-xs text-on-surface-variant">
