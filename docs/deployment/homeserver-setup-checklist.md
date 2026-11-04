@@ -321,21 +321,23 @@ creates a proxied CNAME to it.
 
 ### 10.3 Route the domain to the app
 
-On **Route traffic** / **Public hostname**:
+Open the tunnel → **Routes** tab → **Add route** → **Published application**:
 
 | Field | Value |
 |---|---|
 | Subdomain | (empty) |
 | Domain | `reclaimai.dev` |
 | Path | (empty) |
-| Service type | `HTTP` |
-| URL | `caddy:80` |
+| Service URL | `http://caddy:80` |
 
-**Save**. Cloudflare creates the `reclaimai.dev CNAME <id>.cfargotunnel.com` record.
-If it says a record already exists, 10.1 wasn't done.
+Leave **Additional application settings** as they are, then **Add route**. Cloudflare
+creates the proxied `reclaimai.dev` CNAME to the tunnel. If it says a record already
+exists, 10.1 wasn't done.
 
-`caddy:80` is the Caddy container's name on the Docker network. cloudflared runs in the
-same network, so it reaches Caddy directly; nothing is exposed on the host.
+`caddy` is the Caddy container's name on the app's Docker network. This only resolves
+from the stack's own cloudflared (10.4), **not** from a connector started with the
+`docker run` command Cloudflare shows. That one sits on Docker's default network and
+gets a 502.
 
 ### 10.4 Start the connector on the server
 
@@ -387,8 +389,10 @@ challenge them, which drops them without any error you'd see.
 
 ### 10.6 Optional extras
 
-- **www → root:** reclaimai.dev → **Rules** → **Overview** → template **Redirect from
-  WWW to root** → **Create from template** → Deploy.
+- **www → root:** keep `www` as a proxied CNAME to `reclaimai.dev` (no tunnel route for
+  it), then reclaimai.dev → **Rules** → **Overview** → template **Redirect from WWW to
+  root** → **Create from template** → Deploy. Without the rule, `www` returns a 404 from
+  the tunnel.
 - **SSL/TLS** → **Edge Certificates**: turn on **Always Use HTTPS**.
 - **Funnel afterwards:** keep it as a backup URL (no action), or make it tailnet-only
   with `sudo tailscale funnel reset && sudo tailscale serve --bg 8080`.
