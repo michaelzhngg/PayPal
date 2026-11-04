@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import {
+  CalendarDays,
   Settings,
   LifeBuoy,
   LogOut,
@@ -39,6 +40,7 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  const isCalendarActive = pathname === "/employee/calendar" || pathname.startsWith("/employee/calendar/");
   const isSettingsActive = pathname === "/employee/settings" || pathname.startsWith("/employee/settings/");
   const isSupportActive = pathname === "/employee/support" || pathname.startsWith("/employee/support/");
 
@@ -151,6 +153,25 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
 
         {/* Links: only items NOT in the bottom nav */}
         <div className="flex-1 flex flex-col gap-0.5 overflow-y-auto">
+          <Link
+            href="/employee/calendar"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
+              isCalendarActive
+                ? "bg-surface-container font-bold text-primary"
+                : "font-medium text-on-surface hover:bg-surface-container/60 hover:text-on-surface"
+            }`}
+            style={{ transitionDelay: open ? "100ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
+          >
+            <CalendarDays
+              className={`w-[18px] h-[18px] shrink-0 transition-colors ${
+                isCalendarActive ? "text-primary" : "text-on-surface-variant"
+              }`}
+              strokeWidth={isCalendarActive ? 2.5 : 1.75}
+            />
+            Calendar
+          </Link>
+
           <Link
             href="/employee/settings"
             onClick={onClose}
