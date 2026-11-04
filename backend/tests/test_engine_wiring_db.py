@@ -1,7 +1,6 @@
 """Shield and decide() against Postgres with the real autonomy store and action log. Needs TEST_DATABASE_URL."""
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
