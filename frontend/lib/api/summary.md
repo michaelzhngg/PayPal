@@ -109,7 +109,7 @@ API prefix: `/api/v1` (configurable via `API_PREFIX` env var)
   arrival_date?: string, location?: string, overseas?: boolean
 }
 ```
-**Response:** `{ document_id, human_edited, change_summary: { has_changes, change_count, high_risk_count, changes_by_field, overall_risk } }`
+**Response:** `{ document_id, human_edited, change_count }`
 
 ### `POST /reimbursements/analyze`
 **Request:** `{ settlement_id: string, policy_id: string, all_category?: string[], document_ids?: string[] }`  

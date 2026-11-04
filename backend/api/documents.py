@@ -494,7 +494,6 @@ def edit_receipt_fields(
         "document_id": str(doc.document_id),
         "human_edited": doc.human_edited,
         "change_count": change_summary.get("change_count", 0),
-        "high_risk_count": change_summary.get("high_risk_count", 0),
     }
 
 

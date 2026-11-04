@@ -3,7 +3,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +13,7 @@ class _TrackedTask:
     queue: asyncio.Queue
     loop: asyncio.AbstractEventLoop
     created_at: float  # time.time()
+    owner_id: UUID | None = None
 
 
 async def _put_sse(queue: asyncio.Queue, sse_event: str) -> None:
@@ -23,15 +24,21 @@ class ProgressTracker:
     _queues: dict[str, _TrackedTask] = {}
 
     @classmethod
-    def create_task(cls) -> str:
+    def create_task(cls, owner_id: UUID | None = None) -> str:
         task_id = uuid4().hex
         cls._queues[task_id] = _TrackedTask(
             queue=asyncio.Queue(),
             loop=asyncio.get_running_loop(),
             created_at=time.time(),
+            owner_id=owner_id,
         )
         logger.info("Created task %s", task_id)
         return task_id
+
+    @classmethod
+    def owner_of(cls, task_id: str) -> UUID | None:
+        tracked = cls._queues.get(task_id)
+        return tracked.owner_id if tracked else None
 
     @classmethod
     def publish(cls, task_id: str, event: str, data: dict) -> None:

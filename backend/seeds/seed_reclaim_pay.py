@@ -43,6 +43,7 @@ from core.models import (
     User,
 )
 from engine.risk.autonomy import decide, trust_tier
+from engine.services.autonomy_store import CONFIRMED_RECOVERY_STATUSES
 from engine.risk.types import (
     AgentLedger,
     AutonomyConfig,
@@ -334,7 +335,8 @@ def _created_at(now: datetime, days_ago: int, hour: int, minute: int) -> datetim
 def _history(user_code: str, at: datetime, done: list[SeedClaim]) -> EmployeeHistory:
     """Same counting rules as autonomy_store.history_from_rows, applied to claims decided before `at`."""
     mine = [c for c in done if c.user_code == user_code]
-    issues = [c.recovery.created_at for c in mine if c.recovery and c.recovery.created_at < at]
+    issues = [c.recovery.created_at for c in mine if c.recovery and c.recovery.created_at < at
+              and c.recovery.status.value in CONFIRMED_RECOVERY_STATUSES]
     issues += [c.updated_at for c in mine if c.status == ReimbursementStatus.REJECTED
                and c.updated_at < at and any(s.severity == Severity.HIGH for s in c.signals)]
     day_start = at.replace(hour=0, minute=0, second=0, microsecond=0)

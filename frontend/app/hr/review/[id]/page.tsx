@@ -432,7 +432,7 @@ export default function ReviewPage() {
     const res = await triggerPayout(bundle!.id);
     setPayoutSubmitting(false);
     if (res.error) {
-      setPayoutError(res.error);
+      setPayoutError(approvalErrorMessage(res.error));
       return;
     }
     setPayoutInfo(res.payout);

@@ -33,7 +33,7 @@ from core.database import engine as db_engine
 from engine.agents.compliance_agent import run_compliance_workflow, timeline_emitter
 from engine.progress import ProgressTracker
 from engine.services.action_log import record_action
-from engine.services.approvals import register_approval, required_approvals, split_batch
+from engine.services.approvals import DUAL_TIER, register_approval, required_approvals, split_batch
 from engine.risk.timeline import make_step
 from engine.services.payout_service import initiate_payout_sync
 from engine.services.paypal_client import mask_email
@@ -322,6 +322,26 @@ def _lock_reimbursement(db: Session, reim_uuid: UUID) -> Optional[Reimbursement]
     ).first()
 
 
+def _decided_line_item(li: LineItem, override: Optional[float], approving: bool) -> tuple:
+    """The (approved_amount, judgment) a line ends up with after an HR decision."""
+    amount, judgment = li.approved_amount, li.judgment
+    if override is not None:
+        amount, judgment = override, JudgmentResult.APPROVED if override > 0 else JudgmentResult.REJECTED
+    # When HR approves the whole claim, auto-override any rejected line items
+    if approving and judgment == JudgmentResult.REJECTED:
+        amount, judgment = li.claimed_amount, JudgmentResult.APPROVED
+    return amount, judgment
+
+
+def _has_amount_to_pay(db: Session, r: Reimbursement, overrides: Optional[list] = None) -> bool:
+    """False when approving would leave MYR 0 approved, as on a claim with no line items."""
+    override_map = {li.line_item_id: li.approved_amount for li in overrides or []}
+    line_items = db.exec(select(LineItem).where(LineItem.reim_id == r.reim_id)).all()
+    return any(
+        float(_decided_line_item(li, override_map.get(li.line_item_id), True)[0] or 0) > 0 for li in line_items
+    )
+
+
 def _apply_status(
     db: Session,
     r: Reimbursement,
@@ -335,23 +355,12 @@ def _apply_status(
         select(LineItem).where(LineItem.reim_id == r.reim_id)
     ).all()
 
-    if line_item_overrides:
-        override_map = {li.line_item_id: li.approved_amount for li in line_item_overrides}
-        for li in line_items:
-            if li.line_item_id in override_map:
-                li.approved_amount = override_map[li.line_item_id]
-                li.judgment = JudgmentResult.APPROVED if override_map[li.line_item_id] > 0 else JudgmentResult.REJECTED
-        db.add_all(line_items)
-        db.flush()
-
-    # When HR approves the whole claim, auto-override any rejected line items
-    if new_status == ReimbursementStatus.APPROVED:
-        for li in line_items:
-            if li.judgment == JudgmentResult.REJECTED:
-                li.judgment = JudgmentResult.APPROVED
-                li.approved_amount = li.claimed_amount
-        db.add_all(line_items)
-        db.flush()
+    override_map = {li.line_item_id: li.approved_amount for li in line_item_overrides or []}
+    approving = new_status == ReimbursementStatus.APPROVED
+    for li in line_items:
+        li.approved_amount, li.judgment = _decided_line_item(li, override_map.get(li.line_item_id), approving)
+    db.add_all(line_items)
+    db.flush()
 
     # Constraint 2: total_approved_amount must equal SUM(line_items.approved_amount)
     approved_sum = sum(
@@ -467,6 +476,10 @@ def batch_approve(
             db.rollback()
             skipped.extend(late_skip)
             continue
+        if not _has_amount_to_pay(db, r):
+            db.rollback()
+            skipped.append({"reim_id": rid, "reason": "NOTHING_TO_PAY"})
+            continue
         complete = _register_hr_approval(r, current_user)
         pushes = _apply_status(db, r, ReimbursementStatus.APPROVED, current_user) if complete else []
         _log_approval(db, r, current_user, complete=complete, batch=True)
@@ -497,6 +510,10 @@ def update_reimbursement_status(
     prior_status = r.status
     complete = True
     if approving:
+        # Refused so the claim stays in REVIEW: APPROVED means ready for payout, and HR must reject it or set amounts.
+        if not _has_amount_to_pay(db, r, body.line_items):
+            db.rollback()
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="NOTHING_TO_PAY")
         if r.status == ReimbursementStatus.REVIEW and any(
             a.get("hr_id") == str(current_user.user_id) for a in (r.approvals or [])
         ):
@@ -584,6 +601,11 @@ def _auto_payout(db: Session, reim: Reimbursement, loop, emit) -> bool:
     return True
 
 
+def _undecided_claim(**fields) -> Reimbursement:
+    """A claim decide() never saw: no policy or Shield check passed, so it fails closed to two approvers."""
+    return Reimbursement(judgment=JudgmentResult.NEEDS_INFO, status=ReimbursementStatus.REVIEW, tier=DUAL_TIER, **fields)
+
+
 def _notify_claims_for_review(db: Session, user_id: UUID, results: list[dict]) -> None:
     """Tell the employee which claims went to HR. Auto-paid claims get the payout notifications instead."""
     count = sum(r.get("status") == ReimbursementStatus.REVIEW.value for r in results)
@@ -660,7 +682,7 @@ async def analyze_reimbursement(
 
     # === Create task and launch background processing ===
     tracker = ProgressTracker()
-    task_id = tracker.create_task()
+    task_id = tracker.create_task(owner_id=current_user.user_id)
     logger.info("[API_ANALYZE] Created task_id=%s for background compliance", task_id)
 
     loop = asyncio.get_running_loop()
@@ -729,15 +751,13 @@ async def analyze_reimbursement(
                     unmatched_total = Decimal(str(sum(
                         float(r.claimed_amount or 0) for r in unmatched_receipts
                     )))
-                    unmatched_reim = Reimbursement(
+                    unmatched_reim = _undecided_claim(
                         user_id=UUID(user_id_str),
                         policy_id=None,
                         settlement_id=settlement_uuid,
                         main_category="Uncategorized",
                         currency=settlement_currency,
                         total_claimed_amount=unmatched_total,
-                        judgment=JudgmentResult.NEEDS_INFO,
-                        status=ReimbursementStatus.REVIEW,
                         summary="No matching active policy found for these receipts. Manual review required.",
                         ai_reasoning={"unmatched_documents": unmatched_doc_ids, "pipeline_failure": False},
                     )
@@ -794,15 +814,13 @@ async def analyze_reimbursement(
                             # Calculate total claimed from group receipts so fallback has meaningful amount
                             total_claimed = sum((float(r.claimed_amount) or 0) for r in group_receipts)
 
-                            fail_reim = Reimbursement(
+                            fail_reim = _undecided_claim(
                                 user_id=UUID(user_id_str),
                                 policy_id=UUID(policy_id_str),
                                 settlement_id=settlement_uuid,
                                 main_category=group_main_category,
                                 currency=settlement_currency,
                                 total_claimed_amount=Decimal(str(total_claimed)),
-                                judgment=JudgmentResult.NEEDS_INFO,
-                                status=ReimbursementStatus.REVIEW,
                                 summary=f"Compliance pipeline failed for '{policy_alias}' — manual review required. Error: {str(group_err)[:500]}",
                                 ai_reasoning={"error": str(group_err), "pipeline_failure": True, "policy_id": policy_id_str},
                             )
@@ -833,10 +851,19 @@ async def analyze_reimbursement(
 
 
 @router.get("/analyze/progress/{task_id}")
-async def analyze_progress(task_id: str):
-    """SSE endpoint: stream progress events for a compliance analysis task."""
+async def analyze_progress(
+    task_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """SSE endpoint: stream progress events for a compliance analysis task, to its owner only."""
     logger.info("[API_SSE] Client connected to reimbursements/analyze/progress/%s", task_id)
     tracker = ProgressTracker()
+    owner_id = tracker.owner_of(task_id)
+    if owner_id is not None and owner_id != current_user.user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    # The stream can run for minutes; don't hold a pooled connection that long.
+    db.close()
 
     async def event_generator():
         try:

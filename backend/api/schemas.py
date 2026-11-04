@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List, Literal, Optional
 from datetime import datetime, date
 from decimal import Decimal
 from uuid import UUID
@@ -272,7 +272,8 @@ class LineItemAdjustment(BaseModel):
 
 
 class StatusUpdateRequest(BaseModel):
-    status: ReimbursementStatus
+    # HR decisions only. Payout states are set by the payout service, so PATCH can't forge a failed payout.
+    status: Literal[ReimbursementStatus.APPROVED, ReimbursementStatus.REJECTED, ReimbursementStatus.REVIEW]
     line_items: Optional[List[LineItemAdjustment]] = None
     hr_note: Optional[str] = None
 
