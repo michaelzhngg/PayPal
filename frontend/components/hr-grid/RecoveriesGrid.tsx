@@ -80,7 +80,7 @@ function RowActions({ recovery, onPreview, onWaive, wide = false }: { recovery: 
           type="button"
           onClick={() => onWaive(recovery)}
           aria-label={`Waive the recovery on ${ref}`}
-          className={`${rowBtn} text-on-surface-variant hover:bg-surface-container hover:text-on-surface`}
+          className={`${rowBtn} !px-2 text-on-surface-variant hover:bg-surface-container hover:text-on-surface`}
         >
           Waive
         </button>
@@ -166,7 +166,7 @@ export default function RecoveriesGrid({ rows, onPreview, onWaive }: { rows: HRR
       {
         colId: "actions",
         headerName: "Actions",
-        width: 196,
+        width: 220,
         sortable: false,
         suppressKeyboardEvent: tabThroughCell,
         cellRenderer: (p: ICellRendererParams<HRRecovery>) =>

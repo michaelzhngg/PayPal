@@ -112,7 +112,7 @@ let recoveries: Recovery[] = FIXTURE_PAYOUTS_EMPTY
         status: "INVOICED",
         amount: 12,
         reason: "The parking receipt was claimed on two different trips.",
-        paypal_invoice_id: "INV2-DEMO-0002",
+        paypal_invoice_id: "INV2-DEMO-0005",
         dispute_until: hoursFromNow(-48),
       }),
       recovery({
