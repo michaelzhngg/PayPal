@@ -96,7 +96,7 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
     >
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 bg-ink/40 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
         onClick={onClose}
       />
 
@@ -106,23 +106,24 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="absolute top-0 right-0 bottom-0 w-full md:w-[280px] md:max-w-[80vw] bg-surface-muted border-l border-line/10 shadow-overlay flex flex-col h-full p-4 touch-pan-y"
+        className="absolute top-0 right-0 bottom-0 w-full md:w-[280px] md:max-w-[80vw] bg-surface border-l border-line shadow-overlay flex flex-col h-full p-4 touch-pan-y motion-reduce:transition-none"
         style={panelStyle}
       >
         {/* Close + Brand */}
         <div className="flex items-center justify-between px-4 py-3 mb-2">
           <div className="flex items-center gap-2.5">
-            <Image src="/images/logo.svg" alt="Reclaim Logo" width={28} height={28} className="w-7 h-7 object-contain" />
-            <h1 className="font-display font-bold text-xl text-accent">
+            <Image src="/images/logo.svg" alt="" width={28} height={28} className="w-7 h-7 object-contain" />
+            <span className="font-display font-semibold text-xl text-ink">
               Reclaim Pay
-            </h1>
+            </span>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-surface-muted transition-all"
+            className="inline-flex items-center justify-center w-11 h-11 -mr-2 rounded-control hover:bg-surface-muted transition-colors"
             aria-label="Close navigation"
           >
-            <X className="w-5 h-5 text-ink" strokeWidth={2} />
+            <X className="w-5 h-5 text-ink" strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
 
@@ -135,17 +136,17 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
 
         {/* User identity chip */}
         <div
-          className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-surface-muted/50 transition-all duration-300"
+          className="flex items-center gap-3 px-4 py-3 mb-4 rounded-card bg-surface-muted transition-all duration-300"
           style={{ transitionDelay: open ? "80ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
         >
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-accent-soft to-accent-soft shrink-0 flex items-center justify-center font-display font-bold text-base text-accent-hover border-2 border-surface">
+          <div aria-hidden="true" className="w-10 h-10 rounded-full bg-surface border border-line shrink-0 flex items-center justify-center font-body font-semibold text-base text-ink">
             {user?.name?.charAt(0).toUpperCase() ?? "U"}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-body font-semibold text-sm text-ink truncate leading-tight">
               {user?.name ?? "Employee"}
             </p>
-            <p className="font-body text-[11px] text-ink-muted truncate">
+            <p className="font-body text-xs text-ink-muted truncate">
               {user?.department_name ?? "General"}
             </p>
           </div>
@@ -156,18 +157,20 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
           <Link
             href="/employee/calendar"
             onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
+            aria-current={isCalendarActive ? "page" : undefined}
+            className={`flex items-center gap-3 px-4 min-h-[44px] rounded-control font-body text-sm transition-all duration-200 ${
               isCalendarActive
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
+                ? "bg-accent-soft font-semibold text-accent-hover"
+                : "font-medium text-ink hover:bg-surface-muted"
             }`}
             style={{ transitionDelay: open ? "100ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
           >
             <CalendarDays
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isCalendarActive ? "text-accent" : "text-ink-muted"
+                isCalendarActive ? "text-accent-hover" : "text-ink-muted"
               }`}
-              strokeWidth={isCalendarActive ? 2.5 : 1.75}
+              strokeWidth={isCalendarActive ? 2.25 : 1.75}
+              aria-hidden="true"
             />
             Calendar
           </Link>
@@ -175,18 +178,20 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
           <Link
             href="/employee/settings"
             onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
+            aria-current={isSettingsActive ? "page" : undefined}
+            className={`flex items-center gap-3 px-4 min-h-[44px] rounded-control font-body text-sm transition-all duration-200 ${
               isSettingsActive
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
+                ? "bg-accent-soft font-semibold text-accent-hover"
+                : "font-medium text-ink hover:bg-surface-muted"
             }`}
             style={{ transitionDelay: open ? "120ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
           >
             <Settings
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isSettingsActive ? "text-accent" : "text-ink-muted"
+                isSettingsActive ? "text-accent-hover" : "text-ink-muted"
               }`}
-              strokeWidth={isSettingsActive ? 2.5 : 1.75}
+              strokeWidth={isSettingsActive ? 2.25 : 1.75}
+              aria-hidden="true"
             />
             Settings
           </Link>
@@ -194,18 +199,20 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
           <Link
             href="/employee/support"
             onClick={onClose}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
+            aria-current={isSupportActive ? "page" : undefined}
+            className={`flex items-center gap-3 px-4 min-h-[44px] rounded-control font-body text-sm transition-all duration-200 ${
               isSupportActive
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
+                ? "bg-accent-soft font-semibold text-accent-hover"
+                : "font-medium text-ink hover:bg-surface-muted"
             }`}
             style={{ transitionDelay: open ? "160ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
           >
             <LifeBuoy
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isSupportActive ? "text-accent" : "text-ink-muted"
+                isSupportActive ? "text-accent-hover" : "text-ink-muted"
               }`}
-              strokeWidth={isSupportActive ? 2.5 : 1.75}
+              strokeWidth={isSupportActive ? 2.25 : 1.75}
+              aria-hidden="true"
             />
             Support
           </Link>
@@ -213,17 +220,19 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
 
         {/* Bottom: Logout */}
         <div
-          className="mt-auto pt-4 border-t border-line/10 transition-all duration-300"
+          className="mt-auto pt-4 border-t border-line transition-all duration-300"
           style={{ transitionDelay: open ? "200ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
         >
           <button
             id="drawer-logout-btn"
+            type="button"
             onClick={() => { logout(); onClose(); }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-medium text-ink hover:bg-danger/10 hover:text-danger group transition-all hover:translate-x-0.5 active:scale-[0.97]"
+            className="w-full flex items-center gap-3 px-4 min-h-[44px] rounded-control font-body text-sm font-medium text-ink hover:bg-danger-soft hover:text-danger group transition-colors"
           >
             <LogOut
               className="w-[18px] h-[18px] text-ink-muted group-hover:text-danger transition-colors"
               strokeWidth={1.75}
+              aria-hidden="true"
             />
             Logout
           </button>

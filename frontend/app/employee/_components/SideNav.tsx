@@ -38,17 +38,17 @@ export default function SideNav() {
   return (
     <nav
       aria-label="Desktop sidebar"
-      className="hidden lg:flex flex-col w-64 shrink-0 h-screen bg-surface-muted border-r border-line/10"
+      className="hidden lg:flex flex-col w-64 shrink-0 h-screen bg-surface border-r border-line"
     >
       <div className="flex flex-col h-full p-4">
 
         {/* ── Brand ─────────────────────────────────── */}
         <div className="px-4 py-5 mb-3">
           <div className="flex items-center gap-2.5">
-            <Image src="/images/logo.svg" alt="Reclaim Logo" width={28} height={28} className="w-7 h-7 object-contain" />
-            <h1 className="font-display font-bold text-xl text-accent">
+            <Image src="/images/logo.svg" alt="" width={28} height={28} className="w-7 h-7 object-contain" />
+            <span className="font-display font-semibold text-xl text-ink">
               Reclaim Pay
-            </h1>
+            </span>
           </div>
           <p className="font-body text-xs font-medium text-ink-muted mt-1.5 leading-tight">
             Employee Portal
@@ -64,21 +64,26 @@ export default function SideNav() {
               <Link
                 key={href}
                 href={href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
+                aria-current={isActive ? "page" : undefined}
+                className={`flex items-center gap-3 px-4 min-h-[44px] rounded-control font-body text-sm transition-colors ${
                   isActive
-                    ? "bg-surface-muted font-bold text-accent"
-                    : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
+                    ? "bg-accent-soft font-semibold text-accent-hover"
+                    : "font-medium text-ink hover:bg-surface-muted"
                 }`}
               >
                 <Icon
                   className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                    isActive ? "text-accent" : "text-ink-muted"
+                    isActive ? "text-accent-hover" : "text-ink-muted"
                   }`}
-                  strokeWidth={isActive ? 2.5 : 1.75}
+                  strokeWidth={isActive ? 2.25 : 1.75}
+                  aria-hidden="true"
                 />
                 {label}
                 {isDrafts && draftCount > 0 && (
-                  <span className="ml-auto bg-accent text-on-accent text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  <span
+                    aria-label={`${draftCount} drafts`}
+                    className="ml-auto bg-ink text-on-accent font-mono text-[11px] font-medium min-w-5 h-5 px-1 rounded-full flex items-center justify-center"
+                  >
                     {draftCount > 9 ? "9+" : draftCount}
                   </span>
                 )}
@@ -88,17 +93,17 @@ export default function SideNav() {
         </div>
 
         {/* ── Bottom: User + Utility ────────────────── */}
-        <div className="mt-auto pt-4 border-t border-line/10">
+        <div className="mt-auto pt-4 border-t border-line">
           {/* User identity chip */}
-          <div className="flex items-center gap-3 px-4 py-3 mb-1 rounded-xl">
-            <div className="w-9 h-9 rounded-full bg-linear-to-br from-accent-soft to-accent-soft shrink-0 flex items-center justify-center font-display font-bold text-sm text-accent-hover border-2 border-surface">
+          <div className="flex items-center gap-3 px-4 py-3 mb-1">
+            <div aria-hidden="true" className="w-9 h-9 rounded-full bg-surface-muted border border-line shrink-0 flex items-center justify-center font-body font-semibold text-sm text-ink">
               {user?.name?.charAt(0).toUpperCase() ?? "U"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-body font-semibold text-sm text-ink truncate leading-tight">
                 {user?.name ?? "Employee"}
               </p>
-              <p className="font-body text-[11px] text-ink-muted truncate">
+              <p className="font-body text-xs text-ink-muted truncate">
                 {user?.department_name ?? "General"}
               </p>
             </div>
@@ -106,29 +111,33 @@ export default function SideNav() {
 
           <Link
             href="/employee/support"
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 hover:translate-x-0.5 active:scale-[0.97] ${
+            aria-current={pathname.startsWith("/employee/support") ? "page" : undefined}
+            className={`flex items-center gap-3 px-4 min-h-[44px] rounded-control font-body text-sm transition-colors ${
               pathname.startsWith("/employee/support")
-                ? "bg-surface-muted font-bold text-accent"
-                : "font-medium text-ink hover:bg-surface-muted/50"
+                ? "bg-accent-soft font-semibold text-accent-hover"
+                : "font-medium text-ink hover:bg-surface-muted"
             }`}
           >
             <LifeBuoy
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                pathname.startsWith("/employee/support") ? "text-accent" : "text-ink-muted"
+                pathname.startsWith("/employee/support") ? "text-accent-hover" : "text-ink-muted"
               }`}
-              strokeWidth={pathname.startsWith("/employee/support") ? 2.5 : 1.75}
+              strokeWidth={pathname.startsWith("/employee/support") ? 2.25 : 1.75}
+              aria-hidden="true"
             />
             Support
           </Link>
 
           <button
             id="sidenav-logout-btn"
+            type="button"
             onClick={logout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-medium text-ink hover:bg-danger/10 hover:text-danger group transition-all hover:translate-x-0.5 active:scale-[0.97]"
+            className="w-full flex items-center gap-3 px-4 min-h-[44px] rounded-control font-body text-sm font-medium text-ink hover:bg-danger-soft hover:text-danger group transition-colors"
           >
             <LogOut
               className="w-[18px] h-[18px] text-ink-muted group-hover:text-danger transition-colors"
               strokeWidth={1.75}
+              aria-hidden="true"
             />
             Logout
           </button>
