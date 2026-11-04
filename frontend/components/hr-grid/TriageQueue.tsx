@@ -32,14 +32,14 @@ interface TriageQueueProps {
 }
 
 const TAB_HINT: Partial<Record<TierTab, string>> = {
-  AUTO_PAY: "Paid by the agent in the last 24 hours. Open one to see why it qualified.",
-  HR_QUICK: "Low-risk claims the agent held back for a hard stop. Check and approve them together.",
+  AUTO_PAY: "Paid automatically in the last 24 hours because every fixed rule passed. Open one to see why it qualified.",
+  HR_QUICK: "Low-risk claims a hard stop held back from auto-pay. Check and approve them together.",
   DUAL_REVIEW: "High-risk claims. Two different HR members must approve each one.",
 };
 
 function emptyCopy(tab: TierTab): string {
   if (tab === "all") return "Nothing needs you right now.";
-  if (tab === "AUTO_PAY") return "The agent hasn't paid any claims in the last 24 hours.";
+  if (tab === "AUTO_PAY") return "No claims were paid automatically in the last 24 hours.";
   return `No claims are waiting for ${TIER_LABEL[tab].toLowerCase()}.`;
 }
 
@@ -208,7 +208,7 @@ export default function TriageQueue({ rows, isLoading, error, selfId, onRetry, o
             <p className="font-display font-semibold text-lg text-ink mt-3">{emptyCopy(tab)}</p>
             {tab === "all" && (
               <p className="text-sm text-ink-muted mt-1">
-                New claims land here when the agent can&apos;t pay them on its own.
+                New claims land here when the fixed rules don&apos;t allow auto-pay.
               </p>
             )}
           </div>
