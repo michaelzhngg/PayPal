@@ -88,20 +88,20 @@ export function ViewAllModal({
       <div
         ref={panelRef}
         className="relative w-full sm:max-w-4xl max-h-[92dvh] flex flex-col
-                   bg-surface rounded-t-3xl sm:rounded-2xl
-                   shadow-[0_32px_80px_-8px_rgba(44,47,49,0.22)]
+                   bg-surface rounded-t-dialog sm:rounded-dialog
+                   shadow-overlay
                    overflow-hidden"
       >
         {/* ── Modal Header ──────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-line/15 shrink-0">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-line shrink-0">
           <div>
-            <h3 className="font-display font-bold text-lg text-ink">
+            <h3 className="font-display font-semibold text-lg text-ink">
               {title}
             </h3>
             <p className="text-xs text-ink-muted mt-0.5">
               {filtered.length} of {claims.length} records
               {activeCount > 0 && (
-                <span className="ml-1.5 text-accent font-semibold">
+                <span className="ml-1.5 text-ink font-semibold">
                   · {activeCount} filter{activeCount !== 1 ? "s" : ""} active
                 </span>
               )}
@@ -111,19 +111,19 @@ export function ViewAllModal({
             id="modal-close-btn"
             onClick={onClose}
             aria-label="Close modal"
-            className="p-2 rounded-xl text-ink hover:bg-surface-muted
-                       active:scale-95 transition-all"
+            className="inline-flex items-center justify-center w-11 h-11 rounded-control text-ink hover:bg-surface-muted
+                       transition-colors"
           >
             <X className="w-5 h-5" strokeWidth={2} />
           </button>
         </div>
 
         {/* ── Search + Filter toggle ─────────────────────────────────────── */}
-        <div className="px-6 py-4 bg-paper border-b border-line/10 shrink-0">
+        <div className="px-6 py-4 bg-paper border-b border-line shrink-0">
           <div className="flex gap-3">
             {/* Search */}
             <div className="flex-1 flex items-center gap-2.5 bg-surface-muted
-                            rounded-xl px-4 py-2.5 ring-1 ring-line/20
+                            rounded-control px-4 min-h-[44px] ring-1 ring-line-strong
                             focus-within:ring-accent/40 focus-within:bg-surface
                             transition-all">
               <Search className="w-4 h-4 text-ink-muted shrink-0" strokeWidth={2} />
@@ -151,12 +151,12 @@ export function ViewAllModal({
               id="filter-toggle-btn"
               onClick={() => setFilterOpen((o) => !o)}
               aria-expanded={filterOpen}
-              className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm
-                          font-semibold font-display transition-all duration-200
-                          active:scale-95 shrink-0 ring-1 cursor-pointer ${
+              className={`relative flex items-center gap-2 px-4 min-h-[44px] rounded-control text-sm
+                          font-semibold font-body transition-colors
+                          shrink-0 ring-1 cursor-pointer ${
                             filterOpen || activeCount > 0
-                              ? "bg-accent text-on-accent ring-accent"
-                              : "bg-surface-muted text-ink ring-line/20 hover:bg-surface-muted"
+                              ? "bg-ink text-on-accent ring-ink"
+                              : "bg-surface text-ink ring-line-strong hover:bg-surface-muted"
                           }`}
             >
               <SlidersHorizontal className="w-4 h-4" strokeWidth={2} />
@@ -166,8 +166,8 @@ export function ViewAllModal({
                   className={`absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px]
                               font-bold flex items-center justify-center ${
                                 filterOpen || activeCount > 0
-                                  ? "bg-on-accent text-accent"
-                                  : "bg-accent text-on-accent"
+                                  ? "bg-on-accent text-ink"
+                                  : "bg-ink text-on-accent"
                               }`}
                 >
                   {activeCount}
@@ -200,8 +200,8 @@ export function ViewAllModal({
                   (h, i) => (
                     <th
                       key={h}
-                      className={`py-3.5 px-6 text-xs font-semibold font-display
-                                  text-ink-muted uppercase tracking-wider
+                      className={`py-3.5 px-6 text-xs font-medium font-body
+                                  text-ink-muted
                                   ${i === 1 ? "hidden sm:table-cell" : ""}
                                   ${i === 3 ? "hidden md:table-cell" : ""}
                                   ${i === 4 ? "hidden lg:table-cell" : ""}
@@ -213,7 +213,7 @@ export function ViewAllModal({
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-line/10">
+            <tbody className="divide-y divide-line">
               {filtered.length > 0 ? (
                 filtered.map((claim) => (
                   <ClaimRow
@@ -251,7 +251,7 @@ export function ViewAllModal({
         </div>
 
         {/* ── Footer ────────────────────────────────────────────────────── */}
-        <div className="px-6 py-4 border-t border-line/10 shrink-0
+        <div className="px-6 py-4 border-t border-line shrink-0
                         flex items-center justify-between bg-paper">
           <p className="text-xs text-ink-muted">
             Showing{" "}
@@ -260,7 +260,7 @@ export function ViewAllModal({
             {activeCount > 0 && (
               <button
                 onClick={() => setFilters(EMPTY_FILTERS)}
-                className="ml-2 text-accent hover:underline font-semibold"
+                className="ml-2 min-h-[44px] px-1 text-accent-hover hover:underline font-semibold"
               >
                 Reset filters
               </button>
@@ -268,9 +268,8 @@ export function ViewAllModal({
           </p>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-accent text-on-accent text-sm font-semibold
-                       font-display hover:bg-accent-hover active:scale-95 transition-all
-                       shadow-[0_4px_16px_rgba(70,71,211,0.25)]"
+            className="inline-flex items-center min-h-[44px] px-5 rounded-control bg-accent text-on-accent text-sm font-semibold
+                       font-body hover:bg-accent-hover transition-colors"
           >
             Done
           </button>

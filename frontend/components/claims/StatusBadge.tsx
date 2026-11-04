@@ -12,10 +12,10 @@ export const STATUS_ICON: Record<AiStatus, JSX.Element> = {
 };
 
 export const STATUS_STYLE: Record<AiStatus, string> = {
-  "Policy Flagged": "bg-danger/10 text-danger",
+  "Policy Flagged": "bg-danger-soft text-danger",
   "Awaiting Review": "bg-warning-soft text-warning",
   "Passed AI Review": "bg-success-soft text-success",
-  "Low Confidence": "bg-accent/10 text-accent",
+  "Low Confidence": "bg-warning-soft text-warning",
   "Auto-Approved": "bg-success-soft text-success",
   "Auto-Rejected": "bg-danger-soft text-danger",
 };
@@ -23,7 +23,7 @@ export const STATUS_STYLE: Record<AiStatus, string> = {
 export function StatusBadge({ status }: { status: AiStatus }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[status]}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${STATUS_STYLE[status]}`}
     >
       {STATUS_ICON[status]}
       {status}

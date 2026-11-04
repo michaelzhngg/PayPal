@@ -29,7 +29,7 @@ export default function EmployeeLayout({
           </main>
         </div>
 
-        {/* Mobile bottom navigation (fixed — FAB exception) */}
+        {/* Mobile bottom navigation (fixed, FAB exception) */}
         <BottomNav />
 
       </div>

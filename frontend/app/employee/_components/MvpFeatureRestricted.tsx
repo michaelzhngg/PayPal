@@ -21,17 +21,15 @@ export default function MvpFeatureRestricted({
   return (
     <main className="min-h-dvh pb-24 md:pb-12 bg-paper">
       <div className="w-full max-w-4xl mx-auto px-4 md:px-6 pt-8 md:pt-10">
-        <section className="bg-surface border border-line/10 rounded-2xl p-6 md:p-8">
-          <span className="inline-flex items-center rounded-full bg-accent-soft text-accent-hover px-3 py-1 text-xs font-bold tracking-wide uppercase">
+        <section className="bg-surface border border-line rounded-card p-6 md:p-8">
+          <p className="text-sm font-medium text-ink-muted">
             {badge}
-          </span>
+          </p>
 
-          <div className="mt-5 flex items-start gap-4">
-            <div className="p-3 rounded-xl bg-accent-soft text-accent-hover">
-              <Icon className="w-6 h-6" />
-            </div>
+          <div className="mt-3 flex items-start gap-3">
+            <Icon className="w-6 h-6 mt-1 shrink-0 text-ink-muted" aria-hidden="true" />
             <div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-ink">
+              <h1 className="font-display text-2xl md:text-3xl font-semibold text-ink">
                 {title}
               </h1>
               <p className="font-body text-sm md:text-base text-ink-muted mt-2 max-w-2xl">
@@ -40,7 +38,7 @@ export default function MvpFeatureRestricted({
             </div>
           </div>
 
-          <div className="mt-8 rounded-xl border border-line/20 bg-surface-muted p-4">
+          <div className="mt-8 rounded-card border border-line bg-surface-muted p-4">
             <p className="font-body text-sm text-ink">
               This screen is intentionally simplified for MVP production. The previous full UI is preserved in code and can be restored later.
             </p>
@@ -49,9 +47,9 @@ export default function MvpFeatureRestricted({
           <div className="mt-8">
             <Link
               href={backHref}
-              className="inline-flex items-center gap-2 rounded-xl bg-accent text-on-accent px-4 py-2.5 text-sm font-bold transition-all"
+              className="inline-flex items-center gap-2 min-h-[44px] rounded-control bg-accent text-on-accent px-4 text-sm font-semibold hover:bg-accent-hover transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4" aria-hidden="true" />
               {backLabel}
             </Link>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useSyncExternalStore } from "react";
-import { Settings, User, Wallet, ChevronRight, LifeBuoy } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import PayPalConnectCard from "./_components/PayPalConnectCard";
@@ -16,9 +16,12 @@ const readHash = () => window.location.hash;
 const readServerHash = () => "";
 
 const SECTIONS = [
-  { id: "paypal", label: "PayPal Payouts", icon: Wallet },
-  { id: "profile", label: "Profile Information", icon: User },
+  { id: "paypal", label: "PayPal payouts" },
+  { id: "profile", label: "Profile information" },
 ] as const;
+
+const navLink =
+  "flex items-center min-h-[44px] px-4 rounded-control font-body text-sm font-medium transition-colors";
 
 export default function SettingsLegacyContent() {
   const { user } = useAuth();
@@ -30,77 +33,60 @@ export default function SettingsLegacyContent() {
     if (hash !== "#paypal") return;
     const el = paypalRef.current;
     if (!el) return;
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     el.focus({ preventScroll: true });
   }, [hash]);
 
   return (
-    <div className="relative min-h-full p-6 md:p-10 lg:p-12">
-      {/* Ambient glow */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full bg-accent opacity-[0.07] blur-[80px]" />
-        <div className="absolute top-32 right-40 w-[320px] h-[320px] rounded-full bg-accent opacity-[0.06] blur-[64px]" />
-        <div className="absolute -top-8 right-[15%] w-[200px] h-[200px] rounded-full bg-accent-soft opacity-[0.12] blur-[48px]" />
-      </div>
-
-      <div className="relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
+    <div className="min-h-full px-4 pt-6 pb-24 md:p-10 lg:p-12">
+      <div className="max-w-5xl mx-auto">
 
         {/* ── Header ── */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-2 text-accent mb-2">
-              <Settings className="w-5 h-5" />
-              <span className="font-body font-bold tracking-widest uppercase text-xs">Preferences</span>
-            </div>
-            <h2
-              className="font-display font-bold text-ink mb-2"
-              style={{ fontSize: "2.5rem", letterSpacing: "-0.02em" }}
-            >
-              Settings
-            </h2>
-            <p className="text-ink-muted text-lg font-body">
-              Manage your account preferences and the PayPal account your reimbursements are paid to.
-            </p>
-          </div>
+        <div className="max-w-2xl mb-8">
+          <h2 className="font-display font-semibold text-2xl md:text-3xl text-ink mb-2">
+            Settings
+          </h2>
+          <p className="text-ink-muted text-base font-body">
+            Manage your account and the PayPal account your reimbursements are paid to.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* ── Left Sidebar (Desktop Nav) ── */}
-          <div className="hidden md:flex flex-col gap-2">
+          <nav aria-label="Settings sections" className="hidden md:flex flex-col gap-1">
             {SECTIONS.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
                 aria-current={active === item.id ? "true" : undefined}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-accent ${
+                className={`${navLink} ${
                   active === item.id
-                    ? "bg-accent/10 text-accent"
-                    : "text-ink-muted hover:bg-surface hover:text-ink"
+                    ? "bg-surface border border-line text-ink font-semibold"
+                    : "text-ink-muted hover:bg-surface-muted hover:text-ink"
                 }`}
               >
-                <item.icon className="w-4 h-4" aria-hidden />
                 {item.label}
               </a>
             ))}
             <Link
               href="/employee/support"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-semibold transition-colors text-ink-muted hover:bg-surface hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
+              className={`${navLink} text-ink-muted hover:bg-surface-muted hover:text-ink`}
             >
-              <LifeBuoy className="w-4 h-4" aria-hidden />
-              Help & Support
+              Help and support
             </Link>
-          </div>
+          </nav>
 
           {/* ── Main Content Area ── */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 space-y-6 min-w-0">
 
             {/* PayPal first: it decides whether reimbursements can reach the employee */}
             <div
               id="paypal"
               ref={paypalRef}
               tabIndex={-1}
-              className={`scroll-mt-24 rounded-2xl outline-none transition-shadow ${
-                hash === "#paypal" ? "ring-2 ring-accent/50 ring-offset-2 ring-offset-paper" : ""
+              className={`scroll-mt-24 rounded-card outline-none ${
+                hash === "#paypal" ? "ring-2 ring-accent ring-offset-2 ring-offset-paper" : ""
               }`}
             >
               <Suspense>
@@ -108,25 +94,22 @@ export default function SettingsLegacyContent() {
               </Suspense>
             </div>
 
+            {/* WP5 push toggle slot: insert the notifications settings card here,
+                between PayPal payouts and Profile information. */}
+
             <ProfileCard key={user?.user_id ?? "anon"} />
 
             {/* Mobile Support Link */}
-            <section className="bg-surface border border-line/10 rounded-2xl overflow-hidden md:hidden block">
-              <div className="p-6">
-                <Link href="/employee/support" className="flex items-center justify-between p-4 border border-line/20 rounded-xl bg-surface-muted hover:bg-surface-muted cursor-pointer transition-colors group">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-accent-soft text-accent-hover rounded-lg">
-                      <LifeBuoy className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="font-display font-bold text-sm text-ink">Help & Support</p>
-                      <p className="font-body text-xs text-ink-muted">Access FAQs or contact HR</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-ink-muted group-hover:translate-x-1 transition-transform" />
-                </Link>
+            <Link
+              href="/employee/support"
+              className="md:hidden flex items-center justify-between gap-4 p-4 min-h-[60px] bg-surface border border-line rounded-card hover:bg-surface-muted transition-colors"
+            >
+              <div>
+                <p className="font-body font-semibold text-sm text-ink">Help and support</p>
+                <p className="font-body text-xs text-ink-muted">Read FAQs or contact HR</p>
               </div>
-            </section>
+              <ChevronRight className="w-5 h-5 text-ink-muted shrink-0" aria-hidden="true" />
+            </Link>
 
           </div>
         </div>

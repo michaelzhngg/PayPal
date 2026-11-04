@@ -1,26 +1,27 @@
-/* Event tones repeat the DecisionCard pill and the History "Paid" badge, so a color means the same thing on every employee screen. */
+/* Event tones match the employee status chips: indigo for auto-approved, neutral for
+   anything with HR, green only for money that arrived. A color never hints at which check fired. */
 .claim-event,
 .claim-legend-swatch {
-  --claim-auto-bg: color-mix(in srgb, var(--color-accent) 10%, white);
-  --claim-auto-fg: var(--color-accent);
-  --claim-hr-bg: var(--color-line);
+  --claim-auto-bg: var(--color-accent-soft);
+  --claim-auto-fg: var(--color-accent-hover);
+  --claim-hr-bg: var(--color-surface-muted);
   --claim-hr-fg: var(--color-ink);
-  --claim-paid-bg: color-mix(in srgb, var(--color-accent) 10%, white);
-  --claim-paid-fg: var(--color-accent);
+  --claim-paid-bg: var(--color-success-soft);
+  --claim-paid-fg: var(--color-success);
 }
 
 .claim-legend-swatch {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 0.25rem;
-  font-size: 0.625rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-control);
+  font-size: 0.6875rem;
 }
 
 .claim-legend-auto { background: var(--claim-auto-bg); color: var(--claim-auto-fg); }
-.claim-legend-hr { background: var(--claim-hr-bg); color: var(--claim-hr-fg); }
+.claim-legend-hr { background: var(--claim-hr-bg); color: var(--claim-hr-fg); border: 1px solid var(--color-line); }
 .claim-legend-paid { background: var(--claim-paid-bg); color: var(--claim-paid-fg); }
 
 .claims-calendar {

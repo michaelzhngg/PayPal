@@ -33,8 +33,8 @@ export function ClaimRow({
           navigate();
         }
       }}
-      className="group transition-all duration-200
-                 hover:bg-accent/[0.04] hover:shadow-[inset_4px_0_0_0_#4647d3]
+      className="group transition-colors
+                 hover:bg-surface-muted
                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent
                  cursor-pointer"
     >
@@ -47,7 +47,7 @@ export function ClaimRow({
               {claim.employee.name}
             </p>
             {claim.note && (
-              <p className="text-[11px] text-ink-muted mt-0.5 leading-tight">
+              <p className="text-xs text-ink-muted mt-0.5 leading-tight">
                 {claim.note}
               </p>
             )}
@@ -60,7 +60,7 @@ export function ClaimRow({
       </td>
       {/* Amount */}
       <td className="py-5 px-6">
-        <span className="font-semibold text-ink text-sm tabular-nums">
+        <span className="font-mono font-medium text-ink text-sm">
           {claim.amount}
         </span>
       </td>
@@ -80,9 +80,9 @@ export function ClaimRow({
             e.stopPropagation();
             navigate();
           }}
-          className="text-accent font-semibold text-sm
-                     group-hover:underline group-hover:translate-x-0.5
-                     transition-all duration-150 active:scale-95"
+          type="button"
+          className="inline-flex items-center min-h-[44px] px-2 text-accent-hover font-semibold text-sm
+                     group-hover:underline"
         >
           {actionLabel}
         </button>

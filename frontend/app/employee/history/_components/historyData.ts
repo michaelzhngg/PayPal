@@ -1,7 +1,7 @@
 "use client";
 // ─── historyData.ts ─────────────────────────────────────────────────────────
 // Single source of truth for all claim history types, mock data, and helpers.
-// Lives entirely within frontend/app/employee/history/ — no external deps.
+// Lives entirely within frontend/app/employee/history/, no external deps.
 // ────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -55,7 +55,7 @@ export interface HistoryClaim {
   receiptCount: number;
   /** Backend URL used by the Download PDF button. */
   pdfDownloadUrl: string;
-  /** Backend settlement ID — used for PDF/template download. */
+  /** Backend settlement ID, used for PDF/template download. */
   settlementId?: string | null;
   /** Settlement template endpoint URL. */
   settlementTemplateUrl?: string;
@@ -93,19 +93,11 @@ export function categoryIcon(...labels: Array<string | null | undefined>): Lucid
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
 export const STATUS_BADGE: Record<ClaimStatus, string> = {
-  Pending:              "bg-accent-soft/50 text-accent-hover",
-  Approved:             "bg-accent/10 text-accent",
-  "Partially Approved": "bg-warning/10 text-warning",
-  Paid:                 "bg-accent/10 text-accent",
-  Rejected:             "bg-danger/10 text-danger",
-};
-
-export const STATUS_DOT: Record<ClaimStatus, string> = {
-  Pending:              "bg-accent",
-  Approved:             "bg-accent",
-  "Partially Approved": "bg-warning",
-  Paid:                 "bg-accent",
-  Rejected:             "bg-danger",
+  Pending:              "bg-surface-muted text-ink",
+  Approved:             "bg-accent-soft text-accent-hover",
+  "Partially Approved": "bg-warning-soft text-warning",
+  Paid:                 "bg-success-soft text-success",
+  Rejected:             "bg-danger-soft text-danger",
 };
 
 // ─── Shared employee ──────────────────────────────────────────────────────────
@@ -117,6 +109,6 @@ const ME = {
   position:   "Senior Software Engineer",
 };
 
-// ─── Mock Claims (removed — now fetched from backend) ────────────────────────
+// ─── Mock Claims (removed, now fetched from backend) ────────────────────────
 
 export const HISTORY_CLAIMS: HistoryClaim[] = [];

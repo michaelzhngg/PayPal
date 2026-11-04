@@ -55,7 +55,7 @@ export default function BottomNav() {
       {/* FAB exception: `fixed` is allowed here per layout constraints */}
       <nav
         aria-label="Mobile bottom navigation"
-        className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-line/10 rounded-t-3xl shadow-overlay pb-safe"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-surface border-t border-line pb-safe"
       >
         <div className="flex justify-between items-center px-2 h-16 max-w-lg mx-auto">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -66,15 +66,18 @@ export default function BottomNav() {
             const content = (
               <>
                 <Icon
-                  className={`${isUpload ? "w-7 h-7" : "w-[22px] h-[22px]"} ${isUpload && !isActive ? "text-accent" : ""}`}
-                  strokeWidth={isActive ? 2.5 : 1.5}
+                  className={`w-[22px] h-[22px] ${isUpload && !isActive ? "text-accent" : ""}`}
+                  strokeWidth={isActive ? 2.25 : 1.75}
+                  aria-hidden="true"
                 />
-                <span className={`text-[10px] font-body font-semibold uppercase tracking-wider whitespace-nowrap max-w-[64px] overflow-hidden text-ellipsis ${isUpload && !isActive ? "text-accent" : ""}`}>
+                <span className={`text-[11px] font-body font-medium whitespace-nowrap max-w-[64px] overflow-hidden text-ellipsis ${isUpload && !isActive ? "text-accent-hover" : ""}`}>
                   {label}
                 </span>
                 {isDrafts && draftCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 bg-accent text-on-accent text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-overlay">
+                  <span className="absolute top-1 right-[calc(50%-22px)] bg-ink text-on-accent font-mono text-[10px] font-medium min-w-4 h-4 px-0.5 rounded-full flex items-center justify-center">
+                    <span className="sr-only">, </span>
                     {draftCount > 9 ? "9+" : draftCount}
+                    <span className="sr-only"> drafts</span>
                   </span>
                 )}
               </>
@@ -85,10 +88,10 @@ export default function BottomNav() {
                 key={href}
                 href={href}
                 aria-current={isActive ? "page" : undefined}
-                className={`relative flex-1 flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-2xl transition-all duration-200 ${
+                className={`relative flex-1 flex flex-col items-center justify-center gap-1 px-1 min-h-[52px] rounded-control transition-colors ${
                   isActive
-                    ? "text-accent bg-accent/10 scale-110"
-                    : "text-ink/50 hover:text-ink"
+                    ? "text-accent-hover bg-accent-soft"
+                    : "text-ink-muted hover:text-ink"
                 }`}
               >
                 {content}

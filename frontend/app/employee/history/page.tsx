@@ -168,46 +168,38 @@ function HistoryPageContent() {
 
   return (
     <div className="px-4 pt-6 pb-24 md:px-8 md:pt-8 md:pb-12 lg:px-12 lg:pt-10 lg:pb-10 max-w-screen-xl mx-auto w-full">
-      {/* Ambient gradient blob */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 rounded-full bg-linear-to-br from-accent/15 to-accent/10 blur-3xl z-0"
-      />
-
-      <div className="relative z-10 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex flex-col gap-6">
 
         {/* ── Header ── */}
         <div className="flex flex-col gap-1">
-          <h2
-            className="font-display font-bold text-3xl md:text-4xl text-ink"
-            style={{ letterSpacing: "-0.02em" }}
-          >
+          <h2 className="font-display font-semibold text-2xl md:text-3xl text-ink">
             History
           </h2>
-          <p className="text-base text-ink-muted font-body leading-relaxed flex items-center gap-2">
-            <span className="font-semibold text-ink">Total Reimbursed: {summary.total}</span>
-            <span className="text-line">•</span>
-            <span>Pending: {summary.pending}</span>
+          <p className="text-sm md:text-base text-ink-muted font-body leading-relaxed flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>Total reimbursed <span className="font-mono font-medium text-ink">{summary.total}</span></span>
+            <span>Pending <span className="font-mono font-medium text-ink">{summary.pending}</span></span>
           </p>
         </div>
 
         {/* ── Localized Search Bar ── */}
         <div className="relative max-w-md w-full">
           <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted/50"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted"
             strokeWidth={2}
+            aria-hidden="true"
           />
           <input
             type="search"
-            placeholder="Search by merchant, category or ID…"
+            aria-label="Search claims"
+            placeholder="Search by merchant, category or ID"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface border border-line/30 text-ink text-sm rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all placeholder:text-ink-muted/40"
+            className="w-full min-h-[44px] bg-surface border border-line-strong text-ink text-base md:text-sm rounded-control pl-10 pr-4 transition-colors placeholder:text-ink-muted"
           />
         </div>
 
         {/* ── Filter Bar ── */}
-        <div aria-labelledby="history-filters" className="relative z-10 w-full">
+        <div aria-label="Filters" className="relative z-10 w-full">
           <HistoryFilterBar
             currentStatus={currentStatus}
             onStatusChange={setCurrentStatus}
@@ -240,7 +232,7 @@ function HistoryPageContent() {
 
 export default function HistoryPage() {
   return (
-    <Suspense fallback={<div className="min-h-dvh flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-dvh flex items-center justify-center text-sm text-ink-muted">Loading claims…</div>}>
       <HistoryPageContent />
     </Suspense>
   );
