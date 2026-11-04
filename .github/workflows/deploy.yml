@@ -120,8 +120,10 @@ jobs:
     name: Deploy to homeserver
     needs: [build]
     # Only from main, and only after a green build (or a manual redeploy of an existing tag).
+    # Production is on Render now; set the repo variable HOMESERVER_DEPLOY=true to deploy here again.
     if: >-
-      always() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
+      always() && vars.HOMESERVER_DEPLOY == 'true' &&
+      github.ref == 'refs/heads/main' && github.event_name != 'pull_request' &&
       (needs.build.result == 'success' || (inputs.image_tag != '' && needs.build.result == 'skipped'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
