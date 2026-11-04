@@ -152,8 +152,8 @@ def test_clean_note_rejects_a_note_with_the_wrong_amount():
     assert _clean_note(good, AMT, "MYR", REF).startswith("We overpaid")
     assert _clean_note(json.dumps({"note": "We overpaid MYR 300.00 on claim RC-1a2b3c4d."}), AMT, "MYR", REF) is None
     assert _clean_note("not json", AMT, "MYR", REF) is None
-    dashed = json.dumps({"note": "MYR 30.00 on RC-1a2b3c4d — reply to dispute."})
-    assert "—" not in _clean_note(dashed, AMT, "MYR", REF)
+    dashed = json.dumps({"note": "MYR 30.00 on RC-1a2b3c4d \u2014 reply to dispute."})
+    assert "\u2014" not in _clean_note(dashed, AMT, "MYR", REF)
 
 
 def test_draft_note_falls_back_when_the_llm_fails(monkeypatch):

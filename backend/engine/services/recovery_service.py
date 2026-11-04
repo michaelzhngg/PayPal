@@ -143,7 +143,7 @@ def _clean_note(raw: str, amount: Decimal, currency: str, ref: str) -> str | Non
         note = str(json.loads(raw).get("note", "")).strip()
     except (ValueError, AttributeError):
         return None
-    note = note.replace("—", ", ").replace("–", "-")
+    note = note.replace("\u2014", ", ").replace("\u2013", "-")
     # A note that drops or changes the amount or the reference is not safe to send.
     if not note or len(note) > NOTE_MAX_CHARS or format_amount(amount) not in note or ref not in note \
             or currency not in note:
