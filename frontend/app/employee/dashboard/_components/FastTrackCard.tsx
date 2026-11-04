@@ -1,12 +1,12 @@
 import type { TrustInfo } from "@/lib/api/reclaim-pay-types";
-import { isTopTier, limitLine, tierLabel, trustLimitedLine, trustLine, trustProgress } from "../_lib/copy";
+import { isTopTier, limitLine, tierLabel, trustLine, trustProgress, trustReasonLine } from "../_lib/copy";
 
 /**
  * How fast this employee's claims get paid. Shows the tier, the auto-pay limit
  * and the way to the next tier. Never shows risk scores or signal names.
  */
 export default function FastTrackCard({ info }: { info: TrustInfo }) {
-  const limited = trustLimitedLine(info);
+  const limited = trustReasonLine(info);
   const top = isTopTier(info);
   const pct = Math.round(trustProgress(info) * 100);
 

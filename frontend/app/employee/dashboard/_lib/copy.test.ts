@@ -6,16 +6,16 @@ import {
   formatLimit,
   isDisputeOpen,
   noticeLine,
-  trustLimitedLine,
   trustLine,
   trustProgress,
+  trustReasonLine,
 } from "./copy";
 
 const KL = "Asia/Kuala_Lumpur";
 
 const standard: TrustInfo = {
   trust_tier: "STANDARD", auto_limit: 100, paid_claims: 8, next_tier: "TRUSTED",
-  claims_to_next_tier: 2, reasons: [], currency: "MYR", next_limit: 200,
+  claims_to_next_tier: 2, reasons: [], currency: "MYR", next_limit: 200, limited_until: null,
 };
 
 const recovery: Recovery = {
@@ -34,11 +34,11 @@ describe("trust line", () => {
       "Instant payouts up to MYR 100 · 1 more approved claim to reach MYR 200");
   });
   it("names the next tier when the backend leaves out its limit", () => {
-    expect(trustLine({ ...standard, next_limit: undefined, currency: undefined })).toBe(
+    expect(trustLine({ ...standard, next_limit: null, currency: "" })).toBe(
       "Instant payouts up to MYR 100 · 2 more approved claims to reach Trusted");
   });
   it("says so plainly at the top tier", () => {
-    const top: TrustInfo = { ...standard, trust_tier: "TRUSTED", auto_limit: 200, next_tier: null, claims_to_next_tier: null };
+    const top: TrustInfo = { ...standard, trust_tier: "TRUSTED", auto_limit: 200, next_tier: null, claims_to_next_tier: 0, next_limit: null };
     expect(trustLine(top)).toBe("Instant payouts up to MYR 200 · This is the highest level.");
     expect(trustProgress(top)).toBe(1);
   });
@@ -52,16 +52,14 @@ describe("trust line", () => {
   });
 });
 
-describe("limited trust line", () => {
-  const limited: TrustInfo = { ...standard, trust_tier: "NEW", auto_limit: 50, next_tier: "STANDARD", reasons: ["recent_recovery"] };
-  it("only appears for a New employee with a recent correction", () => {
-    expect(trustLimitedLine(standard)).toBeNull();
-    expect(trustLimitedLine({ ...limited, reasons: [] })).toBeNull();
+describe("trust reason line", () => {
+  const reason = "Instant payouts are limited after a recent correction. They return to normal on 27 Jan 2027.";
+  it("is absent when the backend gives no reasons", () => {
+    expect(trustReasonLine(standard)).toBeNull();
+    expect(trustReasonLine({ ...standard, reasons: ["  "] })).toBeNull();
   });
-  it("gives the end date when there is one", () => {
-    expect(trustLimitedLine({ ...limited, limited_until: "2027-01-31T04:00:00Z" }, KL)).toBe(
-      "Instant payouts are limited after a recent correction. They return to normal on 31 Jan.");
-    expect(trustLimitedLine(limited)).toBe("Instant payouts are limited after a recent correction.");
+  it("shows the backend's text as written", () => {
+    expect(trustReasonLine({ ...standard, trust_tier: "NEW", reasons: [reason] })).toBe(reason);
   });
 });
 

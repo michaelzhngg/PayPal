@@ -16,38 +16,40 @@ export function formatLimit(currency: string, amount: number): string {
 }
 
 export function isTopTier(info: TrustInfo): boolean {
-  return info.next_tier === null || info.claims_to_next_tier === null;
+  return info.next_tier === null;
 }
 
 /** "Instant payouts up to MYR 100" */
 export function limitLine(info: TrustInfo): string {
-  return `Instant payouts up to ${formatLimit(info.currency ?? "MYR", info.auto_limit)}`;
+  return `Instant payouts up to ${formatLimit(info.currency || "MYR", info.auto_limit)}`;
 }
 
 /** "Instant payouts up to MYR 100 · 2 more approved claims to reach MYR 200" */
 export function trustLine(info: TrustInfo): string {
-  const currency = info.currency ?? "MYR";
+  const currency = info.currency || "MYR";
   const limit = limitLine(info);
   if (isTopTier(info) || !info.next_tier) return `${limit} · This is the highest level.`;
 
-  const n = Math.max(0, info.claims_to_next_tier ?? 0);
+  const n = Math.max(0, info.claims_to_next_tier);
   const claims = n === 1 ? "1 more approved claim" : `${n} more approved claims`;
   const target = info.next_limit ? formatLimit(currency, info.next_limit) : tierLabel(info.next_tier);
   return `${limit} · ${claims} to reach ${target}`;
 }
 
-/** A recent correction keeps the employee at New. Shown instead of the progress line. */
-export function trustLimitedLine(info: TrustInfo, timeZone?: string): string | null {
-  if (info.trust_tier !== "NEW" || info.reasons.length === 0) return null;
-  const base = "Instant payouts are limited after a recent correction.";
-  if (!info.limited_until) return base;
-  return `${base} They return to normal on ${formatDay(info.limited_until, timeZone)}.`;
+/**
+ * The backend's own employee-facing explanation, e.g. "Instant payouts are
+ * limited after a recent correction. They return to normal on 27 Jan 2027."
+ * Shown instead of the progress line when present.
+ */
+export function trustReasonLine(info: TrustInfo): string | null {
+  const text = info.reasons.map(r => r.trim()).filter(Boolean).join(" ");
+  return text || null;
 }
 
 /** Share of the way to the next tier, 0 to 1. */
 export function trustProgress(info: TrustInfo): number {
   if (isTopTier(info)) return 1;
-  const left = Math.max(0, info.claims_to_next_tier ?? 0);
+  const left = Math.max(0, info.claims_to_next_tier);
   const total = info.paid_claims + left;
   return total === 0 ? 0 : Math.min(1, info.paid_claims / total);
 }
@@ -60,12 +62,6 @@ function parts(iso: string, timeZone: string | undefined, opts: Intl.DateTimeFor
     out[p.type] = p.value;
   }
   return out;
-}
-
-/** "8 Nov" */
-export function formatDay(iso: string, timeZone?: string): string {
-  const p = parts(iso, timeZone, { day: "numeric", month: "short" });
-  return `${p.day} ${p.month}`;
 }
 
 /** "8 Nov, 6:00 pm" */

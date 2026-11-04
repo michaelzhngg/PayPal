@@ -194,21 +194,21 @@ export interface BatchApproveResult {
 
 // ─── Employee trust and recoveries ───────────────────────────────────────────
 
-/** GET /autonomy/me (employee). Holds no risk scores or signals. */
+/** GET /autonomy/me (employee; HR gets 403). Holds no risk scores or signals. */
 export interface TrustInfo {
   trust_tier: TrustTier;
   auto_limit: number;
   paid_claims: number;
   /** null at the top tier. */
   next_tier: TrustTier | null;
-  /** null at the top tier. */
-  claims_to_next_tier: number | null;
+  claims_to_next_tier: number;
+  /** Employee-facing sentences, e.g. why instant payouts are limited. Empty when nothing is wrong. */
   reasons: string[];
-  /** Not in the spec yet; the card falls back to the tier name when it is missing. */
-  currency?: string;
-  next_limit?: number | null;
-  /** When a recent correction holds the employee at NEW, the date that ends. Not in the spec yet. */
-  limited_until?: string | null;
+  currency: string;
+  /** null at the top tier. */
+  next_limit: number | null;
+  /** Set while a recent correction keeps the employee at NEW. */
+  limited_until: string | null;
 }
 
 export type RecoveryStatus = "NOTICE_SENT" | "DISPUTED" | "OFFSET" | "INVOICED" | "RECOVERED" | "WAIVED";
