@@ -100,11 +100,11 @@ export default function RecoveryNotice({ recovery: initial, linked = false }: { 
     <section
       ref={sectionRef}
       aria-labelledby={`${ids}-heading`}
-      className={`rounded-2xl border bg-surface p-4 md:p-5 ${
-        linked ? "border-accent ring-1 ring-accent" : "border-line/40"
+      className={`rounded-card border bg-warning-soft p-4 md:p-5 ${
+        linked ? "border-accent ring-1 ring-accent" : "border-warning/40"
       }`}
     >
-      <h3 id={`${ids}-heading`} className="font-display text-base font-bold text-ink">
+      <h3 id={`${ids}-heading`} className="font-display text-base font-semibold text-ink">
         Overpayment notice
       </h3>
       <p className="mt-1.5 font-body text-sm leading-relaxed text-ink">{noticeLine(recovery)}</p>
@@ -121,7 +121,7 @@ export default function RecoveryNotice({ recovery: initial, linked = false }: { 
           ref={disputeButtonRef}
           type="button"
           onClick={() => setFormOpen(true)}
-          className={`mt-3 inline-flex min-h-11 items-center rounded-xl border border-line-strong px-4 py-2 font-body text-sm font-semibold text-ink hover:bg-surface-muted ${focusRing}`}
+          className={`mt-3 inline-flex min-h-11 items-center rounded-control border border-line-strong bg-surface px-4 py-2 font-body text-sm font-semibold text-ink hover:bg-surface-muted ${focusRing}`}
         >
           Dispute
         </button>
@@ -146,7 +146,7 @@ export default function RecoveryNotice({ recovery: initial, linked = false }: { 
             aria-invalid={formError ? true : undefined}
             aria-describedby={formError ? `${ids}-error` : undefined}
             placeholder="For example: breakfast wasn't included in my room rate."
-            className={`w-full rounded-xl border border-line-strong bg-surface px-3 py-2 font-body text-base md:text-sm text-ink placeholder:text-ink-muted ${focusRing}`}
+            className={`w-full rounded-control border border-line-strong bg-surface px-3 py-2 font-body text-base md:text-sm text-ink placeholder:text-ink-muted ${focusRing}`}
           />
           {formError && (
             <p id={`${ids}-error`} role="alert" className="font-body text-sm text-danger">
@@ -157,7 +157,7 @@ export default function RecoveryNotice({ recovery: initial, linked = false }: { 
             <button
               type="submit"
               disabled={sending}
-              className={`inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 font-body text-sm font-semibold text-on-accent hover:bg-accent/90 disabled:opacity-60 ${focusRing}`}
+              className={`inline-flex min-h-11 items-center rounded-control bg-accent px-4 py-2 font-body text-sm font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-60 ${focusRing}`}
             >
               {sending ? "Sending…" : "Send dispute"}
             </button>
@@ -165,7 +165,7 @@ export default function RecoveryNotice({ recovery: initial, linked = false }: { 
               type="button"
               onClick={closeForm}
               disabled={sending}
-              className={`inline-flex min-h-11 items-center rounded-xl px-4 py-2 font-body text-sm font-semibold text-ink-muted hover:bg-surface-muted ${focusRing}`}
+              className={`inline-flex min-h-11 items-center rounded-control px-4 py-2 font-body text-sm font-semibold text-ink hover:bg-surface ${focusRing}`}
             >
               Cancel
             </button>

@@ -97,7 +97,7 @@ export default function TopNav() {
           <Link
             id="topnav-upload-claim-btn"
             href="/employee/claims"
-            className="hidden md:inline-flex items-center gap-2 min-h-[44px] px-4 rounded-control bg-accent text-on-accent font-body font-semibold text-sm hover:bg-accent-hover transition-colors"
+            className="hidden md:inline-flex items-center gap-2 min-h-[44px] px-4 rounded-control border border-line-strong bg-surface text-ink font-body font-semibold text-sm hover:bg-surface-muted transition-colors"
           >
             <Upload className="w-4 h-4" strokeWidth={2} aria-hidden="true" />
             Upload Claim
