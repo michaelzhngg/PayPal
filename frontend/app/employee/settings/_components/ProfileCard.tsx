@@ -14,9 +14,9 @@ import {
   type ProfileDraft,
 } from "./profileForm";
 
-const LABEL = "font-body text-xs font-bold text-ink-muted";
+const LABEL = "font-body text-sm font-medium text-ink";
 const INPUT =
-  "w-full bg-surface-muted text-ink px-4 py-2.5 rounded-xl border border-transparent focus:border-accent focus:ring-1 focus:ring-accent outline-none transition-all aria-invalid:border-danger";
+  "w-full min-h-[44px] bg-surface text-ink text-base md:text-sm px-3 rounded-control border border-line-strong transition-colors aria-invalid:border-danger";
 
 /** Name and email save to PUT /auth/me. The department is set by HR. */
 export default function ProfileCard() {
@@ -51,18 +51,18 @@ export default function ProfileCard() {
     <section
       id="profile"
       aria-labelledby="profile-heading"
-      className="scroll-mt-24 bg-surface border border-line/10 rounded-2xl overflow-hidden"
+      className="scroll-mt-24 bg-surface border border-line rounded-card overflow-hidden"
     >
       <form onSubmit={onSubmit} noValidate>
-        <div className="p-6 border-b border-line/10">
-          <h2 id="profile-heading" className="font-display font-bold text-lg text-ink mb-1">Profile Information</h2>
+        <div className="p-5 md:p-6 border-b border-line">
+          <h2 id="profile-heading" className="font-display font-semibold text-lg text-ink mb-1">Profile information</h2>
           <p className="font-body text-sm text-ink-muted">The name and email HR sees on your claims.</p>
         </div>
-        <div className="p-6 space-y-5">
+        <div className="p-5 md:p-6 space-y-5">
           <div className="flex items-center gap-4">
             <div
               aria-hidden="true"
-              className="w-16 h-16 rounded-full bg-accent-soft border-2 border-paper flex items-center justify-center font-display font-bold text-xl text-accent-hover"
+              className="w-14 h-14 rounded-full bg-surface-muted border border-line flex items-center justify-center font-body font-semibold text-xl text-ink"
             >
               {(draft.name || user?.name || "E").charAt(0).toUpperCase()}
             </div>
@@ -105,7 +105,7 @@ export default function ProfileCard() {
                 value={user?.department_name || "Not assigned"}
                 readOnly
                 aria-describedby="profile-department-note"
-                className="w-full bg-line/30 text-ink-muted px-4 py-2.5 rounded-xl border border-transparent outline-none focus-visible:ring-1 focus-visible:ring-accent"
+                className="w-full min-h-[44px] bg-surface-muted text-ink-muted text-base md:text-sm px-3 rounded-control border border-line"
               />
               <p id="profile-department-note" className="text-xs text-ink-muted">HR sets your department.</p>
             </div>
@@ -116,14 +116,14 @@ export default function ProfileCard() {
             </p>
           )}
         </div>
-        <div className="p-4 bg-surface-muted/30 border-t border-line/10 flex justify-end">
+        <div className="px-5 py-4 md:px-6 border-t border-line flex justify-end">
           <button
             type="submit"
             disabled={!changed || saving}
-            className="flex min-h-11 items-center gap-2 bg-accent text-on-accent px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-accent-hover active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="flex min-h-11 items-center gap-2 bg-surface text-ink border border-line-strong px-5 rounded-control font-semibold text-sm hover:bg-surface-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden /> : <Save className="w-4 h-4" aria-hidden />}
-            {saving ? "Saving..." : "Save profile"}
+            {saving ? <Loader2 className="w-4 h-4 motion-safe:animate-spin" aria-hidden /> : <Save className="w-4 h-4" aria-hidden />}
+            {saving ? "Saving…" : "Save profile"}
           </button>
         </div>
       </form>
