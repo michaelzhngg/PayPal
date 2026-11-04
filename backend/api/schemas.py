@@ -2,7 +2,7 @@ from typing import Optional, List
 from datetime import datetime, date
 from decimal import Decimal
 from uuid import UUID
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from core.enums import (
     UserRole,
@@ -12,6 +12,7 @@ from core.enums import (
     DocumentClass,
     PolicyStatus,
     PayoutStatus,
+    RecoveryStatus,
 )
 
 
@@ -435,3 +436,56 @@ class NotificationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# =============================================================================
+# Recovery Schemas
+# =============================================================================
+
+def _strip_required(v: str) -> str:
+    v = v.strip()
+    if not v:
+        raise ValueError("must not be blank")
+    return v
+
+
+class RecoveryCreate(BaseModel):
+    reim_id: UUID
+    amount: Decimal = Field(gt=0, max_digits=12, decimal_places=2)
+    reason: str = Field(min_length=1, max_length=1000)
+
+    _reason = field_validator("reason")(_strip_required)
+
+
+class RecoveryDispute(BaseModel):
+    note: str = Field(min_length=1, max_length=2000)
+
+    _note = field_validator("note")(_strip_required)
+
+
+class RecoveryResponse(BaseModel):
+    recovery_id: UUID
+    reim_id: UUID
+    user_id: UUID
+    amount: float
+    currency: str
+    reason: str
+    status: RecoveryStatus
+    dispute_until: datetime
+    dispute_note: Optional[str] = None
+    offset_reim_id: Optional[UUID] = None
+    paypal_invoice_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class RecoveryInvoicePreview(BaseModel):
+    note: str
+    amount: float
+    currency: str
+    recipient_email_masked: str
+    # What execute would do right now: WAIT, OFFSET or INVOICE.
+    path: str
