@@ -39,7 +39,9 @@ def test_trust_levels_match_the_demo_accounts():
     trust = final_trust(generate_history(42, 120, NOW), NOW)
     assert trust["SWE123"] == TrustTier.STANDARD and trust["SWE124"] == TrustTier.STANDARD
     seeded = [trust[f"E{i:02d}"] for i in range(1, 13)]
-    assert (seeded.count(TrustTier.NEW), seeded.count(TrustTier.STANDARD), seeded.count(TrustTier.TRUSTED)) == (4, 5, 3)
+    assert (seeded.count(TrustTier.NEW), seeded.count(TrustTier.STANDARD), seeded.count(TrustTier.TRUSTED)) == (3, 5, 4)
+    # S8's open notice no longer cuts trust; E04 drops to NEW only once the recovery is executed.
+    assert trust["E04"] == TrustTier.TRUSTED
 
 
 def test_breaker_starts_clear():

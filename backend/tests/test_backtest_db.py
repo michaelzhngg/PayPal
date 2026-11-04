@@ -25,12 +25,14 @@ def test_default_config_reproduces_the_stored_tiers(seeded):
     history = result["history"]
     cases = load_backtest_cases(db, NOW)
     assert len(cases) == 120
-    assert sum(c.bad for c in cases) == sum(c.bad for c in history)
+    # S8's recovery is still an open notice, so it isn't confirmed bad yet.
+    confirmed_bad = [c for c in history if c.bad and c.note != "s8"]
+    assert sum(c.bad for c in cases) == len(confirmed_bad)
 
     r = run_backtest(cases, AutonomyConfig(), NOW)
     assert r.by_tier == dict(Counter(c.tier.value for c in history))
     assert r.auto_paid_count == r.by_tier["AUTO_PAY"] == r.hr_reviews_avoided
-    assert r.bad_auto_paid_count + r.caught_bad_count == sum(c.bad for c in history)
+    assert r.bad_auto_paid_count + r.caught_bad_count == len(confirmed_bad)
     assert [p.auto_limit_standard for p in r.curve] == list(CURVE_LIMITS)
     assert r.assumptions[0] == "ignores daily budget and circuit breaker"
 

@@ -26,7 +26,7 @@ The scripts are self-contained [uv scripts](https://docs.astral.sh/uv/guides/scr
 | `employee2@example.com` | Employee, rank 1 | STANDARD (4 paid claims). PayPal from `DEMO_PAYER_ID_2`. | S5 |
 | `hr@example.com` | HR | First approver | All HR steps |
 | `hr2@example.com` | HR | Second approver | S3 two-person approval |
-| `e01@seed.reclaim.my` to `e12@seed.reclaim.my` | Employees E01 to E12 | E01 to E04 NEW, E05 to E09 STANDARD, E10 to E12 TRUSTED | Back-test, S8 (E04, PayPal from `DEMO_PAYER_ID_3`) |
+| `e01@seed.reclaim.my` to `e12@seed.reclaim.my` | Employees E01 to E12 | E01 to E03 NEW, E05 to E09 STANDARD, E04 and E10 to E12 TRUSTED (E04 drops to NEW once the S8 recovery is executed) | Back-test, S8 (E04, PayPal from `DEMO_PAYER_ID_3`) |
 
 Every account uses the password `password`. If a `DEMO_PAYER_ID_n` variable isn't set, the account gets a mock payer ID such as `DEMOMOCKS123`, or keeps a sandbox account already linked through "Log in with PayPal". Demo employees are marked verified, linked 30 days ago, with no recent payout change, so the 72 h cool-down never applies.
 

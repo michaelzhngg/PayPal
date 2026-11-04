@@ -33,6 +33,12 @@ AUTO_PAID_STATUSES = {
     ReimbursementStatus.DISBURSING.value,
     ReimbursementStatus.PAID.value,
 }
+# A notice can still be disputed or waived, so only a recovery that was acted on counts against trust.
+CONFIRMED_RECOVERY_STATUSES = (
+    RecoveryStatus.OFFSET.value,
+    RecoveryStatus.INVOICED.value,
+    RecoveryStatus.RECOVERED.value,
+)
 # Fields on AutonomyConfig the server owns: `enabled` moves only through the kill switch.
 SERVER_OWNED_FIELDS = {"enabled", "version"}
 
@@ -226,7 +232,7 @@ def trip_breaker(db: Session, reason: str, now: datetime) -> datetime:
 def _confirmed_issue_dates(db: Session, user_id: UUID) -> list[datetime]:
     recoveries = db.exec(
         select(Recovery.created_at).where(
-            Recovery.user_id == user_id, Recovery.status != RecoveryStatus.WAIVED.value
+            Recovery.user_id == user_id, Recovery.status.in_(CONFIRMED_RECOVERY_STATUSES)
         )
     ).all()
     rejected = db.exec(
