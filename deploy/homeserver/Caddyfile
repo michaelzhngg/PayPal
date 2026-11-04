@@ -1,0 +1,39 @@
+# Single entrypoint for the app. TLS is terminated upstream by Tailscale Funnel
+# or Cloudflare Tunnel, so Caddy only speaks plain HTTP on the Docker network.
+{
+	admin off
+	auto_https off
+	servers {
+		# Funnel arrives through the Docker bridge, cloudflared from inside the network.
+		trusted_proxies static private_ranges
+	}
+}
+
+:80 {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	# These two live in Next.js (they stream analysis progress with the user's
+	# session cookie), even though they sit under the backend's /api/v1 prefix.
+	@next_api path /api/v1/documents/progress/* /api/v1/reimbursements/analyze/progress/*
+	handle @next_api {
+		reverse_proxy frontend:3000 {
+			flush_interval -1
+		}
+	}
+
+	# FastAPI: PayPal OAuth callback and webhooks, settlement documents.
+	handle /api/v1/* {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
+
+	log
+}
