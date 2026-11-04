@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getBankingDetails } from "@/lib/actions/settings";
 import type { BankingDetails } from "@/lib/api/types";
 import { useToast } from "@/components/toast/ToastProvider";
+import PushSettingToggle from "@/app/_components/PushSettingToggle";
 
 const NOT_BUILT = "Feature has not been implemented yet.";
 
@@ -279,7 +280,7 @@ export default function SettingsLegacyContent() {
                 }
               >
                 <div className="divide-y divide-line">
-                  {/* Push notification toggle (WP5) goes here, as the first row of this list. */}
+                  <PushSettingToggle className="px-4 sm:px-6" />
                   {[
                     { label: "Claim Submitted", desc: "Notify when an employee submits a new claim." },
                     { label: "Claim Auto-Paid", desc: "Notify when a claim is paid automatically because every fixed rule passed." },
