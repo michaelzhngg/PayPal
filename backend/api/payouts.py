@@ -10,7 +10,8 @@ from sqlmodel import Session, select
 from api import deps
 from api.schemas import CreatePayoutRequest
 from core.models import User, Reimbursement, Payout
-from core.enums import UserRole, PayoutStatus
+from core.enums import ReimbursementStatus, UserRole, PayoutStatus
+from engine.services.approvals import approvals_complete
 from engine.services.payout_service import initiate_payout_async, payout_plan
 from engine.services.payout_status import FINAL_STATUSES, refresh_payout
 from engine.services.paypal_client import PayPalError
@@ -89,6 +90,23 @@ _SKIP_DETAIL = {
 }
 
 
+_ENDED_UNPAID = {PayoutStatus.FAILED, PayoutStatus.CANCELLED, PayoutStatus.REVERSED}
+
+
+def _require_genuine_approval(reim: Reimbursement, caller: User, existing: list[Payout]) -> None:
+    """Refuse a payout unless the approval rules were met. Payout status alone proves nothing."""
+    if reim.user_id == caller.user_id:
+        raise HTTPException(status_code=403, detail="SELF_APPROVAL")
+    if reim.status not in (ReimbursementStatus.APPROVED, ReimbursementStatus.DISBURSEMENT_FAILED):
+        return
+    if reim.status == ReimbursementStatus.DISBURSEMENT_FAILED and not any(
+        PayoutStatus(p.status) in _ENDED_UNPAID for p in existing
+    ):
+        raise HTTPException(status_code=409, detail="This claim has no failed payout to resend.")
+    if not approvals_complete(reim.tier, reim.approvals, str(reim.user_id), reim.reviewed_by):
+        raise HTTPException(status_code=409, detail="This claim doesn't have the HR approvals it needs yet.")
+
+
 @router.get("/", response_model=list[PayoutLedgerRow])
 def list_payouts(
     status: Optional[PayoutStatus] = None,
@@ -134,6 +152,7 @@ async def create_payout(
 
     employee = db.get(User, reim.user_id)
     existing = db.exec(select(Payout).where(Payout.reim_id == body.reim_id)).all()
+    _require_genuine_approval(reim, current_user, existing)
     net_amount, _ = offset_for_reim(db, reim)
     action, _, _ = payout_plan(
         reim.status, net_amount, [p.status for p in existing],

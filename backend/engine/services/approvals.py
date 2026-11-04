@@ -3,11 +3,27 @@ from datetime import datetime
 
 BATCH_TIER = "HR_QUICK"
 DUAL_TIER = "DUAL_REVIEW"
+AUTO_TIER = "AUTO_PAY"
 REVIEW_STATUS = "REVIEW"
 
 
 def required_approvals(tier: str | None) -> int:
     return 2 if tier == DUAL_TIER else 1
+
+
+def approvals_complete(
+    tier: str | None, approvals: list[dict] | None, claimant_id: str, reviewed_by: str | None = None
+) -> bool:
+    """Whether a claim has the sign-offs its tier needs. The claimant's own approval never counts."""
+    # Only decide() sets AUTO_PAY, and it is the approver there.
+    if tier == AUTO_TIER:
+        return True
+    approvers = {a.get("hr_id") for a in approvals or []}
+    # Claims from before the approvals column recorded their single reviewer in reviewed_by.
+    if tier is None and reviewed_by:
+        approvers.add(str(reviewed_by))
+    approvers.discard(str(claimant_id))
+    return len(approvers) >= required_approvals(tier)
 
 
 def register_approval(
