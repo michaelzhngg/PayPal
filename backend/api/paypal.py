@@ -274,7 +274,12 @@ async def signin_complete(request: Request, body: SigninComplete, db: Session = 
         reason = security.paypal_signin_rejection(user, identity.payer_id)
     if reason:
         actor = str(user.user_id) if user else "unknown"
-        record_action(db, AgentActionType.PAYPAL_SIGNIN, actor, None, {"outcome": "rejected", "reason": reason})
+        record_action(db, AgentActionType.PAYPAL_SIGNIN, actor, None, {
+            "outcome": "rejected", "reason": reason,
+            "verified": identity.verified,
+            "verified_account": identity.verified_account,
+            "email_verified": identity.email_verified,
+        })
         raise failed
 
     lifetime = timedelta(hours=PAYEE_COOLDOWN_HOURS)

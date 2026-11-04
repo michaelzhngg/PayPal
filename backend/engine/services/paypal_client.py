@@ -47,6 +47,8 @@ class PayPalUser:
     payer_id: str
     email: str | None
     verified: bool
+    verified_account: bool | None = None
+    email_verified: bool | None = None
 
 
 class PayPalError(Exception):
@@ -138,8 +140,15 @@ def _parse_user(data: dict) -> PayPalUser:
         emails = data.get("emails") or []
         primary = next((e for e in emails if e.get("primary")), emails[0] if emails else None)
         email = primary.get("value") if primary else None
-    verified = _as_bool(data.get("verified_account")) or _as_bool(data.get("email_verified"))
-    return PayPalUser(payer_id=data.get("payer_id") or data.get("user_id", ""), email=email, verified=verified)
+    verified_account = data.get("verified_account")
+    email_verified = data.get("email_verified")
+    return PayPalUser(
+        payer_id=data.get("payer_id") or data.get("user_id", ""),
+        email=email,
+        verified=_as_bool(verified_account) or _as_bool(email_verified),
+        verified_account=None if verified_account is None else _as_bool(verified_account),
+        email_verified=None if email_verified is None else _as_bool(email_verified),
+    )
 
 
 class PayPalClient:
