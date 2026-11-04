@@ -22,7 +22,7 @@ export default function FastTrackCard({ info }: { info: TrustInfo }) {
         <p className="font-body text-sm font-semibold text-primary">{tierLabel(info.trust_tier)}</p>
       </div>
 
-      <p className="mt-1.5 font-body text-sm leading-relaxed text-on-surface">
+      <p className="mt-1.5 font-body text-sm leading-relaxed text-pretty text-on-surface">
         {limited ? limitLine(info) : trustLine(info)}
       </p>
       {limited && <p className="mt-1 font-body text-sm leading-relaxed text-on-surface-variant">{limited}</p>}

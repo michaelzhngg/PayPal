@@ -18,7 +18,7 @@ export default function AccountStatus({ trust, recoveries, className = "" }: Pro
   if (trust === null && notices.length === 0) return null;
 
   return (
-    <div className={`grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 ${className}`}>
+    <div className={`grid grid-cols-1 items-start gap-3 md:grid-cols-2 md:gap-6 ${className}`}>
       {notices.map(r => (
         <RecoveryNotice key={r.recovery_id} recovery={r} />
       ))}

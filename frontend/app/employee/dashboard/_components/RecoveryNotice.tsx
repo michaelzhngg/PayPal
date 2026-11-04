@@ -31,6 +31,7 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
   const sectionRef = useRef<HTMLElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const disputeButtonRef = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef(false);
   const ids = useId();
 
   const disputed = recovery.status === "DISPUTED";
@@ -41,14 +42,19 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
   }, [initial]);
 
   useEffect(() => {
-    if (formOpen) textareaRef.current?.focus();
+    if (formOpen) {
+      textareaRef.current?.focus();
+    } else if (returnFocus.current) {
+      // Back to the button that opened the form.
+      returnFocus.current = false;
+      disputeButtonRef.current?.focus();
+    }
   }, [formOpen]);
 
   function closeForm() {
+    returnFocus.current = true;
     setFormOpen(false);
     setError(null);
-    // Return focus to the button that opened the form.
-    requestAnimationFrame(() => disputeButtonRef.current?.focus());
   }
 
   async function submit(e: FormEvent) {
@@ -126,7 +132,10 @@ export default function RecoveryNotice({ recovery: initial }: { recovery: Recove
             ref={textareaRef}
             id={`${ids}-note`}
             value={note}
-            onChange={e => setNote(e.target.value)}
+            onChange={e => {
+              setNote(e.target.value);
+              if (error) setError(null);
+            }}
             rows={3}
             maxLength={1000}
             aria-invalid={error ? true : undefined}
