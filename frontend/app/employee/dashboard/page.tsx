@@ -4,12 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { History, CheckCircle2, CreditCard, Upload } from "lucide-react";
 import { getDashboardStats, getRecentClaims } from "@/lib/actions/dashboard";
+import { getMyTrust } from "@/lib/actions/settings";
+import { listRecoveries } from "@/lib/actions/recoveries";
 import { useAuth } from "@/context/AuthContext";
 import type { ClaimSummary, DashboardStats } from "@/lib/api/types";
+import type { Recovery, TrustInfo } from "@/lib/api/reclaim-pay-types";
 
 import StatCard          from "./_components/StatCard";
 import RecentClaimsTable from "./_components/RecentClaimsTable";
 import PayPalStatusChip  from "./_components/PayPalStatusChip";
+import AccountStatus     from "./_components/AccountStatus";
 
 export default function EmployeeDashboardPage() {
   const { user } = useAuth();
@@ -17,6 +21,9 @@ export default function EmployeeDashboardPage() {
   // null while loading, so the empty state never flashes before data arrives
   const [claims, setClaims] = useState<ClaimSummary[] | null>(null);
   const [today, setToday] = useState("");
+  // undefined while loading, null when the endpoint failed: both cards then stay hidden
+  const [trust, setTrust] = useState<TrustInfo | null | undefined>(undefined);
+  const [recoveries, setRecoveries] = useState<Recovery[] | null | undefined>(undefined);
 
   // Show only the first name in the greeting
   const firstName = user?.name?.split(" ")[0] ?? "there";
@@ -24,6 +31,8 @@ export default function EmployeeDashboardPage() {
   useEffect(() => {
     getDashboardStats().then(setStats);
     getRecentClaims(3).then(setClaims).catch(() => setClaims([]));
+    getMyTrust().then(setTrust).catch(() => setTrust(null));
+    listRecoveries("NOTICE_SENT").then(setRecoveries).catch(() => setRecoveries(null));
   }, []);
 
   // Render date client-only to avoid hydration mismatch
@@ -70,6 +79,10 @@ export default function EmployeeDashboardPage() {
           </div>
         </div>
       </section>
+
+      {/* Fast-track and overpayment notices sit under the PayPal chip, except on
+          first run, where they follow the upload prompt so it stays in view on phones. */}
+      {!isEmpty && <AccountStatus trust={trust} recoveries={recoveries} className="mb-6 md:mb-10" />}
 
       {isEmpty ? (
         /* ── First run: one clear next step instead of zero cards ── */
@@ -125,6 +138,8 @@ export default function EmployeeDashboardPage() {
           <RecentClaimsTable claims={claims} />
         </>
       )}
+
+      {isEmpty && <AccountStatus trust={trust} recoveries={recoveries} className="mt-6 max-w-xl md:max-w-none" />}
 
     </div>
   );

@@ -19,10 +19,15 @@ export function isTopTier(info: TrustInfo): boolean {
   return info.next_tier === null || info.claims_to_next_tier === null;
 }
 
+/** "Instant payouts up to MYR 100" */
+export function limitLine(info: TrustInfo): string {
+  return `Instant payouts up to ${formatLimit(info.currency ?? "MYR", info.auto_limit)}`;
+}
+
 /** "Instant payouts up to MYR 100 · 2 more approved claims to reach MYR 200" */
 export function trustLine(info: TrustInfo): string {
   const currency = info.currency ?? "MYR";
-  const limit = `Instant payouts up to ${formatLimit(currency, info.auto_limit)}`;
+  const limit = limitLine(info);
   if (isTopTier(info) || !info.next_tier) return `${limit} · This is the highest level.`;
 
   const n = Math.max(0, info.claims_to_next_tier ?? 0);
