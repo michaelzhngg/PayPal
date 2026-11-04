@@ -55,10 +55,10 @@ function Toggle<T extends string>({
           type="button"
           aria-pressed={value === o.id}
           onClick={() => onChange(o.id)}
-          className={`min-h-11 px-4 rounded-xl font-body text-sm font-semibold border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+          className={`min-h-11 px-4 rounded-control font-body text-sm font-semibold border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
             value === o.id
-              ? "bg-accent text-on-accent border-accent"
-              : "bg-surface text-ink border-line/30 hover:bg-surface-muted"
+              ? "bg-ink text-on-accent border-ink"
+              : "bg-surface text-ink border-line hover:bg-surface-muted"
           }`}
         >
           {o.name}
@@ -99,7 +99,7 @@ export default function TimelinePreview() {
         <button
           type="button"
           onClick={() => setRun(r => r + 1)}
-          className="self-start inline-flex items-center gap-2 min-h-11 px-4 rounded-xl font-body text-sm font-semibold text-accent hover:bg-accent/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="self-start inline-flex items-center gap-2 min-h-11 px-4 rounded-control font-body text-sm font-semibold text-accent-hover hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           <RotateCcw className="w-4 h-4" aria-hidden="true" />
           Replay
