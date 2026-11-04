@@ -691,6 +691,7 @@ The SSE stream `/reimbursements/analyze/progress/{task_id}` carries an `event: p
 | 5 | `shield.provenance` | Checking where the image came from | Camera photo |
 | 6 | `shield.arithmetic` | Checking the totals add up | Items + tax = total |
 | 7 | `shield.split` | Checking for split claims | No related claims |
+| 7a | `shield.price` | Comparing prices with the market | Equipment claims only, and only when Channel3 is configured |
 | 8 | `totals.aggregate` | Calculating totals | MYR 48.00 claimed · MYR 48.00 eligible |
 | 9 | `judgment.final` | AI recommendation | Approve · confidence 0.95 |
 | 10 | `autonomy.decide` | Deciding: pay now or ask HR | *(the decision explanation)* |

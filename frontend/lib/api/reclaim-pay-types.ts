@@ -72,6 +72,7 @@ export const TIMELINE_STEP_IDS = [
   "shield.provenance",
   "shield.arithmetic",
   "shield.split",
+  "shield.price",
   "totals.aggregate",
   "judgment.final",
   "autonomy.decide",
