@@ -580,6 +580,20 @@ def _auto_payout(db: Session, reim: Reimbursement, loop, emit) -> bool:
     return True
 
 
+def _notify_claims_for_review(db: Session, user_id: UUID, results: list[dict]) -> None:
+    """Tell the employee which claims went to HR. Auto-paid claims get the payout notifications instead."""
+    count = sum(r.get("status") == ReimbursementStatus.REVIEW.value for r in results)
+    if not count:
+        return
+    title = "Claim submitted for review"
+    message = (f"We received your claim with {count} receipt{'s' if count != 1 else ''} for processing. "
+               "You'll be notified when it's reviewed.")
+    db.add(Notification(user_id=user_id, type="success", title=title, message=message,
+                        link="/employee/history", is_read=False))
+    db.commit()
+    fire_and_forget_push(user_id, title, message, link="/employee/history")
+
+
 @router.post("/analyze")
 @limiter.limit("5/minute")
 async def analyze_reimbursement(
@@ -797,25 +811,8 @@ async def analyze_reimbursement(
 
                 logger.info("[API_ANALYZE_BG] Publishing complete with %d reimbursements", len(all_results))
 
-                # Notify employee that claim submission was processed
                 try:
-                    reim_count = len(all_results)
-                    notif = Notification(
-                        user_id=UUID(user_id_str),
-                        type="success",
-                        title="Claim submitted for review",
-                        message=f"We received your claim with {reim_count} receipt{'s' if reim_count != 1 else ''} for processing. You'll be notified when it's reviewed.",
-                        link="/employee/history",
-                        is_read=False,
-                    )
-                    bg_db.add(notif)
-                    bg_db.commit()
-                    fire_and_forget_push(
-                        UUID(user_id_str),
-                        "Claim submitted for review",
-                        f"We received your claim with {reim_count} receipt{'s' if reim_count != 1 else ''} for processing. You'll be notified when it's reviewed.",
-                        link="/employee/history",
-                    )
+                    _notify_claims_for_review(bg_db, UUID(user_id_str), all_results)
                 except Exception:
                     logger.exception("[API_ANALYZE_BG] Failed to send submission notification")
 
