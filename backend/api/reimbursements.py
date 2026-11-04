@@ -30,11 +30,13 @@ from core.models import (
 )
 from core.enums import AgentActionType, UserRole, ReimbursementStatus, JudgmentResult, PolicyStatus
 from core.database import engine as db_engine
-from engine.agents.compliance_agent import run_compliance_workflow
+from engine.agents.compliance_agent import run_compliance_workflow, timeline_emitter
 from engine.progress import ProgressTracker
 from engine.services.action_log import record_action
 from engine.services.approvals import register_approval, required_approvals, split_batch
+from engine.risk.timeline import make_step
 from engine.services.payout_service import initiate_payout_sync
+from engine.services.paypal_client import mask_email
 from core.push_service import fire_and_forget_push
 
 router = APIRouter()
@@ -551,6 +553,33 @@ def get_reimbursement_line_items(
     return [_line_item_dict(li, current_user.role == UserRole.HR) for li in line_items]
 
 
+def _auto_payout(db: Session, reim: Reimbursement, loop, emit) -> bool:
+    """Pay an AUTO_PAY claim through PayPal and report it as the payout.create step.
+
+    Only decide() sets AUTO_PAY, so nothing from the request can start a payout here.
+    """
+    if reim.tier != "AUTO_PAY" or reim.status != ReimbursementStatus.APPROVED:
+        return False
+    employee = db.get(User, reim.user_id)
+    amount = float(reim.total_approved_amount or 0)
+    detail = f"{reim.currency or 'MYR'} {amount:,.2f} to {mask_email((employee.paypal_email if employee else '') or '')}"
+    emit(make_step("payout.create", "running", detail))
+    try:
+        payout = initiate_payout_sync(reim.reim_id, db, loop=loop)
+        db.refresh(reim)
+    except Exception:
+        logger.exception("[API_ANALYZE_BG] Auto-payout failed for reim=%s, claim stays APPROVED", reim.reim_id)
+        db.rollback()
+        payout = None
+    if payout is not None:
+        emit(make_step("payout.create", "done", detail))
+    elif reim.status == ReimbursementStatus.PAID:
+        emit(make_step("payout.create", "done", "Settled against an earlier overpayment"))
+    else:
+        emit(make_step("payout.create", "fail", "PayPal couldn't take the payment. Your claim stays approved and HR can resend it."))
+    return True
+
+
 @router.post("/analyze")
 @limiter.limit("5/minute")
 async def analyze_reimbursement(
@@ -727,7 +756,6 @@ async def analyze_reimbursement(
                             all_category=group_categories,
                             session=bg_db,
                             document_ids=doc_ids,
-                            is_auto_reimburse_enabled=body.is_auto_reimburse_enabled,
                             progress_callback=progress_callback,
                         )
                         reim_id = result.get("reimbursement_id")
@@ -736,37 +764,12 @@ async def analyze_reimbursement(
                         reim = bg_db.get(Reimbursement, UUID(reim_id))
                         if not reim:
                             raise ValueError(f"Reimbursement {reim_id} not found in DB after creation")
+                        logger.info("[API_ANALYZE_BG] Group %d complete: reim_id=%s judgment=%s tier=%s", i + 1, reim_id, result.get("judgment"), reim.tier)
+                        try:
+                            _auto_payout(bg_db, reim, loop, timeline_emitter(progress_callback))
+                        except Exception:
+                            logger.exception("[API_ANALYZE_BG] Payout step failed for reim=%s", reim_id)
                         all_results.append(_build_reimbursement_response(reim, bg_db, include_line_items=True, viewer_is_hr=viewer_is_hr))
-                        logger.info("[API_ANALYZE_BG] Group %d complete: reim_id=%s judgment=%s status=%s", i + 1, reim_id, result.get("judgment"), reim.status)
-
-                        # Auto-payout for high-confidence approvals (reviewed_by IS NULL = auto-processed)
-                        if reim.status == ReimbursementStatus.APPROVED and reim.reviewed_by is None:
-                            try:
-                                initiate_payout_sync(reim.reim_id, bg_db, loop=loop)
-                            except Exception:
-                                logger.exception("[API_ANALYZE_BG] Auto-payout failed for reim=%s — claim stays APPROVED", reim_id)
-
-                        # Notify employee of auto-reject
-                        elif reim.status == ReimbursementStatus.REJECTED and reim.reviewed_by is None:
-                            try:
-                                notif = Notification(
-                                    user_id=reim.user_id,
-                                    type="error",
-                                    title=f"Claim RC-{reim_id[:8]} automatically rejected",
-                                    message=f"Your claim was automatically rejected by Reclaim AI. Reason: {(reim.summary or 'See claim details for more information.')[:200]}",
-                                    link=f"/employee/history?id={reim_id}",
-                                    is_read=False,
-                                )
-                                bg_db.add(notif)
-                                bg_db.commit()
-                                fire_and_forget_push(
-                                    reim.user_id,
-                                    f"Claim RC-{reim_id[:8]} automatically rejected",
-                                    f"Your claim was automatically rejected by Reclaim AI. Reason: {(reim.summary or 'See claim details for more information.')[:200]}",
-                                    link=f"/employee/history?id={reim_id}",
-                                )
-                            except Exception:
-                                logger.exception("[API_ANALYZE_BG] Failed to send auto-reject notification for reim=%s", reim_id)
                     except Exception as group_err:
                         logger.exception("[API_ANALYZE_BG] Compliance failed for policy=%s", policy_alias)
                         try:
