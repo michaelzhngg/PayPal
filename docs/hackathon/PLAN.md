@@ -81,7 +81,7 @@ Priorities:
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
-| [ ] | Sandbox app, a business account (sender) and two personal accounts (receivers); one payout made by hand with curl; decide MYR or USD | Must | 0 |
+| [ ] | Sandbox app, a business account (sender) and two personal accounts (receivers); one payout made by hand with curl; decide MYR or USD _(sandbox app keys verified 3 Nov; the manual curl payout and MYR/USD decision are still open)_ | Must | 0 |
 | [x] | PayPal client: login token, payout, payout status, webhook signature check, "Log in with PayPal" exchange, with tests _(built and unit-tested against mock mode; not yet run against live sandbox keys)_ | Must | 1 |
 | [x] | Payouts that can't be sent twice (`sender_batch_id = RC-{claim}-{attempt}`) | Must | 1 |
 | [x] | Replace the Xendit mock with PayPal in `payout_service` | Must | 1–2 |
@@ -96,24 +96,24 @@ Priorities:
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
-| [ ] | New database columns and tables plus one migration; test setup; dependencies | Must (blocks everyone) | 0 |
-| [ ] | Tamper-evident action log (each row hashes the previous one) | Must | 0 |
-| [ ] | Autonomy settings, kill switch, status, and action-log API | Must | 1 |
-| [ ] | Tier fields on claims; two-person approval; HR can't approve their own claims; batch approve | Must | 1–2 |
-| [ ] | Back-test endpoint (automation rate against expected losses) and the employee trust endpoint | Should | 2 |
-| [ ] | Overpayment recovery: notice → dispute window → deduct from the next claim → PayPal invoice through the Agent Toolkit | Should | 2–3 |
+| [x] | New database columns and tables plus one migration; test setup; dependencies | Must (blocks everyone) | 0 |
+| [x] | Tamper-evident action log (each row hashes the previous one) | Must | 0 |
+| [x] | Autonomy settings, kill switch, status, and action-log API | Must | 1 |
+| [x] | Tier fields on claims; two-person approval; HR can't approve their own claims; batch approve | Must | 1–2 |
+| [x] | Back-test endpoint (automation rate against expected losses) and the employee trust endpoint | Should | 2 |
+| [x] | Overpayment recovery: notice → dispute window → deduct from the next claim → PayPal invoice through the Agent Toolkit _(API done; HR has no recoveries screen yet, so S8 runs through `demo/scripts/s8_recovery.py`)_ | Should | 2–3 |
 
 ### 4.3 AI and risk — Filbert
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
-| [ ] | Shared risk types (the contracts) | Must (blocks everyone) | 0 |
-| [ ] | Decision engine `decide()`: hard stops, risk score, 4 tiers, trust levels, circuit breaker, audit sampling, with full tests | Must | 1 |
-| [ ] | Receipt checks part 1: prompt injection, arithmetic, split claims, near-limit claims, human edits | Must | 1 |
-| [ ] | Receipt checks part 2: duplicate image fingerprints, AI-image provenance (C2PA), editing software, missing camera data | Must | 1–2 |
-| [ ] | Harden the receipt-reading prompts (receipt text is data, never instructions) | Must | 2 |
-| [ ] | Wire the decision engine into the compliance agent; remove the `confidence > 0.7` gate and AI-only rejections | Must | 2 |
-| [ ] | Stream timeline events to the employee screen | Must | 2 |
+| [x] | Shared risk types (the contracts) | Must (blocks everyone) | 0 |
+| [x] | Decision engine `decide()`: hard stops, risk score, 4 tiers, trust levels, circuit breaker, audit sampling, with full tests | Must | 1 |
+| [x] | Receipt checks part 1: prompt injection, arithmetic, split claims, near-limit claims, human edits | Must | 1 |
+| [x] | Receipt checks part 2: duplicate image fingerprints, AI-image provenance (C2PA), editing software, missing camera data _(C2PA is detected by scanning the file for its marker, not cryptographically verified)_ | Must | 1–2 |
+| [x] | Harden the receipt-reading prompts (receipt text is data, never instructions) | Must | 2 |
+| [x] | Wire the decision engine into the compliance agent; remove the `confidence > 0.7` gate and AI-only rejections _(not yet run with the live AI: the local `.env` has placeholder LLM keys)_ | Must | 2 |
+| [x] | Stream timeline events to the employee screen | Must | 2 |
 | [ ] | Channel3 market-price check on equipment receipts | Could | 3 |
 
 ### 4.4 Employee experience — Michael
@@ -121,30 +121,30 @@ Priorities:
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
 | [x] | Frontend types, sample data and action functions; AG Grid and vitest installed | Must (blocks frontend) | 0 |
-| [x] | Live agent timeline while a claim is checked, plus a preview page that replays sample data _(frontend done; waits for the backend timeline events in 4.3)_ | Must | 1 |
+| [x] | Live agent timeline while a claim is checked, plus a preview page that replays sample data _(backend events done too)_ | Must | 1 |
 | [x] | Money-flow strip ending in "MYR 48.00 in your PayPal" | Must | 2 |
 | [x] | "Connect PayPal" card in settings (replaces the bank details form) | Must | 2 |
-| [ ] | Trust card ("instant payouts up to MYR 100"), plus an overpayment notice with a dispute form | Should | 2–3 |
+| [x] | Trust card ("instant payouts up to MYR 100"), plus an overpayment notice with a dispute form | Should | 2–3 |
 | [ ] | Bryntum calendar of claims and payouts | Could | 3 |
 
 ### 4.5 HR command center — Christian
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
-| [ ] | AG Grid triage queue with tier tabs, risk bar, signal chips, batch approve | Must | 1 |
-| [ ] | Evidence panel on the review page (why the claim was routed, evidence for each signal, two-person approval progress) | Must | 2 |
-| [ ] | Autonomy Dial page: limits form, back-test chart (AG Charts), KPI tiles, kill switch | Should | 2 |
-| [ ] | Payouts page: ledger, audit queue, recoveries (invoice preview → send), action log with an "intact" badge _(ledger done; the other three tabs are disabled placeholders)_ | Should | 2–3 |
-| [ ] | Landing page refresh with a "Built with" strip (only tools that appear in the demo) | Should | 3 |
+| [x] | AG Grid triage queue with tier tabs, risk bar, signal chips, batch approve | Must | 1 |
+| [x] | Evidence panel on the review page (why the claim was routed, evidence for each signal, two-person approval progress) | Must | 2 |
+| [x] | Autonomy Dial page: limits form, back-test chart (AG Charts), KPI tiles, kill switch | Should | 2 |
+| [ ] | Payouts page: ledger, audit queue, recoveries (invoice preview → send), action log with an "intact" badge _(ledger done; the audit queue, recoveries and agent log tabs aren't built yet)_ | Should | 2–3 |
+| [x] | Landing page refresh with a "Built with" strip (only tools that appear in the demo) | Should | 3 |
 
 ### 4.6 Staging, data, QA, demo — Darrell
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
 | [ ] | Render staging (falls back to the existing VM if blocked by Day 1 13:00); public URL given to Chingiz for PayPal | Must | 0–1 |
-| [ ] | Demo policy (Transportation, Meals, Accommodations with rank caps, Equipment) uploaded through Policy Studio; without it S1 and S6 fail | Must | 1 |
-| [ ] | Seed 120 past claims (for the back-test) plus demo users linked to PayPal sandbox accounts | Must | 1 |
-| [ ] | Red-team receipts for scenarios S1–S8, plus the "flood" script | Must | 1 |
+| [ ] | Demo policy (Transportation, Meals, Accommodations with rank caps, Equipment) uploaded through Policy Studio; without it S1 and S6 fail _(PDF built in `demo/policy/`; not uploaded yet, needs working LLM keys)_ | Must | 1 |
+| [x] | Seed 120 past claims (for the back-test) plus demo users linked to PayPal sandbox accounts | Must | 1 |
+| [x] | Red-team receipts for scenarios S1–S8, plus the "flood" script _(S3 still needs a real AI-generated image with C2PA, see `demo/README.md`)_ | Must | 1 |
 | [ ] | Postman collection with tests, run with Newman; publish a public workspace | Should | 2 |
 | [ ] | APIMatic: confirm the Context Plugin is installed on everyone's machine, record a clip; optional SDK or docs portal | Should | 2 |
 | [ ] | QA checklist, run Day 2 at 20:00 and Day 3 at 09:00; bugs filed to the file owner | Must | 2–3 |
