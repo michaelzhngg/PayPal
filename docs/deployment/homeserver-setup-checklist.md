@@ -16,7 +16,7 @@ in [homeserver.md](homeserver.md).
 | 7 | Merge the deploy branch → first deploy | ✅ live (sha-67049f0) |
 | 8 | Seed demo users, check the site | ✅ done (you) |
 | 9 | PayPal sandbox (after step 10) | ⬜ |
-| 10 | Cloudflare Tunnel on reclaimai.dev (do before 9) | ⬜ |
+| 10 | Cloudflare Tunnel on reclaimai.dev | ✅ live (www redirect pending) |
 
 ---
 
