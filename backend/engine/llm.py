@@ -72,11 +72,13 @@ class _GLMWithGeminiFallback(ChatOpenAI):
             return await self._fallback_llm._agenerate(messages, stop=stop, run_manager=run_manager, **kwargs)
 
 
+# temperature=0 so the same receipt gets the same verdict in every demo take.
 def _make_glm(model_kwargs: dict | None = None) -> _GLMWithGeminiFallback:
     llm = _GLMWithGeminiFallback(
         base_url=settings.LLM_BASE_URL,
         api_key=settings.LLM_API_KEY,
         max_tokens=40000,
+        temperature=0,
         model=settings.CHAT_MODEL,
         **({"model_kwargs": model_kwargs} if model_kwargs else {}),
     )
@@ -84,6 +86,7 @@ def _make_glm(model_kwargs: dict | None = None) -> _GLMWithGeminiFallback:
         base_url=settings.OPENROUTER_BASE_URL,
         api_key=settings.OPENROUTER_API_KEY,
         max_tokens=40000,
+        temperature=0,
         model=FALLBACK_MODEL,
         **({"model_kwargs": model_kwargs} if model_kwargs else {}),
     )
@@ -104,6 +107,7 @@ def get_vision_llm() -> ChatOpenAI:
         base_url=settings.OPENROUTER_BASE_URL,
         api_key=settings.OPENROUTER_API_KEY,
         max_tokens=40000,
+        temperature=0,
         model=settings.VISION_MODEL,
         model_kwargs=_JSON_MODE,
     )
