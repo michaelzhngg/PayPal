@@ -1,18 +1,21 @@
 """
 Compliance Workflow (Workflow 3) — Basket Evaluation
-5-node LangGraph pipeline:
-  load_context -> analyze_receipts -> aggregate_totals -> final_judgment -> save_reimbursement
+6-node LangGraph pipeline:
+  load_context -> analyze_receipts -> receipt_shield -> aggregate_totals -> final_judgment -> save_reimbursement
 
 Per-receipt ReAct agents run in parallel; final_judgment agent produces the overall verdict.
+The verdict is one input to engine.risk.autonomy.decide(), which alone sets the tier.
 """
 import json
 import logging
+import math
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, List, Optional
-from uuid import UUID
+from datetime import date, datetime, timezone
+from typing import Any, Callable, List, Optional
+from uuid import UUID, uuid4
 from decimal import Decimal
 
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import create_react_agent
 from sqlmodel import Session, select
@@ -24,9 +27,32 @@ from core.models import (
     LineItem, ReimbursementSubCategory, SettlementCategory, SettlementReceipt,
     PolicySection,
 )
-from core.enums import JudgmentResult, ReimbursementStatus
+from core.enums import AgentActionType, JudgmentResult, ReimbursementStatus, UserRole
 from engine.llm import get_agent_llm
-from engine.prompts.compliance_prompts import RECEIPT_ANALYSIS_PROMPT, FINAL_JUDGMENT_PROMPT
+from engine.prompts.compliance_prompts import (
+    COMPLIANCE_SYSTEM_PROMPT,
+    FINAL_JUDGMENT_PROMPT,
+    RECEIPT_ANALYSIS_PROMPT,
+)
+from engine.prompts.untrusted import wrap_json, wrap_text
+from engine.risk import queries
+from engine.risk.autonomy import breaker_should_trip, decide, limit_for, trust_tier
+from engine.risk.shield.fingerprint import amount_and_date
+from engine.risk.shield.run import ShieldDoc, run_shield, split_related
+from engine.risk.timeline import SENT_TO_HR, decision_copy, employee_safe, make_step
+from engine.risk.types import (
+    AutonomyDecision,
+    AutonomyTier,
+    ClaimFacts,
+    ClaimLite,
+    DocFingerprint,
+    RiskSignal,
+    Severity,
+    TimelineStep,
+)
+from engine.services import autonomy_store
+from engine.services.action_log import record_action
+from engine.tools.change_detector import detect_changes
 from engine.tools.compliance_tools import get_disparance_date, make_search_policy_rag_tool
 
 logger = logging.getLogger(__name__)
@@ -42,7 +68,8 @@ class ComplianceWorkflowState(TypedDict):
     user_id: str
     all_category: List[str]
     document_ids: Optional[List[str]]
-    is_auto_reimburse_enabled: bool
+    # Generated before the shield runs, so the claim's own documents can be told apart from others.
+    reim_id: str
 
     # Context loaded from DB
     user: Optional[Any]
@@ -57,7 +84,15 @@ class ComplianceWorkflowState(TypedDict):
     judgment: str
     confidence: float
     summary: str
+    signals: List[dict]
     reimbursement_id: str
+
+
+Emit = Callable[[TimelineStep], None]
+
+
+def _no_emit(step: TimelineStep) -> None:
+    pass
 
 
 # -- Helpers -------------------------------------------------------------------
@@ -366,16 +401,25 @@ def load_context(state: ComplianceWorkflowState, session: Session) -> dict:
     }
 
 
-def analyze_receipts(state: ComplianceWorkflowState, tools: list, progress_callback=None) -> dict:
+def _receipt_detail(index: int, total: int, receipt: dict) -> str:
+    category = receipt.get("category") or "Uncategorised"
+    return category if total == 1 else f"Receipt {index + 1} of {total} · {category}"
+
+
+def analyze_receipts(state: ComplianceWorkflowState, tools: list, progress_callback=None, emit: Emit = _no_emit) -> dict:
     """Run per-receipt ReAct agents in parallel using ThreadPoolExecutor."""
     receipts = state["receipts"]
     user = state["user"]
     logger.info("[ANALYZE_RECEIPTS] Starting analysis of %d receipts", len(receipts))
+    position = {id(r): i for i, r in enumerate(receipts)}
 
     def analyze_one(receipt: dict) -> dict:
         doc_id = receipt.get("document_id", "unknown")
         logger.info("[ANALYZE_ONE] Starting analysis for receipt %s", doc_id)
+        emit(make_step("receipt.analyze", "running", _receipt_detail(position[id(receipt)], len(receipts), receipt)))
         human_edit_block = _format_human_edit_block(receipt.get("_human_edit", {}))
+        if human_edit_block:
+            human_edit_block = wrap_text(human_edit_block)
         conditions = state["combined_conditions"]
 
         prompt = RECEIPT_ANALYSIS_PROMPT.format(
@@ -383,14 +427,14 @@ def analyze_receipts(state: ComplianceWorkflowState, tools: list, progress_callb
             department="Unknown",  # department is now normalized, fetch if needed
             rank=str(user.rank if user else 1),
             currency=state.get("currency", "MYR"),
-            receipt_json=json.dumps(receipt, indent=2, default=str),
+            receipt_json=wrap_json(receipt),
             human_edit_block=human_edit_block,
             conditions=json.dumps(conditions, indent=2),
         )
 
         agent = create_react_agent(get_agent_llm(), tools)
         result = agent.invoke(
-            {"messages": [HumanMessage(content=prompt)]},
+            {"messages": [SystemMessage(content=COMPLIANCE_SYSTEM_PROMPT), HumanMessage(content=prompt)]},
             config={"recursion_limit": 25},
         )
 
@@ -411,6 +455,7 @@ def analyze_receipts(state: ComplianceWorkflowState, tools: list, progress_callb
             try:
                 li = future.result()
                 line_items.append(li)
+                emit(make_step("receipt.analyze", "done", _receipt_detail(position[id(receipt)], len(receipts), receipt)))
                 logger.info("[ANALYZE_RECEIPTS] Completed %d/%d receipts", len(line_items), len(receipts))
                 if progress_callback:
                     progress_callback("analyze_receipts", {
@@ -420,6 +465,8 @@ def analyze_receipts(state: ComplianceWorkflowState, tools: list, progress_callb
             except Exception:
                 logger.exception("[ANALYZE_RECEIPTS] Error for receipt %s", receipt.get("document_id"))
                 line_items.append(_parse_line_item("", receipt))
+                # The fallback line item sends the claim to HR; the employee sees the step finish.
+                emit(make_step("receipt.analyze", "done", _receipt_detail(position[id(receipt)], len(receipts), receipt)))
 
     logger.info("[ANALYZE_RECEIPTS] Finished with %d line_items", len(line_items))
     return {"line_items": line_items}
@@ -459,14 +506,14 @@ def final_judgment(state: ComplianceWorkflowState, tools: list) -> dict:
     logger.info("[FINAL_JUDGMENT] Running final judgment on %d line_items", len(state.get("line_items", [])))
 
     prompt = FINAL_JUDGMENT_PROMPT.format(
-        line_items_json=json.dumps(state.get("line_items", []), indent=2, default=str),
+        line_items_json=wrap_json(state.get("line_items", [])),
         totals_json=json.dumps(state.get("totals", {}), indent=2),
         policy_overview=policy.overview_summary if policy else "",
     )
 
     agent = create_react_agent(get_agent_llm(), tools)
     result = agent.invoke(
-        {"messages": [HumanMessage(content=prompt)]},
+        {"messages": [SystemMessage(content=COMPLIANCE_SYSTEM_PROMPT), HumanMessage(content=prompt)]},
         config={"recursion_limit": 15},
     )
 
@@ -508,56 +555,206 @@ def _map_agent_status_to_enum(status_str: str) -> JudgmentResult:
     return mapping.get(status_upper, JudgmentResult.NEEDS_INFO)
 
 
-def save_reimbursement(state: ComplianceWorkflowState, session: Session) -> dict:
-    """Persist the evaluated basket as a Reimbursement record."""
-    from datetime import datetime, timezone
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
 
+
+def _iso_date(value: Any) -> Optional[date]:
+    if not isinstance(value, str):
+        return None
+    try:
+        return date.fromisoformat(value.strip()[:10])
+    except ValueError:
+        return None
+
+
+def _is_hr(user: Any) -> bool:
+    role = getattr(user, "role", None)
+    return getattr(role, "value", role) == UserRole.HR.value
+
+
+def _receipt_doc_ids(state: ComplianceWorkflowState) -> List[UUID]:
+    return [UUID(r["document_id"]) for r in state.get("receipts", []) if r.get("document_id")]
+
+
+def _shield_docs(state: ComplianceWorkflowState, session: Session) -> List[ShieldDoc]:
+    ids = _receipt_doc_ids(state)
+    if not ids:
+        return []
+    docs = session.exec(select(SupportingDocument).where(SupportingDocument.document_id.in_(ids))).all()
+    out = []
+    for d in docs:
+        extracted = d.extracted_data or {}
+        edited = d.editable_fields if d.human_edited and isinstance(d.editable_fields, dict) else {}
+        fingerprint = None
+        if d.sha256:
+            # OCR values, not edits: candidates from other claims are compared on their OCR values too.
+            amount, expense_date = amount_and_date(extracted)
+            fingerprint = DocFingerprint(
+                document_id=str(d.document_id), reim_id=state["reim_id"], user_id=str(d.user_id),
+                sha256=d.sha256, phash=d.phash, reim_status=None, amount=amount, expense_date=expense_date,
+            )
+        out.append(ShieldDoc(
+            document_id=str(d.document_id),
+            extracted=extracted,
+            edited=edited,
+            change_summary=detect_changes(extracted, edited) if edited else {},
+            stored_signals=[RiskSignal.model_validate(s) for s in (d.shield or {}).get("provenance", [])],
+            fingerprint=fingerprint,
+        ))
+    return out
+
+
+def _claim_lite(state: ComplianceWorkflowState, now: datetime) -> ClaimLite:
+    receipts = state.get("receipts", [])
+    first = receipts[0] if receipts else {}
+    return ClaimLite(
+        reim_id=state["reim_id"],
+        user_id=state["user_id"],
+        merchant=first.get("merchant_name") or "",
+        expense_date=_iso_date(first.get("date")),
+        amount=round(sum(float(r.get("total_amount") or 0) for r in receipts), 2),
+        created_at=now,
+        status=ReimbursementStatus.REVIEW.value,
+    )
+
+
+def receipt_shield(
+    state: ComplianceWorkflowState, session: Session, emit: Emit = _no_emit, now: Optional[datetime] = None
+) -> dict:
+    """Run the Receipt Shield on the claim's documents. Signals feed decide() in save_reimbursement."""
+    now = now or _now()
+    config = autonomy_store.get_config(session)
+    history = autonomy_store.employee_history(session, UUID(state["user_id"]), now)
+    signals = run_shield(
+        _shield_docs(state, session),
+        _claim_lite(state, now),
+        queries.recent_claims(session, state["user_id"], now),
+        queries.fingerprint_candidates(session, None, now),
+        limit_for(config, trust_tier(history)),
+        emit,
+    )
+    logger.info("[RECEIPT_SHIELD] %d signal(s): %s", len(signals), [s.code.value for s in signals])
+    return {"signals": [s.model_dump(mode="json") for s in signals]}
+
+
+def _decide(state: ComplianceWorkflowState, session: Session, facts: ClaimFacts, now: datetime) -> AutonomyDecision:
+    uid = UUID(state["user_id"])
+    signals = [RiskSignal.model_validate(s) for s in state.get("signals", [])]
+    return decide(
+        facts,
+        signals,
+        autonomy_store.employee_history(session, uid, now),
+        autonomy_store.payee_status(session, uid),
+        autonomy_store.ledger_snapshot(session, now),
+        autonomy_store.get_config(session),
+        now,
+    )
+
+
+def _verdict_for_decide(judgment: JudgmentResult, line_items: List[dict], claimed: Decimal, approved: Decimal) -> str:
+    """The overall verdict counts as APPROVED only when every line item agrees and nothing was deducted."""
+    if judgment != JudgmentResult.APPROVED:
+        return judgment.value
+    items_ok = bool(line_items) and all(
+        _map_agent_status_to_enum(str(li.get("status", ""))) == JudgmentResult.APPROVED for li in line_items
+    )
+    if items_ok and approved > 0 and approved >= claimed:
+        return judgment.value
+    logger.warning("[SAVE_REIMBURSEMENT] Overall APPROVED disagrees with the line items; deciding as NEEDS_INFO")
+    return JudgmentResult.NEEDS_INFO.value
+
+
+def _decision_log(decision: AutonomyDecision) -> dict:
+    return {
+        "tier": decision.tier.value,
+        "risk_score": decision.risk_score,
+        "hard_stops": [h.value for h in decision.hard_stops],
+        "signals": [s.code.value for s in decision.signals],
+        "config_version": decision.config_version,
+    }
+
+
+def _audit_split_halves(session: Session, decision: AutonomyDecision) -> None:
+    """The first half of a split was paid before the split was visible, so it goes to the audit queue."""
+    for rid in split_related(decision.signals):
+        other = session.get(Reimbursement, UUID(rid))
+        status = getattr(other.status, "value", other.status) if other else None
+        if not other or other.tier != AutonomyTier.AUTO_PAY.value or status not in autonomy_store.AUTO_PAID_STATUSES:
+            continue
+        if not other.audit_selected:
+            other.audit_selected = True
+            other.autonomy = {**(other.autonomy or {}), "audit_selected": True}
+            session.add(other)
+            session.commit()
+            logger.info("[SAVE_REIMBURSEMENT] Split half reim=%s marked for audit", rid)
+
+
+def _breaker_reason(recent: list, auto_paid_last_hour: float, config) -> str:
+    window = recent[: config.breaker_window]
+    high = sum(1 for d in window if any(s.severity == Severity.HIGH for s in d.signals))
+    if high >= math.ceil(config.breaker_high_ratio * config.breaker_window):
+        return f"{high} of the last {len(window)} decisions had a high-risk signal."
+    return f"{config.currency} {auto_paid_last_hour:,.2f} was auto-paid in the last hour."
+
+
+def check_breaker(session: Session, now: datetime) -> bool:
+    """Trip the circuit breaker after a decision when the recent pattern calls for it."""
+    config = autonomy_store.get_config(session)
+    ledger = autonomy_store.ledger_snapshot(session, now)
+    if ledger.breaker_active:
+        return False
+    recent = autonomy_store.recent_decisions(session, config.breaker_window)
+    if not breaker_should_trip(recent, ledger.auto_paid_last_hour, config):
+        return False
+    autonomy_store.trip_breaker(session, _breaker_reason(recent, ledger.auto_paid_last_hour, config), now)
+    return True
+
+
+def save_reimbursement(
+    state: ComplianceWorkflowState, session: Session, emit: Emit = _no_emit, now: Optional[datetime] = None
+) -> dict:
+    """Decide the tier with decide(), then persist the claim and its DECISION log entry together."""
+    now = now or _now()
     user = state["user"]
     settlement_uuid = UUID(state["settlement_id"]) if state.get("settlement_id") else None
+    reim_id = UUID(state.get("reim_id") or str(uuid4()))
+    currency = state.get("currency") or "MYR"
 
     totals = state.get("totals", {})
     total_claimed = Decimal(str(totals.get("total_requested", 0) or 0))
     total_approved = Decimal(str(totals.get("net_approved", 0) or 0))
     total_deduction = Decimal(str(totals.get("total_deduction", 0) or 0))
 
-    # Map judgment string to enum
     judgment_str = state.get("judgment", "MANUAL REVIEW")
     judgment_enum = _map_agent_status_to_enum(judgment_str)
 
-    # Determine final status based on autonomous policy:
-    #   APPROVED + confidence>0.7 + no human edits + within budget → auto-approve (payout triggered by API layer)
-    #   APPROVED + confidence>0.7 + no human edits + over budget  → REVIEW (tagged "over budget")
-    #   REJECTED (any confidence)                                → auto-reject (no payout, employee notified)
-    #   anything else                                            → REVIEW (HR Required Attention)
-    has_human_edits = any(
-        r.get("_human_edit", {}).get("has_changes")
-        for r in state.get("receipts", [])
-    )
-    confidence = state.get("confidence") or 0.0
-    final_status = ReimbursementStatus.REVIEW
-    reviewed_at = None
-    budget_violations = []
-
-    if settings.AUTO_REIMBURSE_ENABLED:
-        if judgment_enum == JudgmentResult.APPROVED and confidence > 0.7 and not has_human_edits:
-            # Check category budgets
-            budget_violations = _check_category_budgets(
-                state.get("policy_id"),
-                state.get("totals", {}).get("by_category", {}),
-                session
-            )
-
-            if budget_violations:
-                # Over budget - route to REVIEW
-                final_status = ReimbursementStatus.REVIEW
-                reviewed_at = None  # Not auto-processed
-            else:
-                # Within budget - auto-approve
-                final_status = ReimbursementStatus.APPROVED
-                reviewed_at = datetime.now(timezone.utc)
-        elif judgment_enum == JudgmentResult.REJECTED:
-            final_status = ReimbursementStatus.REJECTED
-            reviewed_at = datetime.now(timezone.utc)
+    emit(make_step("autonomy.decide", "running"))
+    try:
+        budget_violations = (
+            _check_category_budgets(state["policy_id"], totals.get("by_category", {}), session)
+            if state.get("policy_id") else []
+        )
+        facts = ClaimFacts(
+            reim_id=str(reim_id),
+            user_id=state["user_id"],
+            # The larger figure, so a PARTIAL verdict can't shrink the amount the limits see.
+            amount=float(max(total_claimed, total_approved)),
+            currency=currency,
+            judgment=_verdict_for_decide(judgment_enum, state.get("line_items", []), total_claimed, total_approved),
+            confidence=float(state.get("confidence") or 0.0),
+            over_category_budget=bool(budget_violations),
+            claimant_is_hr=_is_hr(user),
+        )
+        decision = _decide(state, session, facts, now)
+    except Exception:
+        emit(make_step("autonomy.decide", "done", SENT_TO_HR))
+        raise
+    auto_pay = decision.tier == AutonomyTier.AUTO_PAY
+    # Only decide() can approve. Every other tier, an AI rejection included, waits for HR.
+    final_status = ReimbursementStatus.APPROVED if auto_pay else ReimbursementStatus.REVIEW
+    reviewed_at = now if auto_pay else None
+    logger.info("[SAVE_REIMBURSEMENT] Decision for reim=%s: %s", reim_id, decision.explanation)
 
     # Include budget violations in summary and audit notes if present
     final_summary = state.get("summary", "")
@@ -581,6 +778,7 @@ def save_reimbursement(state: ComplianceWorkflowState, session: Session) -> dict
                     item["audit_notes"] = existing_notes + [{"tag": "OVER_BUDGET", "message": budget_note}]
 
     reimbursement = Reimbursement(
+        reim_id=reim_id,
         user_id=UUID(state["user_id"]),
         policy_id=UUID(state["policy_id"]),
         settlement_id=settlement_uuid,
@@ -595,11 +793,15 @@ def save_reimbursement(state: ComplianceWorkflowState, session: Session) -> dict
             "model": settings.CHAT_MODEL,
             "policy_refs": [],
             "reasoning": f"Agent judgment: {judgment_str}",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": now.isoformat(),
         },
         status=final_status,
         reviewed_at=reviewed_at,
         summary=final_summary,
+        tier=decision.tier.value,
+        risk_score=decision.risk_score,
+        autonomy=decision.model_dump(mode="json"),
+        audit_selected=decision.audit_selected,
     )
 
     try:
@@ -656,13 +858,36 @@ def save_reimbursement(state: ComplianceWorkflowState, session: Session) -> dict
             session.add(line_item)
             line_item_count += 1
 
-        session.commit()
+        # Linking the documents lets later duplicate checks see this claim and its status.
+        doc_ids = _receipt_doc_ids(state)
+        if doc_ids:
+            for doc in session.exec(select(SupportingDocument).where(SupportingDocument.document_id.in_(doc_ids))).all():
+                doc.reim_id = reimbursement.reim_id
+                session.add(doc)
+
+        session.flush()
+        # record_action commits, so the claim and its DECISION entry land together or not at all.
+        record_action(session, AgentActionType.DECISION, "agent", reimbursement.reim_id, _decision_log(decision))
         session.refresh(reimbursement)
         logger.info("[SAVE_REIMBURSEMENT] Committed %d line_items for reim_id=%s", line_item_count, reimbursement.reim_id)
     except Exception:
         logger.exception("[SAVE_REIMBURSEMENT] Failed to save reimbursement")
         session.rollback()
+        emit(make_step("autonomy.decide", "done", SENT_TO_HR))
         raise
+
+    emit(make_step("autonomy.decide", "done", decision_copy(decision, currency, float(total_approved))))
+
+    try:
+        _audit_split_halves(session, decision)
+    except Exception:
+        logger.exception("[SAVE_REIMBURSEMENT] Could not mark split halves for audit (reim=%s)", reim_id)
+        session.rollback()
+    try:
+        check_breaker(session, now)
+    except Exception:
+        logger.exception("[SAVE_REIMBURSEMENT] Circuit breaker check failed after reim=%s", reim_id)
+        session.rollback()
 
     return {"reimbursement_id": str(reimbursement.reim_id)}
 
@@ -711,6 +936,46 @@ def _check_category_budgets(policy_id: str, category_totals: dict, session: Sess
 
 # -- Graph Assembly --------------------------------------------------------------
 
+def timeline_emitter(progress_callback) -> Emit:
+    """Publishes steps on the analysis stream. That stream goes to the claimant, so steps are made employee-safe."""
+    def emit(step: TimelineStep) -> None:
+        if not progress_callback:
+            return
+        safe = employee_safe(step)
+        progress_callback("timeline", {**safe.model_dump(), "ts": _now().strftime("%Y-%m-%dT%H:%M:%SZ")})
+    return emit
+
+
+def _policy_detail(session: Session, policy: Optional[Policy]) -> str:
+    from core.models import PolicyReimbursableCategory
+    if not policy:
+        return "No policy matched"
+    count = len(session.exec(
+        select(PolicyReimbursableCategory.category).where(PolicyReimbursableCategory.policy_id == policy.policy_id)
+    ).all())
+    return f"{policy.title} · {count} categor{'y' if count == 1 else 'ies'}"
+
+
+def _totals_detail(state: ComplianceWorkflowState) -> str:
+    totals = state.get("totals", {})
+    currency = state.get("currency") or "MYR"
+    return (
+        f"{currency} {float(totals.get('total_requested', 0) or 0):,.2f} claimed · "
+        f"{currency} {float(totals.get('net_approved', 0) or 0):,.2f} eligible"
+    )
+
+
+_VERDICT_COPY = {
+    JudgmentResult.APPROVED: "Approve",
+    JudgmentResult.PARTIAL: "Approve part of the claim",
+}
+
+
+def _judgment_detail(judgment: str, confidence: float) -> str:
+    verdict = _VERDICT_COPY.get(_map_agent_status_to_enum(judgment or ""), "Needs a closer look")
+    return f"{verdict} · confidence {float(confidence or 0):.2f}"
+
+
 def run_compliance_workflow(
     settlement_id: str,
     policy_id: str,
@@ -719,54 +984,68 @@ def run_compliance_workflow(
     all_category: Optional[List[str]],
     session: Session,
     document_ids: Optional[List[str]] = None,
-    is_auto_reimburse_enabled: bool = False,
     progress_callback=None,
 ) -> dict:
     """
-    Compile and run the 5-node compliance graph.
+    Compile and run the compliance graph.
     Returns a dict with reimbursement_id, judgment, totals, line_items,
     confidence, and summary.
     """
     tools = [get_disparance_date]
     if policy_id:
         tools.append(make_search_policy_rag_tool(policy_id, session))
-    _progress = {"cb": progress_callback}
+    cb = progress_callback
+    emit = timeline_emitter(cb)
 
     def _load_context(state):
-        if _progress["cb"]:
-            _progress["cb"]("load_context", {"message": "Loading policy and receipts..."})
-        return load_context(state, session)
+        if cb:
+            cb("load_context", {"message": "Loading policy and receipts..."})
+        emit(make_step("policy.load", "running"))
+        out = load_context(state, session)
+        emit(make_step("policy.load", "done", _policy_detail(session, out.get("policy"))))
+        return out
 
     def _analyze_receipts(state):
-        if _progress["cb"]:
-            _progress["cb"]("analyze_receipts", {"message": "Analyzing receipts with AI..."})
-        return analyze_receipts(state, tools, progress_callback=_progress["cb"])
+        if cb:
+            cb("analyze_receipts", {"message": "Analyzing receipts with AI..."})
+        return analyze_receipts(state, tools, progress_callback=cb, emit=emit)
+
+    def _receipt_shield(state):
+        return receipt_shield(state, session, emit=emit)
 
     def _aggregate_totals(state):
-        if _progress["cb"]:
-            _progress["cb"]("aggregate_totals", {"message": "Computing totals..."})
-        return aggregate_totals(state)
+        if cb:
+            cb("aggregate_totals", {"message": "Computing totals..."})
+        emit(make_step("totals.aggregate", "running"))
+        out = aggregate_totals(state)
+        emit(make_step("totals.aggregate", "done", _totals_detail({**state, **out})))
+        return out
 
     def _final_judgment(state):
-        if _progress["cb"]:
-            _progress["cb"]("final_judgment", {"message": "Making judgment..."})
-        return final_judgment(state, tools)
+        if cb:
+            cb("final_judgment", {"message": "Making judgment..."})
+        emit(make_step("judgment.final", "running"))
+        out = final_judgment(state, tools)
+        emit(make_step("judgment.final", "done", _judgment_detail(out.get("judgment"), out.get("confidence"))))
+        return out
 
     def _save_reimbursement(state):
-        if _progress["cb"]:
-            _progress["cb"]("save_reimbursement", {"message": "Saving reimbursement result..."})
-        return save_reimbursement(state, session)
+        if cb:
+            cb("save_reimbursement", {"message": "Saving reimbursement result..."})
+        return save_reimbursement(state, session, emit=emit)
 
     graph = StateGraph(ComplianceWorkflowState)
     graph.add_node("load_context", _load_context)
     graph.add_node("analyze_receipts", _analyze_receipts)
+    graph.add_node("receipt_shield", _receipt_shield)
     graph.add_node("aggregate_totals", _aggregate_totals)
     graph.add_node("final_judgment", _final_judgment)
     graph.add_node("save_reimbursement", _save_reimbursement)
 
     graph.add_edge(START, "load_context")
     graph.add_edge("load_context", "analyze_receipts")
-    graph.add_edge("analyze_receipts", "aggregate_totals")
+    graph.add_edge("analyze_receipts", "receipt_shield")
+    graph.add_edge("receipt_shield", "aggregate_totals")
     graph.add_edge("aggregate_totals", "final_judgment")
     graph.add_edge("final_judgment", "save_reimbursement")
     graph.add_edge("save_reimbursement", END)
@@ -781,7 +1060,7 @@ def run_compliance_workflow(
         "user_id": user_id,
         "all_category": all_category or [],
         "document_ids": document_ids or [],
-        "is_auto_reimburse_enabled": is_auto_reimburse_enabled,
+        "reim_id": str(uuid4()),
         "user": None,
         "policy": None,
         "receipts": [],
@@ -792,6 +1071,7 @@ def run_compliance_workflow(
         "judgment": "",
         "confidence": 0.0,
         "summary": "",
+        "signals": [],
         "reimbursement_id": "",
     })
 
