@@ -128,18 +128,18 @@ def _parse_batch(data: dict) -> PayoutBatch:
     return PayoutBatch(header.get("payout_batch_id", ""), header.get("batch_status", ""), items)
 
 
+def _as_bool(value: object) -> bool:
+    return value.lower() == "true" if isinstance(value, str) else bool(value)
+
+
 def _parse_user(data: dict) -> PayPalUser:
     email = data.get("email")
     if not email:
         emails = data.get("emails") or []
         primary = next((e for e in emails if e.get("primary")), emails[0] if emails else None)
         email = primary.get("value") if primary else None
-    verified = data.get("verified_account")
-    if verified is None:
-        verified = data.get("email_verified", False)
-    if isinstance(verified, str):
-        verified = verified.lower() == "true"
-    return PayPalUser(payer_id=data.get("payer_id") or data.get("user_id", ""), email=email, verified=bool(verified))
+    verified = _as_bool(data.get("verified_account")) or _as_bool(data.get("email_verified"))
+    return PayPalUser(payer_id=data.get("payer_id") or data.get("user_id", ""), email=email, verified=verified)
 
 
 class PayPalClient:

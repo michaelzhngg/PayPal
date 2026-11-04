@@ -159,6 +159,14 @@ async def test_userinfo_accepts_openid_email_verified():
     assert (u.payer_id, u.email, u.verified) == ("P3", "e@f.com", True)
 
 
+@respx.mock
+async def test_userinfo_accepts_email_verified_when_account_flag_is_false():
+    respx.get(url__startswith=f"{BASE}/v1/identity/oauth2/userinfo").mock(return_value=httpx.Response(200, json={
+        "payer_id": "P4", "email": "g@h.com", "verified_account": False, "email_verified": True}))
+    u = await client().get_userinfo("USER_TOKEN")
+    assert (u.payer_id, u.email, u.verified) == ("P4", "g@h.com", True)
+
+
 async def test_mock_client_succeeds_after_delay():
     clock = [1000.0]
     mock = MockPayPalClient(now=lambda: clock[0])
