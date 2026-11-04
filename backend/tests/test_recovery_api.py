@@ -378,3 +378,25 @@ def test_hr_cannot_waive_their_own_recovery(env):
     users["hr2"] = hr2
     act_as("hr2")
     assert client.post(f"/api/v1/recoveries/{rec['recovery_id']}/waive").json() == {"detail": "SELF_RECOVERY"}
+
+
+def test_s8_seeded_recovery_runs_end_to_end(env):
+    """Same calls as demo/scripts/s8_recovery.py --recovery-id <id> --execute, on a recovery shaped like the seed's."""
+    client, db, users, _ = env
+    emp = users["emp"]
+    stay = _claim(db, emp, amount=195.0, days_ago=10)
+    _claim(db, emp, amount=60.0, days_ago=40)
+    now = datetime.now(timezone.utc)
+    seeded = Recovery(reim_id=stay.reim_id, user_id=emp.user_id, amount=30.0, currency="MYR", reason=REASON,
+                      status="NOTICE_SENT", dispute_until=now - timedelta(days=1), created_by=users["hr"].user_id,
+                      created_at=now - timedelta(days=6), updated_at=now - timedelta(days=6))
+    db.add(seeded)
+    db.commit()
+    rid = str(seeded.recovery_id)
+
+    listed = client.get("/api/v1/recoveries", params={"status": "NOTICE_SENT"}).json()
+    assert rid in {r["recovery_id"] for r in listed}
+    preview = client.get(f"/api/v1/recoveries/{rid}/invoice-preview").json()
+    assert preview["path"] == "INVOICE" and preview["amount"] == 30.0
+    done = client.post(f"/api/v1/recoveries/{rid}/execute").json()
+    assert done["status"] == "INVOICED" and done["paypal_invoice_id"].startswith("INV2-")
