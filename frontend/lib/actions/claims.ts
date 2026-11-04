@@ -6,6 +6,7 @@
 
 import { apiGet, apiPost, apiPut, apiDelete, apiPostMultipart, API_PREFIX } from "@/lib/api/client";
 import type {
+  ApiResult,
   ClaimSummary,
   DetailedClaim,
   ReimbursementRaw,
@@ -37,6 +38,12 @@ export async function getClaims(status?: string): Promise<ClaimSummary[]> {
 export async function getRawReimbursements(): Promise<ReimbursementRaw[]> {
   const result = await apiGet<ReimbursementRaw[]>(`${API_PREFIX}/reimbursements/`);
   return result.data ?? [];
+}
+
+/** The employee's claims with the failure kept, so a screen can tell "none yet" from "couldn't load". */
+export async function getReimbursementsForCalendar(): Promise<ApiResult<ReimbursementRaw[]>> {
+  // The endpoint defaults to 50 rows, which would leave older months looking empty.
+  return apiGet<ReimbursementRaw[]>(`${API_PREFIX}/reimbursements/?limit=500`);
 }
 
 /** Fetch a single reimbursement as raw data (includes line_items) — used by history page. */
