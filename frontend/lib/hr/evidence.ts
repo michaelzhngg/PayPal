@@ -133,6 +133,7 @@ const APPROVAL_ERRORS: Record<string, string> = {
   ALREADY_APPROVED: "You already approved. A second HR member has to approve this claim.",
   SELF_APPROVAL: "You can't approve your own claim. Another HR member has to review it.",
   NOTHING_TO_PAY: "This claim has no approved amount to pay. Set the amounts, or reject it with a note.",
+  AMOUNT_ABOVE_CLAIMED: "An approved amount is higher than what the employee claimed. Lower it and try again.",
 };
 
 /** PATCH /status answers with bare codes for approval conflicts; everything else passes through. */
