@@ -1,6 +1,6 @@
 # PayPal sandbox
 
-How Reclaim Pay's PayPal sandbox is set up, and how to show money arriving during the demo. No secrets in this file: keys live in the password manager and in Render.
+How Reclaim Pay's PayPal sandbox is set up, and how to show money arriving during the demo. No secrets in this file: keys live in the password manager and in the server's `.env`.
 
 ## Accounts
 
@@ -21,7 +21,7 @@ The payer ID of each personal account goes into `DEMO_PAYER_ID_1..3` for the see
    - Return URL for Sign in with PayPal: `{FRONTEND_PUBLIC_URL}/login/paypal/callback`. Next.js handles this one because only it can set the session cookie.
    - Attributes: email, PayPal account ID (payer ID), account verification status
    - Until staging exists, use a tunnel: `cloudflared tunnel --url http://localhost:8000`, and set `BACKEND_PUBLIC_URL` to the tunnel URL.
-4. **Webhook.** In the app, add a webhook at `{BACKEND_PUBLIC_URL}/api/v1/paypal/webhook` for `PAYMENT.PAYOUTS-ITEM.*`, `PAYMENT.PAYOUTSBATCH.*` and `INVOICING.INVOICE.PAID`. Copy the webhook ID into `PAYPAL_WEBHOOK_ID`.
+4. **Webhook.** In the app, add a webhook at `{BACKEND_PUBLIC_URL}/api/v1/paypal/webhook` for `PAYMENT.PAYOUTS-ITEM.*` and `INVOICING.INVOICE.PAID`. Copy the webhook ID into `PAYPAL_WEBHOOK_ID`.
 5. **Prove a payout by hand** before relying on the code:
 
    ```bash
@@ -43,8 +43,8 @@ The payer ID of each personal account goes into `DEMO_PAYER_ID_1..3` for the see
 | `PAYPAL_MOCK_MODE` | `true` | `false` |
 | `PAYPAL_BASE_URL` | `https://api-m.sandbox.paypal.com` | same |
 | `PAYPAL_WEB_URL` | `https://www.sandbox.paypal.com` | same |
-| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | only with a tunnel | Render dashboard |
-| `PAYPAL_WEBHOOK_ID` | only with a tunnel | Render dashboard |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | only with a tunnel | server `.env` |
+| `PAYPAL_WEBHOOK_ID` | only with a tunnel | server `.env` |
 | `PAYPAL_CURRENCY` | `MYR` (or `USD` after the spike) | same |
 | `BACKEND_PUBLIC_URL`, `FRONTEND_PUBLIC_URL` | `http://localhost:8000`, `http://localhost:3000` | staging URLs |
 

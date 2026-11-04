@@ -80,7 +80,7 @@ docker compose exec -e DEMO_PAYER_ID_1=... -e DEMO_PAYER_ID_2=... -e DEMO_PAYER_
    | Accommodations | 250 (rank caps: rank 1 to 2 RM250, rank 3 to 4 RM400, rank 5 and up RM600) | S2, S3 |
    | Equipment | 300 | none |
 
-   If the agent missed an amount, set it in HR settings or with SQL, and note it in `docs/hackathon/staging.md`.
+   If the agent missed an amount, set it in HR settings or with SQL.
 4. Deprecate the old mock policy (`BTP-2024`). Its categories, such as "Toll Expenses" and its own "Accommodations", are offered to the OCR as well, so a receipt can match the wrong policy.
 
 The PDF was checked with the backend's PDF reader (`pymupdf4llm` 1.27.2.2), and it extracts every line and both tables. The PDF uses base-14 Helvetica on purpose: that reader drops whole lines that contain "fi" or "ff" ligatures, and HTML-based PDF renderers produce those ligatures.
@@ -129,11 +129,10 @@ uv run demo/scripts/flood.py --base-url https://<staging-api> --count 8
 - Claims start 13 seconds apart, because `/reimbursements/analyze` is limited to 5 calls per minute. 8 claims take about 2 minutes.
 - Each upload is renamed `flood-NN-<receipt>`, because the API stores files by name per user, and a repeated name would overwrite the earlier file.
 - Don't reject the flood claims as HR before the next take. A rejected claim with a HIGH signal counts as a confirmed issue and drops `employee@` to NEW. Run the seed with `--reset-demo --clear-takes` instead.
-- The autonomy routes aren't on `hackathon/reclaim-pay` yet. Until they are, the final status check prints a 404 notice.
 
 ## S8: overpayment recovery
 
-The seed creates the S8 data. The recovery API (DETAIL-PLAN 9.5) isn't built yet, so `s8_recovery.py` already calls the planned routes and stops with a message on a 404.
+The seed creates the S8 data. `s8_recovery.py` calls the recovery API (DETAIL-PLAN 9.5). HR can run the same steps from Payouts > Recoveries.
 
 What the seed sets up: E04 (`e04@seed.reclaim.my`) has an auto-paid Hotel Seri Kenanga claim from 10 days ago for RM195.00 (room 165.00 and the `s8_breakfast.jpg` breakfast buffet, 30.00), paid while E04 was TRUSTED, with `audit_selected=True`. Its RM30 recovery has the reason "Breakfast was included in the hotel rate and also claimed separately", the status NOTICE_SENT, and a `dispute_until` one day in the past. The recovery makes E04 NEW, which is why S8 doesn't use `employee@`. The seed prints the claim reference at the end.
 
