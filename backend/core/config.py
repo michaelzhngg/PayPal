@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     PAYPAL_CLIENT_SECRET: str = ""
     PAYPAL_WEBHOOK_ID: str = ""
     PAYPAL_CURRENCY: str = "MYR"
+    # Sandbox-only escape hatch when PayPal omits the verification flags (e.g. consent cached
+    # before the app requested them). Live sign-in still requires PayPal's verified flag.
+    PAYPAL_ALLOW_UNVERIFIED_SANDBOX: bool = False
     # The only identity mock mode's fake PayPal reports at sign-in (the seeded demo employee). Empty turns it off.
     PAYPAL_MOCK_SIGNIN_PAYER_ID: str = "DEMOMOCKS123"
     BACKEND_PUBLIC_URL: str = "http://localhost:8000"
