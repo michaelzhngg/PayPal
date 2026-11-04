@@ -33,7 +33,6 @@ services:
         value: "https://api.reclaimai.dev"
       - key: FRONTEND_PUBLIC_URL
         value: "https://reclaimai.dev"
-      # CORS allow-list. Keep the onrender.com origin until the custom domain is verified.
       - key: FRONTEND_URL
         value: "https://reclaimai.dev,https://www.reclaimai.dev,https://reclaim-pay-web.onrender.com"
       - key: VAPID_KEYS_FILE
@@ -88,8 +87,7 @@ services:
       - reclaimai.dev
     autoDeployTrigger: commit
     envVars:
-      # Baked in at build time: changing it needs a rebuild, not a restart.
       - key: NEXT_PUBLIC_API_URL
         value: "https://api.reclaimai.dev"
       - key: INTERNAL_API_URL
-        value: "https://reclaim-pay-api.onrender.com"
+        value: "https://api.reclaimai.dev"
