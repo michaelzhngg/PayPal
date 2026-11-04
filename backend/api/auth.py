@@ -134,10 +134,17 @@ def update_profile(
     body: UpdateProfileRequest,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
+    claims: dict = Depends(deps.get_session_claims),
 ) -> dict:
     """Update current user's profile."""
     # Check email uniqueness if it changed
     if body.email != current_user.email:
+        # The email is the password login, and that login is how an employee recovers from a PayPal takeover.
+        if deps.payout_changes_paused_until(claims):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sign in with your password to change your email.",
+            )
         existing = db.exec(select(User).where(User.email == body.email)).first()
         if existing and existing.user_id != current_user.user_id:
             raise HTTPException(
