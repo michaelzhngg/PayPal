@@ -6,7 +6,7 @@ import type { TimelineStatus, TimelineStepState } from "@/lib/api/reclaim-pay-ty
 
 const STATUS_STYLE: Record<TimelineStatus, { icon: typeof CheckCircle2; className: string; srLabel: string }> = {
   running: { icon: Loader2, className: "text-accent animate-spin motion-reduce:animate-none", srLabel: "In progress" },
-  done: { icon: CheckCircle2, className: "text-accent", srLabel: "Done" },
+  done: { icon: CheckCircle2, className: "text-ink", srLabel: "Done" },
   warn: { icon: AlertTriangle, className: "text-warning", srLabel: "Needs attention" },
   fail: { icon: XCircle, className: "text-danger", srLabel: "Failed" },
 };
@@ -34,10 +34,10 @@ export default function AgentTimeline({ steps, title = "What the agent is checki
           return (
             <motion.li
               key={s.step}
-              // Rows slide in as the agent reaches each check, so progress reads as sequence.
-              initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              // Rows fade in as the agent reaches each check, so progress reads as sequence. No movement, no bounce.
+              initial={reduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.15, ease: "linear" }}
               className="flex items-start gap-3"
             >
               <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${iconClass}`} aria-hidden="true" />
