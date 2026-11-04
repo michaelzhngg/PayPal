@@ -67,7 +67,7 @@ export default function LedgerTab() {
             "Loading payouts…"
           ) : (
             <>
-              <span className="font-semibold text-ink">{counts.total}</span>{" "}
+              <span className="font-mono font-medium text-ink">{counts.total}</span>{" "}
               {counts.total === 1 ? "payout" : "payouts"}
               {counts.inFlight > 0 && (
                 <>
@@ -90,7 +90,7 @@ export default function LedgerTab() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as StatusFilter)}
-            className="min-h-[44px] bg-surface border border-line/40 rounded-lg px-3 text-sm font-medium text-ink focus-visible:outline-2 focus-visible:outline-accent cursor-pointer"
+            className="min-h-[44px] bg-surface border border-line rounded-control px-3 text-sm font-medium text-ink focus-visible:outline-2 focus-visible:outline-accent cursor-pointer"
           >
             <option value="ALL">All statuses</option>
             {STATUS_OPTIONS.map((s) => (
