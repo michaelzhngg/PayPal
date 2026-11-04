@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatMoney } from "@/lib/api/reclaim-pay-types";
-import { decisions, ledgerRows, payeeVariants, timelineS1, timelineS4 } from "./reclaimPayFixtures";
+import { decisions, ledgerRows, payeeVariants, recoveryVariants, timelineS1, timelineS4, trustVariants } from "./reclaimPayFixtures";
 
 describe("timeline fixtures follow the spec", () => {
   it("S1 runs every step in spec order and ends in AUTO_PAY", () => {
@@ -41,5 +41,24 @@ describe("formatMoney", () => {
   it("matches the backend's notification format", () => {
     expect(formatMoney("MYR", 48)).toBe("MYR 48.00");
     expect(formatMoney("MYR", 1150)).toBe("MYR 1,150.00");
+  });
+});
+
+describe("trust and recovery fixtures follow the backend contract", () => {
+  it("cover the fast-track card states", () => {
+    expect(trustVariants.standard?.next_tier).toBe("TRUSTED");
+    expect(trustVariants.trusted?.next_tier).toBeNull();
+    expect(trustVariants.limited?.reasons.length).toBeGreaterThan(0);
+    expect(trustVariants.none).toBeNull();
+  });
+  it("hold no risk scores or signal names", () => {
+    const text = JSON.stringify(trustVariants);
+    expect(text).not.toMatch(/risk_score|signals|PROMPT_INJECTION|DUPLICATE_RECEIPT/);
+  });
+  it("open the dispute window only on the open notice", () => {
+    const now = Date.now();
+    expect(new Date(recoveryVariants.open![0].dispute_until).getTime()).toBeGreaterThan(now);
+    expect(new Date(recoveryVariants.closed![0].dispute_until).getTime()).toBeLessThan(now);
+    expect(recoveryVariants.open![0].status).toBe("NOTICE_SENT");
   });
 });
