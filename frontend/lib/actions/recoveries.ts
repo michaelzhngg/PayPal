@@ -19,7 +19,7 @@ export async function listRecoveries(status?: RecoveryStatus): Promise<Recovery[
   const fixture = variant?.filter(r => !status || r.status === status) ?? null;
   return withFixture(fixture, async () => {
     const query = status ? `?status=${status}` : "";
-    const result = await apiGet<Recovery[]>(`${API_PREFIX}/recoveries/${query}`);
+    const result = await apiGet<Recovery[]>(`${API_PREFIX}/recoveries${query}`);
     return result.error ? null : (result.data ?? []);
   });
 }
