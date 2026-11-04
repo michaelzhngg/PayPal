@@ -425,7 +425,7 @@ The `enabled` column in `autonomy_settings` is the source of truth. `get_config(
 | STANDARD | At least 3 paid claims |
 | NEW | Otherwise |
 
-A confirmed issue is a recovery that wasn't waived, or an HR rejection of a claim that had a HIGH signal.
+A confirmed issue is a resolved recovery (OFFSET, INVOICED or RECOVERED; a fresh or disputed notice doesn't count), or an HR rejection of a claim that had a HIGH signal.
 
 ### 7.6 After payment
 

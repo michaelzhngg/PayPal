@@ -472,7 +472,6 @@ export interface EditDocumentResponse {
   document_id: string;
   human_edited: boolean;
   change_count: number;
-  high_risk_count: number;
 }
 
 // ─── Document Change Logs ────────────────────────────────────────────────────

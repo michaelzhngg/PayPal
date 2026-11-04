@@ -10,7 +10,7 @@ from uuid import UUID
 from pydantic import BaseModel, ValidationError
 from sqlmodel import Session, select
 
-from core.enums import RecoveryStatus, ReimbursementStatus
+from core.enums import ReimbursementStatus
 from core.models import Recovery, Reimbursement
 from engine.risk.autonomy import decide, limit_for, trust_tier
 from engine.risk.types import (
@@ -137,7 +137,7 @@ def _issue_dates_by_user(db: Session, user_ids: set[UUID]) -> dict[UUID, list[da
     dates: dict[UUID, list[datetime]] = {u: [] for u in user_ids}
     recoveries = db.exec(
         select(Recovery.user_id, Recovery.created_at).where(
-            Recovery.user_id.in_(user_ids), Recovery.status != RecoveryStatus.WAIVED.value
+            Recovery.user_id.in_(user_ids), Recovery.status.in_(store.CONFIRMED_RECOVERY_STATUSES)
         )
     ).all()
     for user_id, created in recoveries:
@@ -207,7 +207,7 @@ def load_backtest_cases(db: Session, now: datetime, days: int = 90) -> list[Back
     issues = _issue_dates_by_user(db, user_ids)
     recovered = set(db.exec(
         select(Recovery.reim_id).where(
-            Recovery.reim_id.in_([r.reim_id for r in claims]), Recovery.status != RecoveryStatus.WAIVED.value
+            Recovery.reim_id.in_([r.reim_id for r in claims]), Recovery.status.in_(store.CONFIRMED_RECOVERY_STATUSES)
         )
     ).all())
 
