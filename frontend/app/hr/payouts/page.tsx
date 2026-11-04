@@ -5,6 +5,7 @@ import { AlertCircle, Inbox, RefreshCw } from "lucide-react";
 import { getLedger } from "@/lib/actions/paypal";
 import type { PayoutLedgerRow, PayoutStatus } from "@/lib/api/reclaim-pay-types";
 import LedgerGrid from "@/components/hr-grid/LedgerGrid";
+import ReconcileBadge from "@/components/hr-grid/ReconcileBadge";
 import {
   STATUS_META,
   filterByStatus,
@@ -80,6 +81,7 @@ export default function HRPayoutsPage() {
 
       {/* Audit queue, Recoveries and Agent log return as tabs one at a time, once each is built (UX QA Q5). */}
       <section aria-label="Payout ledger">
+        <ReconcileBadge />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
           <p className="text-sm text-on-surface-variant" aria-live="polite">
             {isLoading ? (
