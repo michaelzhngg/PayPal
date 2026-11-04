@@ -47,9 +47,9 @@ function contextFieldsOf(bundle: ClaimBundle) {
 
 function Card({ title, children, right }: { title: React.ReactNode; children: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <div className="bg-surface/80 rounded-xl overflow-hidden">
-      <div className="px-6 py-4 border-b border-line/15 flex items-center justify-between">
-        <h3 className="font-display font-bold text-base text-ink">{title}</h3>
+    <div className="bg-surface border border-line rounded-card overflow-hidden">
+      <div className="px-4 sm:px-6 py-3 min-h-[56px] border-b border-line flex items-center justify-between gap-3">
+        <h3 className="font-display font-semibold text-base text-ink">{title}</h3>
         {right}
       </div>
       {children}
@@ -60,7 +60,7 @@ function Card({ title, children, right }: { title: React.ReactNode; children: Re
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold font-display text-ink-muted uppercase tracking-wider mb-0.5">{label}</p>
+      <p className="text-xs text-ink-muted mb-0.5">{label}</p>
       <p className="text-sm font-medium text-ink">{value}</p>
     </div>
   );
@@ -94,7 +94,10 @@ function ClaimFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black overflow-auto"
+      className="fixed inset-0 z-[100] bg-ink/90 overflow-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Official claim form"
       onClick={onClose}
     >
       <style>{`
@@ -106,8 +109,10 @@ function ClaimFormModal({
 
       {/* High-visibility fixed close button */}
       <button
+        type="button"
+        autoFocus
         onClick={onClose}
-        className="fixed top-4 right-4 md:top-8 md:right-8 z-[200] p-3 bg-ink/60 hover:bg-ink/90 text-white rounded-full shadow-overlay transition-all active:scale-95 border border-white/10"
+        className="fixed top-4 right-4 md:top-8 md:right-8 z-[200] inline-flex items-center justify-center w-12 h-12 bg-surface text-ink rounded-control border border-line hover:bg-surface-muted transition-colors cursor-pointer"
         aria-label="Close preview"
       >
         <X className="w-5 h-5 md:w-6 md:h-6" />
@@ -117,7 +122,7 @@ function ClaimFormModal({
       <div className="min-h-full w-full flex justify-center p-4 md:p-12 pb-24 touch-pan-x touch-pan-y">
         {/* A4 Physical Paper */}
         <div
-          className="a4-modal-zoom bg-white rounded-sm shrink-0 border border-line/50"
+          className="a4-modal-zoom bg-white rounded-sm shrink-0 border border-line"
           style={{ width: "794px", minHeight: "1123px", fontFamily: "sans-serif" }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -126,10 +131,9 @@ function ClaimFormModal({
           <div className="flex items-start justify-between border-b-2 border-ink pb-6 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">R</span>
-                </div>
-                <span className="font-bold text-xl text-ink tracking-tight">Reclaim Pay</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/logo.svg" alt="" className="w-8 h-8" />
+                <span className="font-display font-semibold text-xl text-ink">Reclaim Pay</span>
               </div>
               <p className="text-ink-muted text-xs">Automated Reimbursement Management System</p>
             </div>
@@ -137,7 +141,7 @@ function ClaimFormModal({
               <p className="font-bold text-base text-ink">EXPENSE CLAIM FORM</p>
               <p className="text-ink-muted font-mono text-xs">{formatClaimRef(bundle.id)}</p>
               <p className="text-ink-muted text-xs mt-1">Date: {new Date(bundle.submitted_at).toLocaleDateString()}</p>
-              <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold uppercase ${statusClass}`}>
+              <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold ${statusClass}`}>
                 {effectiveStatus}
               </span>
             </div>
@@ -145,7 +149,7 @@ function ClaimFormModal({
 
           {/* Employee Details */}
           <section className="mb-8">
-            <h3 className="font-bold text-xs text-ink-muted uppercase tracking-wider mb-3 border-b border-line pb-1">
+            <h3 className="font-bold text-xs text-ink-muted mb-3 border-b border-line pb-1">
               Employee Information
             </h3>
             <div className="grid grid-cols-2 gap-x-8 gap-y-2">
@@ -165,7 +169,7 @@ function ClaimFormModal({
 
           {/* Claim Context */}
           <section className="mb-8">
-            <h3 className="font-bold text-xs text-ink-muted uppercase tracking-wider mb-3 border-b border-line pb-1">
+            <h3 className="font-bold text-xs text-ink-muted mb-3 border-b border-line pb-1">
               Claim Context
             </h3>
             <div className="grid grid-cols-2 gap-x-8 gap-y-2">
@@ -204,12 +208,12 @@ function ClaimFormModal({
 
           {/* Line Items Table */}
           <section className="mb-8">
-            <h3 className="font-bold text-xs text-ink-muted uppercase tracking-wider mb-3 border-b border-line pb-1">
+            <h3 className="font-bold text-xs text-ink-muted mb-3 border-b border-line pb-1">
               Expense Line Items ({bundle.line_items.length} Receipts)
             </h3>
             <table className="w-full border-collapse" style={{ fontSize: "12px" }}>
               <thead>
-                <tr className="bg-surface-muted text-ink-muted uppercase text-[10px] tracking-wider">
+                <tr className="bg-surface-muted text-ink-muted text-xs">
                   <th className="text-left py-2 px-3 border border-line font-semibold w-16">Ref</th>
                   <th className="text-left py-2 px-3 border border-line font-semibold">Category / Audit Notes</th>
                   <th className="text-right py-2 px-3 border border-line font-semibold w-28">Requested (RM)</th>
@@ -226,7 +230,7 @@ function ClaimFormModal({
                     : item.status === "PENDING"  ? "bg-surface-muted"
                     : "bg-white"
                     }>
-                      <td className="py-2 px-3 border border-line font-mono text-[10px] text-ink-muted">
+                      <td className="py-2 px-3 border border-line font-mono text-xs text-ink-muted">
                         {item.document_id.slice(0, 8)}
                       </td>
                       <td className="py-2 px-3 border border-line">
@@ -234,7 +238,7 @@ function ClaimFormModal({
                         {item.audit_notes.length > 0 && (
                           <div className="mt-1 space-y-0.5">
                             {item.audit_notes.map((adj, j) => (
-                              <div key={j} className="text-[10px] text-ink-muted flex gap-1">
+                              <div key={j} className="text-xs text-ink-muted flex gap-1">
                                 <span className="text-ink-muted">↳</span>
                                 <span>{adj.tag} {adj.message}</span>
                               </div>
@@ -249,7 +253,7 @@ function ClaimFormModal({
                         {(item.approved_amount || 0).toFixed(2)}
                       </td>
                       <td className="py-2 px-3 border border-line text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
+                        <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
                           item.status === "APPROVED" ? "bg-success-soft text-success"
                         : item.status === "PARTIAL_APPROVE" ? "bg-warning-soft text-warning"
                         : item.status === "PENDING"  ? "bg-surface-muted text-ink-muted"
@@ -277,10 +281,10 @@ function ClaimFormModal({
                      <td className="py-2 px-3 border border-line" />
                   </tr>
                 )}
-                <tr className="bg-accent-soft">
-                  <td colSpan={2} className="py-3 px-3 border border-line text-right text-accent font-bold uppercase tracking-wide">NET APPROVED</td>
+                <tr className="bg-surface-muted">
+                  <td colSpan={2} className="py-3 px-3 border border-line text-right text-ink font-bold">Net approved</td>
                   <td className="py-3 px-3 border border-line" />
-                  <td className="py-3 px-3 border border-line text-right tabular-nums text-accent font-bold text-base">{totalApproved.toFixed(2)}</td>
+                  <td className="py-3 px-3 border border-line text-right font-mono text-ink font-semibold text-base">{totalApproved.toFixed(2)}</td>
                   <td className="py-3 px-3 border border-line" />
                 </tr>
               </tfoot>
@@ -299,9 +303,9 @@ function ClaimFormModal({
           </div>
 
           {/* Footer */}
-          <div className="mt-8 pt-4 border-t border-surface-muted flex justify-between text-ink-muted text-[10px]">
+          <div className="mt-8 pt-4 border-t border-surface-muted flex justify-between text-ink-muted text-xs">
             <span>Generated by Reclaim Pay · {formatClaimRef(bundle.id)}</span>
-            <span>CONFIDENTIAL — Internal Use Only</span>
+            <span>Confidential, internal use only</span>
           </div>
         </div>
       </div>
@@ -332,6 +336,14 @@ export default function ViewPage() {
       .catch(() => setBundle(null));
   }, [id]);
 
+  // Escape closes the receipt image.
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setLightbox(null); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [lightbox]);
+
   if (bundle === undefined) return (
     <div className="flex items-center justify-center min-h-[60vh] gap-3 text-ink-muted">
       <Loader2 className="w-5 h-5 animate-spin" />
@@ -342,7 +354,7 @@ export default function ViewPage() {
   if (!bundle) return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
       <p className="text-ink-muted">This claim couldn&apos;t be loaded. It may not exist: <code className="font-mono">{id}</code></p>
-      <button onClick={() => router.push("/hr/dashboard")} className="px-5 py-2 rounded-xl bg-accent text-on-accent text-sm font-semibold">Back to Dashboard</button>
+      <button type="button" onClick={() => router.push("/hr/dashboard")} className="min-h-[44px] px-5 rounded-control bg-accent text-on-accent text-sm font-semibold hover:bg-accent-hover transition-colors cursor-pointer">Back to Dashboard</button>
     </div>
   );
 
@@ -371,38 +383,32 @@ export default function ViewPage() {
   }
 
   return (
-    <div className="relative min-h-full p-6 md:p-10 pb-32 lg:pb-10">
-      {/* Ambient glow */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-[420px] h-[420px] rounded-full bg-success opacity-[0.04] blur-[80px]" />
-        <div className="absolute top-40 right-32 w-[260px] h-[260px] rounded-full bg-accent opacity-[0.04] blur-[64px]" />
-      </div>
-
-      <div className="relative z-10 mb-8">
-        <button onClick={() => router.push("/hr/dashboard")} className="inline-flex items-center gap-2 text-sm font-semibold text-ink-muted hover:text-accent mb-4 transition-colors cursor-pointer">
-          <ArrowLeft className="w-4 h-4" strokeWidth={2.5} /> Back to Dashboard
+    <div className="relative min-h-full px-4 py-5 sm:px-6 md:p-10 pb-32 lg:pb-10">
+      <div className="mb-6 md:mb-8">
+        <button type="button" onClick={() => router.push("/hr/dashboard")} className="inline-flex items-center gap-2 min-h-[44px] -ml-1 px-1 mb-2 rounded-control text-sm font-semibold text-ink-muted hover:text-ink transition-colors cursor-pointer">
+          <ArrowLeft className="w-4 h-4" strokeWidth={2.25} aria-hidden="true" /> Back to Dashboard
         </button>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <h2 className="font-display font-bold text-ink" style={{ fontSize: "2rem", letterSpacing: "-0.02em" }}>
-            Review AI Approval
-          </h2>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-success-soft text-success border border-success/30 w-fit">
-            <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.5} /> Passed AI Review
+          <h1 className="font-display font-semibold text-2xl md:text-3xl text-ink">
+            Confirm Claim
+          </h1>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success-soft text-success w-fit">
+            <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.25} aria-hidden="true" /> Passed every check
           </span>
         </div>
         <p className="text-sm text-ink-muted mt-1">
-          Claim <span className="font-mono font-semibold">{formatClaimRef(bundle.id)}</span> · Submitted {new Date(bundle.submitted_at).toLocaleString("en-MY")} · <span className="text-success font-semibold">{pct}% confidence</span>
+          Claim <span className="font-mono font-medium text-ink">{formatClaimRef(bundle.id)}</span> · Submitted {new Date(bundle.submitted_at).toLocaleString("en-MY")} · <span className="font-mono">{pct}%</span> AI confidence
         </p>
       </div>
 
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 min-w-0">
 
         {/* ═══ LEFT ═══ */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 min-w-0">
 
           {/* Employee Identity */}
           <Card title="Employee Identity">
-            <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
               {identityFields.map(([l, v]) => <Field key={l} label={l} value={v} />)}
             </div>
           </Card>
@@ -410,7 +416,7 @@ export default function ViewPage() {
           {/* Claim Context: shown only when at least one value was recorded */}
           {contextFields.length > 0 && (
             <Card title="Claim Context">
-              <div className="p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {contextFields.map(([l, v]) => <Field key={l} label={l} value={v} />)}
               </div>
             </Card>
@@ -418,14 +424,12 @@ export default function ViewPage() {
 
           {/* Official Document */}
           <Card title="Official Document">
-            <div className="p-6">
+            <div className="p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2.5 bg-accent/10 rounded-xl shrink-0">
-                  <FileText className="w-5 h-5 text-accent" />
-                </div>
+                <FileText className="w-5 h-5 text-ink-muted shrink-0" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                  <p className="font-display font-semibold text-sm text-ink">Official Claim Form</p>
-                  <p className="font-body text-xs text-ink-muted">
+                  <p className="font-body font-semibold text-sm text-ink">Official Claim Form</p>
+                  <p className="font-mono text-xs text-ink-muted break-all">
                     {formatClaimRef(bundle.id)}_claim_form.pdf
                   </p>
                 </div>
@@ -433,52 +437,53 @@ export default function ViewPage() {
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   id={`view-form-${bundle.id}`}
+                  type="button"
                   onClick={() => setShowFormModal(true)}
-                  className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-accent text-on-accent font-body font-semibold text-sm hover:bg-accent/90 active:scale-[0.98] transition-all cursor-pointer"
+                  className="flex-1 flex items-center justify-center gap-1.5 min-h-[44px] px-3 rounded-control border border-line-strong bg-surface text-ink font-body font-semibold text-sm hover:bg-surface-muted transition-colors cursor-pointer"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="w-4 h-4" aria-hidden="true" />
                   View Official Claim Form
                 </button>
-                <a
+                <button
                   id={`download-pdf-${bundle.id}`}
-                  href="#"
-                  onClick={(e) => e.preventDefault()}
-                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-line/20 text-ink-muted font-body font-semibold text-sm hover:bg-surface-muted transition-colors active:scale-[0.98] cursor-pointer opacity-50"
-                  aria-label="Download not yet available"
+                  type="button"
+                  disabled
+                  className="flex items-center justify-center gap-1.5 min-h-[44px] px-3 rounded-control border border-line text-ink-muted font-body font-semibold text-sm disabled:opacity-60"
+                  aria-label="Download PDF, not available yet"
                 >
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Download PDF</span>
-                </a>
+                  <Download className="w-4 h-4" aria-hidden="true" />
+                  Download PDF (not available yet)
+                </button>
               </div>
             </div>
           </Card>
 
           {/* Financial Breakdown */}
-          <Card title={<>Financial Breakdown <span className="ml-2 text-xs font-body bg-success-soft text-success px-2 py-0.5 rounded-full">{bundle.line_items.length} receipts · All Passed</span></>}>
+          <Card title={<>Financial Breakdown <span className="ml-2 text-xs font-body font-normal text-ink-muted">{bundle.line_items.length} receipts, all passed</span></>}>
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-sm border-collapse">
                 <thead>
-                  <tr className="bg-surface-muted/60">
+                  <tr className="bg-surface-muted">
                     {["#", "Date", "Category", "Description", "Amount (MYR)", "Status"].map(h => (
-                      <th key={h} className="py-3 px-4 text-[10px] font-semibold font-display text-ink-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      <th key={h} className="py-3 px-4 text-xs font-semibold text-ink-muted whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-line/10">
+                <tbody className="divide-y divide-line">
                   {bundle.line_items.map((li, idx) => (
-                    <tr key={`table-${li.document_id}-${idx}`} className="hover:bg-surface-muted/30 transition-colors">
-                      <td className="py-3 px-4 text-ink-muted">
+                    <tr key={`table-${li.document_id}-${idx}`} className="hover:bg-surface-muted transition-colors">
+                      <td className="py-1 px-3 text-ink-muted">
                         {li.receipt_url
-                          ? <button onClick={() => setLightbox(li.receipt_url!)} className="flex items-center gap-1 text-accent hover:underline text-xs"><ZoomIn className="w-3 h-3" />{idx + 1}</button>
-                          : <span className="text-xs">{idx + 1}</span>}
+                          ? <button type="button" onClick={() => setLightbox(li.receipt_url!)} aria-label={`View receipt ${idx + 1}`} className="inline-flex items-center gap-1 min-h-[44px] min-w-[44px] px-1 rounded-control text-ink underline underline-offset-2 hover:bg-surface-muted text-xs cursor-pointer"><ZoomIn className="w-3.5 h-3.5" aria-hidden="true" />{idx + 1}</button>
+                          : <span className="inline-flex items-center min-h-[44px] px-1 text-xs">{idx + 1}</span>}
                       </td>
                       <td className="py-3 px-4 text-ink-muted whitespace-nowrap text-xs">{li.date}</td>
-                      <td className="py-3 px-4"><span className="text-xs bg-surface-muted px-2 py-0.5 rounded-full text-ink-muted">{CAT[li.category]}</span></td>
+                      <td className="py-3 px-4 text-xs text-ink-muted">{CAT[li.category]}</td>
                       <td className="py-3 px-4 text-ink">{li.description}</td>
-                      <td className="py-3 px-4 font-semibold tabular-nums text-success whitespace-nowrap">{fmt(li.approved_amount)}</td>
+                      <td className="py-3 px-4 font-mono font-medium text-ink whitespace-nowrap">{fmt(li.approved_amount)}</td>
                       <td className="py-3 px-4">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${STATUS_CHIP[li.status]}`}>{li.status.replace("_", " ")}</span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${STATUS_CHIP[li.status]}`}>{li.status.replace("_", " ")}</span>
                       </td>
                     </tr>
                   ))}
@@ -487,26 +492,26 @@ export default function ViewPage() {
             </div>
 
             {/* Mobile Card List */}
-            <div className="md:hidden flex flex-col gap-2">
+            <div className="md:hidden flex flex-col divide-y divide-line">
               {bundle.line_items.map((li, idx) => (
-                <div key={`mobile-${li.document_id}-${idx}`} className="bg-surface rounded-xl p-4 border border-line/10">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                <div key={`mobile-${li.document_id}-${idx}`} className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       {li.receipt_url ? (
-                        <button onClick={() => setLightbox(li.receipt_url!)} className="flex items-center gap-1 text-accent hover:underline text-xs">
-                          <ZoomIn className="w-3 h-3" />{idx + 1}
+                        <button type="button" onClick={() => setLightbox(li.receipt_url!)} aria-label={`View receipt ${idx + 1}`} className="inline-flex items-center gap-1 min-h-[44px] min-w-[44px] -ml-1 px-1 rounded-control text-ink underline underline-offset-2 hover:bg-surface-muted text-xs cursor-pointer">
+                          <ZoomIn className="w-3.5 h-3.5" aria-hidden="true" />{idx + 1}
                         </button>
                       ) : (
                         <span className="text-xs text-ink-muted font-semibold">#{idx + 1}</span>
                       )}
-                      <span className="text-[10px] bg-surface-muted px-1.5 py-0.5 rounded-full text-ink-muted">{CAT[li.category]}</span>
+                      <span className="text-xs text-ink-muted">{CAT[li.category]}</span>
                     </div>
-                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${STATUS_CHIP[li.status]}`}>{li.status.replace("_", " ")}</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${STATUS_CHIP[li.status]}`}>{li.status.replace("_", " ")}</span>
                   </div>
-                  <p className="text-sm text-ink font-medium mt-2">{li.description}</p>
+                  <p className="text-sm text-ink font-medium mt-1">{li.description}</p>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-xs text-ink-muted">{li.date}</span>
-                    <span className="text-sm font-semibold text-success">{fmt(li.approved_amount)}</span>
+                    <span className="text-sm font-mono font-medium text-ink">{fmt(li.approved_amount)}</span>
                   </div>
                 </div>
               ))}
@@ -515,21 +520,21 @@ export default function ViewPage() {
 
           {/* Audit Trail */}
           <Card title={
-            <button onClick={() => setAuditOpen(o => !o)} className="w-full flex items-center justify-between cursor-pointer">
-              <span className="flex items-center gap-2 font-display font-bold text-base text-ink">
-                <Clock className="w-4 h-4 text-ink-muted" strokeWidth={2} /> Audit Trail
-                <span className="text-xs bg-surface-muted text-ink-muted px-2 py-0.5 rounded-full">{bundle.audit_log.length}</span>
+            <button type="button" aria-expanded={auditOpen} onClick={() => setAuditOpen(o => !o)} className="w-full min-h-[44px] flex items-center justify-between cursor-pointer">
+              <span className="flex items-center gap-2 font-display font-semibold text-base text-ink">
+                <Clock className="w-4 h-4 text-ink-muted" strokeWidth={2} aria-hidden="true" /> Audit Trail
+                <span className="text-sm font-mono font-normal text-ink-muted">{bundle.audit_log.length}</span>
               </span>
-              <ChevronDown className={`w-4 h-4 text-ink-muted transition-transform ${auditOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-4 h-4 text-ink-muted transition-transform ${auditOpen ? "rotate-180" : ""}`} aria-hidden="true" />
             </button>
           }>
             <div className={`overflow-hidden transition-all duration-300 ${auditOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
-              <div className="px-6 pb-6 ml-2 pl-6 border-l-2 border-success/40 flex flex-col gap-4">
+              <div className="px-4 sm:px-6 pt-4 pb-6 ml-2 pl-6 border-l-2 border-line flex flex-col gap-4">
                 {bundle.audit_log.map(e => (
                   <div key={e.id} className="relative">
-                    <div className="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-surface border-2 border-success/60" />
+                    <div className="absolute -left-[31px] top-1 w-3 h-3 rounded-full bg-surface border-2 border-line-strong" />
                     <p className="text-xs text-ink-muted">{e.timestamp}</p>
-                    <p className="text-sm text-ink"><span className="font-semibold">{e.actor}</span> — {e.action}</p>
+                    <p className="text-sm text-ink"><span className="font-semibold">{e.actor}</span>: {e.action}</p>
                   </div>
                 ))}
               </div>
@@ -541,35 +546,41 @@ export default function ViewPage() {
         <div className="flex flex-col gap-6 lg:sticky lg:top-6 lg:h-fit">
 
           {/* Approval Summary */}
-          <div className="bg-success-soft/80 rounded-xl border border-success/50 overflow-hidden">
-            <div className="px-6 py-4 border-b border-success/40 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-success" strokeWidth={2.5} />
-              <h3 className="font-display font-bold text-base text-success">Approval Summary</h3>
+          <div className="bg-surface rounded-card border border-line overflow-hidden">
+            <div className="px-4 sm:px-6 py-3 min-h-[56px] border-b border-line flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-success" strokeWidth={2.25} aria-hidden="true" />
+              <h3 className="font-display font-semibold text-base text-ink">Check summary</h3>
             </div>
-            <div className="p-6 flex flex-col gap-4">
+            <div className="p-4 sm:p-6 flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-[10px] font-semibold font-display text-success uppercase tracking-wider mb-1">AI Confidence</p>
-                  <p className="text-xl font-bold text-success">{pct}%</p>
+                  <p className="text-xs text-ink-muted mb-1">AI confidence</p>
+                  <p className="text-xl font-mono font-medium text-ink">{pct}%</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold font-display text-success uppercase tracking-wider mb-1">Receipts</p>
-                  <p className="text-xl font-bold text-success">{bundle.line_items.length} / {bundle.line_items.length} passed</p>
+                  <p className="text-xs text-ink-muted mb-1">Receipts passed</p>
+                  <p className="text-xl font-mono font-medium text-ink">{bundle.line_items.length} / {bundle.line_items.length}</p>
                 </div>
               </div>
-              <div className="rounded-xl bg-success-soft/60 border border-success/50 p-4">
-                <p className="text-[10px] font-semibold font-display text-success uppercase tracking-wider mb-1">Total Approved</p>
-                <p className="text-2xl font-bold font-display text-success tabular-nums">{fmt(bundle.totals.net_approved)}</p>
+              <div className="border-t border-line pt-4">
+                <p className="text-xs text-ink-muted mb-1">AI suggested total</p>
+                <p className="text-2xl font-mono font-medium text-success">{fmt(bundle.totals.net_approved)}</p>
               </div>
-              <p className="text-xs text-success leading-relaxed">{bundle.summary}</p>
             </div>
           </div>
 
           {/* AI Analysis */}
           <Card title="AI Analysis">
-            <div className="p-6">
-              <div className="w-full h-2 rounded-full bg-surface-muted mb-4 overflow-hidden">
-                <div className="h-full rounded-full bg-success transition-all duration-500" style={{ width: `${pct}%` }} />
+            <div className="p-4 sm:p-6">
+              <div
+                className="w-full h-2 rounded-full bg-surface-muted ring-1 ring-inset ring-line mb-4 overflow-hidden"
+                role="meter"
+                aria-label="AI confidence"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={pct}
+              >
+                <div className="h-full rounded-full bg-ink-muted" style={{ width: `${pct}%` }} />
               </div>
               <p className="text-sm text-ink leading-relaxed">{bundle.summary}</p>
             </div>
@@ -577,50 +588,50 @@ export default function ViewPage() {
 
           {/* HR Confirmation */}
           <Card title={<><span>HR Confirmation</span><span className="text-xs font-normal text-ink-muted ml-2">Verify before finalising</span></>}>
-            <div className="p-6 flex flex-col gap-4">
+            <div className="p-4 sm:p-6 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <button id="decision-confirm" onClick={() => setHrDecision("confirm")}
-                  className={`flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sm font-semibold font-display transition-all active:scale-[0.98] cursor-pointer border text-left bg-surface ${hrDecision === "confirm" ? "bg-success-soft text-success border-success/30 ring-1 ring-success/30" : "border-line/20 text-ink-muted hover:border-success/30 hover:text-success"}`}>
-                  <ShieldCheck className="w-5 h-5 shrink-0" strokeWidth={2} />
+                <button id="decision-confirm" type="button" aria-pressed={hrDecision === "confirm"} onClick={() => setHrDecision("confirm")}
+                  className={`flex items-center gap-3 w-full min-h-[56px] px-4 py-3 rounded-control text-sm font-semibold font-body transition-colors cursor-pointer border text-left bg-surface ${hrDecision === "confirm" ? "bg-success-soft text-success border-success" : "border-line text-ink hover:border-line-strong"}`}>
+                  <ShieldCheck className="w-5 h-5 shrink-0" strokeWidth={2} aria-hidden="true" />
                   <div>
                     <p>Confirm & Finalise Approval</p>
-                    <p className="text-[11px] font-normal mt-0.5 opacity-70">Approve {fmt(bundle.totals.net_approved)} and notify employee</p>
+                    <p className="text-xs font-normal mt-0.5 text-ink-muted">Approve <span className="font-mono">{fmt(bundle.totals.net_approved)}</span> and notify employee</p>
                   </div>
                 </button>
-                <button id="decision-flag" onClick={() => setHrDecision("flag")}
-                  className={`flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-sm font-semibold font-display transition-all active:scale-[0.98] cursor-pointer border text-left bg-surface ${hrDecision === "flag" ? "bg-warning-soft text-warning border-warning/30 ring-1 ring-warning/30" : "border-line/20 text-ink-muted hover:border-warning/30 hover:text-warning"}`}>
-                  <ShieldX className="w-5 h-5 shrink-0" strokeWidth={2} />
+                <button id="decision-flag" type="button" aria-pressed={hrDecision === "flag"} onClick={() => setHrDecision("flag")}
+                  className={`flex items-center gap-3 w-full min-h-[56px] px-4 py-3 rounded-control text-sm font-semibold font-body transition-colors cursor-pointer border text-left bg-surface ${hrDecision === "flag" ? "bg-warning-soft text-warning border-warning" : "border-line text-ink hover:border-line-strong"}`}>
+                  <ShieldX className="w-5 h-5 shrink-0" strokeWidth={2} aria-hidden="true" />
                   <div>
                     <p>Flag for Re-review</p>
-                    <p className="text-[11px] font-normal mt-0.5 opacity-70">Move to Requires Attention queue</p>
+                    <p className="text-xs font-normal mt-0.5 text-ink-muted">Move to Requires Attention queue</p>
                   </div>
                 </button>
               </div>
 
               {hrDecision === "flag" && (
-                <div className="flex items-start gap-3 rounded-xl bg-warning-soft/80 border border-warning/60 px-4 py-3">
-                  <p className="text-xs text-warning leading-relaxed">This claim will be moved to <span className="font-semibold">Requires Attention</span> for manual HR investigation.</p>
+                <div className="flex items-start gap-3 rounded-control bg-warning-soft border border-warning/40 px-4 py-3">
+                  <p className="text-sm text-warning leading-relaxed">This claim will be moved to <span className="font-semibold">Requires Attention</span> for manual HR investigation.</p>
                 </div>
               )}
 
               <div>
-                <label className="text-[10px] font-semibold font-display text-ink-muted uppercase tracking-wider mb-2 block">
-                  HR Note <span className="normal-case tracking-normal font-normal">(optional)</span>
+                <label htmlFor="hr-note" className="text-sm font-semibold text-ink mb-2 block">
+                  HR Note <span className="font-normal text-ink-muted">(optional)</span>
                 </label>
-                <textarea rows={3} placeholder="Add a note for the record…" value={note} onChange={e => setNote(e.target.value)}
-                  className="w-full bg-surface-muted rounded-xl px-4 py-3 text-sm text-ink placeholder:text-ink-muted/50 outline-none ring-1 ring-line/20 focus:ring-accent/40 resize-none transition-all" />
+                <textarea id="hr-note" rows={3} placeholder="Add a note for the record…" value={note} onChange={e => setNote(e.target.value)}
+                  className="w-full bg-surface rounded-control px-3 py-2.5 text-sm text-ink placeholder:text-ink-muted border border-line-strong focus:border-accent outline-none resize-none" />
               </div>
 
-              <button id="submit-hr-decision" onClick={submit} disabled={!hrDecision || submitting}
-                className={`w-full py-3 rounded-xl text-sm font-semibold font-display transition-all active:scale-[0.97] flex items-center justify-center gap-2 ${
-                  hrDecision === "confirm" ? "bg-success text-white hover:bg-success cursor-pointer"
-                  : hrDecision === "flag" ? "bg-warning text-white hover:bg-warning cursor-pointer"
-                  : "bg-surface-muted text-ink-muted/50 cursor-not-allowed"}`}>
-                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              <button id="submit-hr-decision" type="button" onClick={submit} disabled={!hrDecision || submitting}
+                className={`w-full min-h-[48px] rounded-control text-sm font-semibold font-body transition-colors flex items-center justify-center gap-2 ${
+                  hrDecision === "confirm" ? "bg-accent text-on-accent hover:bg-accent-hover cursor-pointer"
+                  : hrDecision === "flag" ? "bg-warning text-on-accent hover:bg-warning/90 cursor-pointer"
+                  : "bg-surface-muted text-ink-muted cursor-not-allowed"}`}>
+                {submitting && <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />}
                 {hrDecision === "confirm" ? "Confirm & Finalise Approval" : hrDecision === "flag" ? "Flag for Re-review" : "Select a decision"}
               </button>
               {submitError && (
-                <p className="text-xs text-danger text-center font-body mt-1">{submitError}</p>
+                <p role="alert" className="text-sm text-danger text-center font-body mt-1">{submitError}</p>
               )}
             </div>
           </Card>
@@ -628,11 +639,11 @@ export default function ViewPage() {
       </div>
 
       {lightbox && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-6" onClick={() => setLightbox(null)}>
-          <div className="relative max-w-3xl max-h-[85vh] rounded-2xl overflow-hidden">
+        <div role="dialog" aria-modal="true" aria-label="Receipt image" className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 p-4 sm:p-6" onClick={() => setLightbox(null)}>
+          <div className="relative max-w-3xl max-h-[85vh] rounded-card overflow-hidden bg-surface">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={lightbox} alt="Receipt" className="w-full h-full object-contain" />
-            <button onClick={() => setLightbox(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-ink/70 text-white flex items-center justify-center">✕</button>
+            <button type="button" autoFocus onClick={() => setLightbox(null)} aria-label="Close receipt" className="absolute top-2 right-2 w-11 h-11 rounded-control bg-surface border border-line text-ink flex items-center justify-center hover:bg-surface-muted cursor-pointer"><X className="w-5 h-5" aria-hidden="true" /></button>
           </div>
         </div>
       )}
