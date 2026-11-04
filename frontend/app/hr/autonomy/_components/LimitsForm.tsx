@@ -36,7 +36,7 @@ function NumberField({ name, label, hint, prefix, step = 1, register, errors, sa
       )}
       <div
         className={`mt-1.5 flex items-center min-h-[44px] rounded-control border bg-surface focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent ${
-          error ? "border-danger" : dirty ? "border-accent" : "border-line"
+          error ? "border-danger" : dirty ? "border-ink" : "border-line-strong"
         }`}
       >
         {prefix && <span className="pl-3 text-sm text-ink-muted select-none">{prefix}</span>}
