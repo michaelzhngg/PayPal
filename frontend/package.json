@@ -10,6 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@bryntum/calendar": "npm:@bryntum/calendar-trial@7.3.7",
+    "@bryntum/calendar-react": "7.3.7",
     "@hookform/resolvers": "^5.2.2",
     "ag-charts-community": "14.2.0",
     "ag-charts-react": "14.2.0",
