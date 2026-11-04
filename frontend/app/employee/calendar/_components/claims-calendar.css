@@ -47,9 +47,9 @@
 .claim-event-hr { --claim-bg: var(--claim-hr-bg); --claim-fg: var(--claim-hr-fg); }
 .claim-event-paid { --claim-bg: var(--claim-paid-bg); --claim-fg: var(--claim-paid-fg); }
 
-/* Bryntum dims all-day bars to 0.8, which takes these tones below AA. */
+/* Bryntum dims all-day bars to 0.8, which takes these tones below AA. Its rule outranks a plain override. */
 .b-cal-event-wrap.claim-event {
-  opacity: 1;
+  opacity: 1 !important;
   cursor: pointer;
 }
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PayoutInfo, ReimbursementRaw } from "@/lib/api/types";
-import { buildCalendarEvents, latestEventDay } from "./events";
+import { buildCalendarEvents, latestEventDay, reimIdFromEventId } from "./events";
 
 const REIM_ID = "6de03699-9ebe-4a11-8c55-000000000001";
 
@@ -80,6 +80,13 @@ describe("buildCalendarEvents", () => {
     const leaky = row({ risk_score: 55, summary: "AI verdict", ai_reasoning: { signals: ["DUPLICATE_RECEIPT"] }, tier: "DUAL_REVIEW" } as Partial<ReimbursementRaw>);
     const text = JSON.stringify(buildCalendarEvents([leaky]));
     expect(text).not.toMatch(/risk|signal|verdict|DUPLICATE|DUAL_REVIEW/i);
+  });
+});
+
+describe("reimIdFromEventId", () => {
+  it("recovers the claim id from both event kinds", () => {
+    const events = buildCalendarEvents([row({ payout: payout() })]);
+    expect(events.map((e) => reimIdFromEventId(e.id))).toEqual([REIM_ID, REIM_ID]);
   });
 });
 

@@ -8,9 +8,9 @@ import "./claims-calendar.css";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { EventList, Widget } from "@bryntum/calendar";
+import type { EventList, EventModel, Widget } from "@bryntum/calendar";
 import { BryntumCalendar } from "@bryntum/calendar-react";
-import { latestEventDay, TONE_ICON, TONE_LABEL, type ClaimCalendarEvent, type EventTone } from "../_lib/events";
+import { historyHref, latestEventDay, reimIdFromEventId, TONE_ICON, TONE_LABEL, type ClaimCalendarEvent, type EventTone } from "../_lib/events";
 
 const TONES: EventTone[] = ["auto", "hr", "paid"];
 
@@ -22,7 +22,14 @@ const MODES = {
   week: null,
   year: null,
   list: null,
-  month: { sixWeeks: false, showWeekColumn: false, showWeekNumber: false, eventHeight: 36 },
+  month: {
+    sixWeeks: false,
+    showWeekColumn: false,
+    showWeekNumber: false,
+    eventHeight: 36,
+    // A word joiner keeps "RC-1AE03699" whole when the label wraps at its hyphen.
+    eventRenderer: ({ eventRecord }: { eventRecord: EventModel }) => eventRecord.name.replace("RC-", "RC-⁠"),
+  },
   // Bryntum's "list" mode is a wide spreadsheet-style grid. Agenda is its list grouped by day, and it fits a phone.
   agenda: {
     range: "month",
@@ -49,6 +56,20 @@ export default function ClaimsCalendar({ events }: { events: ClaimCalendarEvent[
     observer.observe(host);
     return () => observer.disconnect();
   }, []);
+
+  // Bryntum marks events role="button" but only fires eventClick for the pointer. Listening on
+  // document also covers the "+N more" popup, which floats outside this component's DOM.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const eventId = (e.target as HTMLElement).closest<HTMLElement>(".claim-event[data-event-id]")?.dataset.eventId;
+      if (!eventId) return;
+      e.preventDefault();
+      router.push(historyHref(reimIdFromEventId(eventId)));
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [router]);
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
@@ -78,7 +99,7 @@ export default function ClaimsCalendar({ events }: { events: ClaimCalendarEvent[
             scheduleMenuFeature={false}
             eventTooltipFeature={false}
             onEventClick={({ eventRecord }) => {
-              router.push(`/employee/history?claimId=${encodeURIComponent(String(eventRecord.get("reimId")))}`);
+              router.push(historyHref(String(eventRecord.get("reimId"))));
             }}
           />
         )}

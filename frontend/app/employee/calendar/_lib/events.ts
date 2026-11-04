@@ -75,6 +75,15 @@ export function buildCalendarEvents(rows: CalendarRow[]): ClaimCalendarEvent[] {
   return events;
 }
 
+export function reimIdFromEventId(eventId: string): string {
+  return eventId.replace(/^(submitted|paid)-/, "");
+}
+
+/** History opens its claim sidebar from this query param. */
+export function historyHref(reimId: string): string {
+  return `/employee/history?claimId=${encodeURIComponent(reimId)}`;
+}
+
 /** The day the calendar opens on: the newest event, so a quiet current month never looks empty. */
 export function latestEventDay(events: ClaimCalendarEvent[]): Date | null {
   if (events.length === 0) return null;
