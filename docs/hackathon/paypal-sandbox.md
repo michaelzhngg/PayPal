@@ -17,7 +17,8 @@ The payer ID of each personal account goes into `DEMO_PAYER_ID_1..3` for the see
 1. **App.** Apps & Credentials → Sandbox → Create App (type: Merchant), linked to the business account. Copy the client ID and secret into `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`.
 2. **Accounts.** Testing Tools → Sandbox Accounts: create the business account and two personal accounts, country Malaysia. Fund the business account.
 3. **Log in with PayPal.** In the app's settings, enable "Log in with PayPal":
-   - Return URL: `{BACKEND_PUBLIC_URL}/api/v1/paypal/callback`
+   - Return URL for Connect PayPal: `{BACKEND_PUBLIC_URL}/api/v1/paypal/callback`
+   - Return URL for Sign in with PayPal: `{FRONTEND_PUBLIC_URL}/login/paypal/callback`. Next.js handles this one because only it can set the session cookie.
    - Attributes: email, PayPal account ID (payer ID), account verification status
    - Until staging exists, use a tunnel: `cloudflared tunnel --url http://localhost:8000`, and set `BACKEND_PUBLIC_URL` to the tunnel URL.
 4. **Webhook.** In the app, add a webhook at `{BACKEND_PUBLIC_URL}/api/v1/paypal/webhook` for `PAYMENT.PAYOUTS-ITEM.*`, `PAYMENT.PAYOUTSBATCH.*` and `INVOICING.INVOICE.PAID`. Copy the webhook ID into `PAYPAL_WEBHOOK_ID`.
