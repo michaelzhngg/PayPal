@@ -229,15 +229,23 @@ class PayPalClient:
 
     async def get_userinfo(self, user_access_token: str) -> PayPalUser:
         headers = {"Authorization": f"Bearer {user_access_token}", "Accept": "application/json"}
+        endpoint = "paypalv1.1"
         async with self._http() as http:
             resp = await http.get("/v1/identity/oauth2/userinfo", params={"schema": "paypalv1.1"}, headers=headers)
             if resp.status_code == 404:
+                endpoint = "openid"
                 resp = await http.get("/v1/identity/openidconnect/userinfo", params={"schema": "openid"},
                                       headers=headers)
         if resp.status_code >= 400:
             body = _json_or_empty(resp)
             raise PayPalError(resp.status_code, body.get("name") or body.get("error"), body.get("debug_id"))
-        return _parse_user(resp.json())
+        body = resp.json()
+        logger.info(
+            "[PAYPAL_USERINFO] endpoint=%s keys=%s verified_account=%r email_verified=%r payer_id=%s",
+            endpoint, sorted(body.keys()), body.get("verified_account"), body.get("email_verified"),
+            bool(body.get("payer_id") or body.get("user_id")),
+        )
+        return _parse_user(body)
 
 
 class MockPayPalClient:
