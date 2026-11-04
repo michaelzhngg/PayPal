@@ -307,7 +307,7 @@ Do not paste this part. Nothing below has been confirmed. As of 4 Nov 2026, no r
 
 ## Rules and wording
 
-- [ ] **Existing project (PLAN §12, question 1):** read the official rules on building on an existing project. The original commits run from 18 April to 3 May 2026, so "April 2026" is slightly loose. We state the UM Hackathon origin openly above, so confirm that the team is happy with this.
+- [ ] **Existing project (PLAN §12, question 1):** read the official rules on building on an existing project. The original commits run from 18 April to 3 May 2026, so "April 2026" is slightly loose. The paste-ready text discloses the April 2026 project but does not name the earlier hackathon it was built for. If the rules ask about prior competitions, or a judge could reasonably expect to know, add it back.
 - [ ] Check whether one project can win several sponsor prizes (PLAN §12, question 2).
 - [ ] Every tool listed must appear in the demo or the repo as described. The plan requires this for sponsor tools.
 - [ ] **Bryntum:** check that the trial license allows public hackathon use. The trial shows a watermark, so mention it if it appears in the video.
