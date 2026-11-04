@@ -31,8 +31,10 @@ import type {
 // ─── Screen components ────────────────────────────────────────────────────────
 import { ProcessingScreen } from "./_components/ProcessingScreen";
 import { VerificationScreen } from "./_components/VerificationScreen";
-import { SuccessModal, type SuccessType } from "./_components/SuccessModal";
-// CameraModal removed — using native <input capture="environment"> instead
+import { SubmitDialog } from "./_components/SubmitDialog";
+import { closeAttempt, claimSummary, type SubmitPhase } from "./_components/submitDialogState";
+import { formatMoney } from "@/lib/format";
+// CameraModal removed: using native <input capture="environment"> instead
 
 // ─── Server Actions ───────────────────────────────────────────────────────────
 import { uploadDocuments, editDocument, analyzeCompliance, saveDraft, updateDraft, loadDraft, getRawReimbursements } from "@/lib/actions/claims";
@@ -41,7 +43,6 @@ import type { SubCategoryConfig, AnalyzeResponseMulti, DocumentUploadResponse } 
 // ─── SSE ─────────────────────────────────────────────────────────────────────
 import { subscribeToProgress } from "@/lib/sse";
 import { useTimeline } from "@/lib/hooks/useTimeline";
-import AgentTimeline from "@/components/timeline/AgentTimeline";
 
 // ─── Stage type ───────────────────────────────────────────────────────────────
 
@@ -428,8 +429,10 @@ function CaptureReceiptContent() {
     return () => { sseCloseRef.current?.close(); };
   }, []);
 
-  // ── Success modal ──────────────────────────────────────────────────────────
-  const [showSuccess, setShowSuccess] = useState(false);
+  // ── Submit dialog ──────────────────────────────────────────────────────────
+  // Opens on Submit: checking (live timeline), then the result or an error.
+  const [submitPhase, setSubmitPhase] = useState<SubmitPhase>("closed");
+  const [showLeaveNotice, setShowLeaveNotice] = useState(false);
 
   // ── Draft state ────────────────────────────────────────────────────────────
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -469,12 +472,13 @@ function CaptureReceiptContent() {
       setIsSubmitting(false);
       setAnalysisResult(completeResult as unknown as AnalyzeResponseMulti);
       setIsDirty(false);
-      setShowSuccess(true);
+      setSubmitPhase("result");
     },
     onError: error => {
       console.error("Compliance SSE error:", error);
       setSubmitError(error);
       setIsSubmitting(false);
+      setSubmitPhase("error");
     },
   });
 
@@ -777,8 +781,14 @@ function CaptureReceiptContent() {
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   async function handleSubmit() {
+    // The dialog opens the moment Submit is pressed, before any request goes out.
+    setShowLeaveNotice(false);
+    setSubmitPhase("checking");
+    setComplianceTaskId(null);
+
     if (!settlementId) {
       setSubmitError("No settlement found. Please re-upload your receipts.");
+      setSubmitPhase("error");
       return;
     }
 
@@ -820,6 +830,7 @@ function CaptureReceiptContent() {
     if ("error" in analyzeResult) {
       setIsSubmitting(false);
       setSubmitError(analyzeResult.error);
+      setSubmitPhase("error");
       return;
     }
 
@@ -832,8 +843,18 @@ function CaptureReceiptContent() {
       setIsSubmitting(false);
       setAnalysisResult(analyzeResult);
       setIsDirty(false);
-      setShowSuccess(true);
+      setSubmitPhase("result");
     }
+  }
+
+  /** Escape or the close button. Mid-check the dialog stays and says the person can leave. */
+  function handleDialogCloseAttempt() {
+    const action = closeAttempt(submitPhase);
+    if (action === "notice") setShowLeaveNotice(true);
+    if (action !== "close") return;
+    // The claim is in once the result shows, so closing starts a fresh upload.
+    if (submitPhase === "result") handleSubmitAnother();
+    else setSubmitPhase("closed");
   }
 
   // ── Reset ──────────────────────────────────────────────────────────────────
@@ -851,6 +872,8 @@ function CaptureReceiptContent() {
     complianceSettlementRef.current = null;
     setSubmitError(null);
     setIsSubmitting(false);
+    setSubmitPhase("closed");
+    setShowLeaveNotice(false);
     originalOcrRef.current = [];
     setClaimContext({ travelDestination: "", travelPurpose: "", overseas: false, departureDate: "", arrivalDate: "" });
     setProcessingIndex(0);
@@ -865,7 +888,6 @@ function CaptureReceiptContent() {
   }
 
   function handleSubmitAnother() {
-    setShowSuccess(false);
     resetAll();
     setStage("form");
   }
@@ -1032,11 +1054,8 @@ function CaptureReceiptContent() {
         {/* ── Page Header (form stage only) ─────────────────────────────────── */}
         {stage === "form" && (
           <div className="flex flex-col gap-1">
-            <h2
-              className="font-display font-bold text-3xl md:text-4xl text-ink"
-              style={{ letterSpacing: "-0.02em" }}
-            >
-              Capture Receipts
+            <h2 id="claims-page-title" tabIndex={-1} className="font-display font-semibold text-3xl md:text-4xl text-ink outline-none">
+              Capture receipts
             </h2>
             <p className="text-base text-ink-muted font-body leading-relaxed">
               Upload your receipts and Reclaim AI will extract the data for you.
@@ -1093,18 +1112,9 @@ function CaptureReceiptContent() {
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
             />
-            {submitError && (
-              <p className="text-sm text-danger font-body mt-2 text-center">{submitError}</p>
-            )}
-            {/* The backend only emits timeline events once the autonomy engine ships; until then the plain notice stays. */}
-            {isSubmitting && compliance.steps.length > 0 ? (
-              <div className="mx-auto mt-4 w-full max-w-xl rounded-2xl border border-line/15 bg-surface p-4">
-                <AgentTimeline steps={compliance.steps} />
-              </div>
-            ) : (
-              isSubmitting && (
-                <p className="text-sm text-ink-muted font-body mt-2 text-center">Submitting claim…</p>
-              )
+            {/* Progress and the result live in the submit dialog; an error stays here after "Back to the form". */}
+            {submitError && submitPhase === "closed" && (
+              <p role="alert" className="text-sm text-danger font-body mt-2 text-center">{submitError}</p>
             )}
           </>
         )}
@@ -1250,15 +1260,22 @@ function CaptureReceiptContent() {
 
       </div>
 
-      {/* Success Modal */}
-      {showSuccess && (
-        <SuccessModal
-          type={"claim" as SuccessType}
-          onSubmitAnother={handleSubmitAnother}
-          reimbursements={analysisResult?.reimbursements ?? []}
-          timeline={compliance.steps}
-        />
-      )}
+      {/* Submit dialog: checking, then result or error */}
+      <SubmitDialog
+        phase={submitPhase}
+        claimTitle={claimSummary(ocrReceipts.map(r => r.merchant))}
+        amount={formatMoney("MYR", ocrReceipts.reduce((sum, r) => sum + r.transport + r.accommodation + r.meals + r.others, 0))}
+        steps={compliance.steps}
+        error={submitError}
+        showLeaveNotice={showLeaveNotice}
+        onCloseAttempt={handleDialogCloseAttempt}
+        onRetry={handleSubmit}
+        onBackToForm={() => setSubmitPhase("closed")}
+        onLeave={() => router.push("/employee/dashboard")}
+        onSubmitAnother={handleSubmitAnother}
+        reimbursements={analysisResult?.reimbursements ?? []}
+        fallbackFocus={() => document.getElementById("claims-page-title")}
+      />
 
       {/* ── Leave / Unsaved-Changes Modal ───────────────────────────────────── */}
       {showLeaveModal && (
