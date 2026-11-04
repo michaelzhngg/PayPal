@@ -11,8 +11,8 @@ const ToastContext = createContext<ToastFn | null>(null);
 
 const TONE_ICON: Record<ToastTone, { Icon: typeof Info; className: string }> = {
   success: { Icon: CheckCircle2, className: "text-success" },
-  error: { Icon: AlertCircle, className: "text-danger-soft" },
-  info: { Icon: Info, className: "text-accent" },
+  error: { Icon: AlertCircle, className: "text-danger" },
+  info: { Icon: Info, className: "text-ink-muted" },
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -87,22 +87,22 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
       onMouseLeave={start}
       onFocus={pause}
       onBlur={start}
-      className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-ink py-3 pl-4 pr-2"
+      className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-card border border-line bg-surface py-3 pl-4 pr-1 shadow-overlay"
     >
       <Icon aria-hidden className={`mt-0.5 h-5 w-5 shrink-0 ${className}`} />
       <div className="min-w-0 flex-1">
-        <p className="font-body text-sm font-semibold text-on-accent">{toast.title}</p>
+        <p className="font-body text-sm font-semibold text-ink">{toast.title}</p>
         {toast.description && (
-          <p className="mt-0.5 font-body text-sm text-paper">{toast.description}</p>
+          <p className="mt-0.5 font-body text-sm text-ink-muted">{toast.description}</p>
         )}
       </div>
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
         aria-label="Dismiss notification"
-        className="-my-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-paper transition-colors hover:bg-white/10 hover:text-on-accent focus-visible:outline-2 focus-visible:outline-accent"
+        className="-my-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
       >
-        <X className="h-4 w-4" />
+        <X aria-hidden className="h-4 w-4" />
       </button>
     </motion.div>
   );

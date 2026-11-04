@@ -4,7 +4,6 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext"; // Import AuthProvider
 import ServiceWorkerRegistration from "./_components/ServiceWorkerRegistration";
 import PushNotificationProvider from "./_components/PushNotificationProvider";
-import PushPermissionPrompt from "./_components/PushPermissionPrompt";
 import { ToastProvider } from "@/components/toast/ToastProvider";
 
 const inter = localFont({
@@ -87,7 +86,6 @@ export default function RootLayout({
           <AuthProvider>
             <PushNotificationProvider>
               {children}
-              <PushPermissionPrompt />
               <ServiceWorkerRegistration />
             </PushNotificationProvider>
           </AuthProvider>

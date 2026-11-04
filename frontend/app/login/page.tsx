@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useAuth } from "@/context/AuthContext";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Users } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Users } from "lucide-react";
 import Image from "next/image";
 import LoadingOverlay from "@/components/LoadingOverlay";
 
@@ -24,6 +24,15 @@ const DEMO_CREDENTIALS: Record<"hr" | "employee", { email: string; password: str
 
 const PAYPAL_FAILED_MESSAGE =
   "We couldn't sign you in with PayPal. Use your email and password, or ask HR to check your PayPal link.";
+
+const FORGOT_PASSWORD_MESSAGE =
+  "Password reset is not available in this demo. Use a demo account above, or ask HR to reset your password.";
+
+const inputClass =
+  "w-full min-h-11 rounded-control border border-line-strong bg-surface px-3.5 py-2.5 text-ink placeholder:text-ink-muted transition-colors hover:border-ink-muted focus:border-accent focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-accent";
+
+const secondaryButtonClass =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-control border border-line-strong bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-muted disabled:opacity-50";
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
@@ -106,146 +115,201 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!restrictionToast) return;
-    const timer = window.setTimeout(() => setRestrictionToast(null), 2600);
+    const timer = window.setTimeout(() => setRestrictionToast(null), 6000);
     return () => window.clearTimeout(timer);
   }, [restrictionToast]);
 
   const handleForgotPassword = () => {
-    setRestrictionToast("Feature Restricted during MVP Stages");
+    setRestrictionToast(FORGOT_PASSWORD_MESSAGE);
   };
+
+  const busy = isLoading || isValidating;
 
   return (
     <>
       <LoadingOverlay show={isLoading} />
-      <main className="flex w-full min-h-dvh h-dvh overflow-hidden">
-        {/* Left Side: Split Gradient Anchor */}
-        <div className="hidden lg:flex w-1/2 split-gradient relative overflow-hidden items-center justify-center p-12 xl:p-16">
-          {/* Decorative Elements */}
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(147,150,255,0.15),transparent_60%),radial-gradient(circle_at_70%_60%,rgba(158,0,180,0.12),transparent_60%)] opacity-40 mix-blend-overlay"
-          ></div>
-          <div className="relative z-10 text-on-accent max-w-xl">
-            <div className="flex items-center gap-4 mb-6">
-              <Image src="/images/logo.svg" alt="" width={64} height={64} className="w-16 h-16 object-contain brightness-0 invert" priority />
-              <h1 className="font-display text-5xl xl:text-6xl font-bold leading-tight">
-                Reclaim Pay
-              </h1>
-            </div>
-            <p className="font-display text-2xl xl:text-3xl font-bold leading-snug mb-4">
-              Paid to your PayPal in seconds when it&apos;s safe.
-            </p>
-            <p className="text-base xl:text-lg opacity-90 leading-relaxed max-w-md text-left">
-              Snap a receipt and we check it against your company&apos;s policy. Safe claims go straight to your PayPal. Anything unusual goes to HR, and a person makes the call.
-            </p>
+      <main className="flex w-full min-h-dvh">
+        {/* Left side, desktop only: what the product does, in plain words. */}
+        <section
+          aria-labelledby="login-intro"
+          className="hidden lg:flex w-1/2 flex-col justify-between gap-12 border-r border-line bg-surface p-12 xl:p-16"
+        >
+          <div className="flex items-center gap-2.5">
+            <Image src="/images/logo.svg" alt="" width={32} height={32} className="w-8 h-8 object-contain" priority />
+            <span className="font-display text-xl font-semibold text-ink">Reclaim Pay</span>
           </div>
-          {/* Floating accent blobs */}
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-accent rounded-full blur-[120px] opacity-40"></div>
-          <div className="absolute top-1/4 -right-24 w-72 h-72 bg-accent rounded-full blur-[100px] opacity-30"></div>
-          <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(transparent_96%,rgba(255,255,255,0.09)_96%),linear-gradient(90deg,transparent_96%,rgba(255,255,255,0.09)_96%)] bg-[size:26px_26px] opacity-10"></div>
-        </div>
 
-        {/* Right Side: Interaction Canvas */}
-        <div className="w-full lg:w-1/2 h-full flex flex-col items-center px-5 py-6 sm:px-8 sm:py-10 lg:px-14 lg:py-10 bg-paper overflow-y-auto">
-          <div className="w-full max-w-md my-auto py-8">
-            {/* Brand Header (Mobile Only) */}
-            <div className="lg:hidden mb-6 flex flex-col items-center justify-center gap-3 text-center">
-              <div className="flex items-center gap-2.5">
-                <Image src="/images/logo.svg" alt="" width={32} height={32} className="w-8 h-8 object-contain" />
-                <h2 className="font-display text-2xl font-bold text-accent">
-                  Reclaim Pay
-                </h2>
-              </div>
-              <p className="text-sm text-ink-muted">
-                Paid to your PayPal in seconds when it&apos;s safe.
-              </p>
+          <div className="max-w-md">
+            <h1 id="login-intro" className="font-display text-4xl xl:text-5xl font-semibold leading-tight text-ink">
+              Expense claims paid to your PayPal
+            </h1>
+            <p className="mt-4 text-base leading-relaxed text-ink-muted">
+              Upload a receipt and it is checked against your company&apos;s policy. Claims that pass every check
+              are paid to your PayPal in under a minute. Anything unusual goes to HR, and a person decides.
+            </p>
+
+            <hr className="perforated my-8" />
+
+            <ol className="space-y-4 text-sm text-ink">
+              <li className="flex gap-3">
+                <span className="font-mono text-ink-muted">01</span>
+                <span>Upload a photo or PDF of the receipt.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-mono text-ink-muted">02</span>
+                <span>The merchant, date and amount are read and checked against policy.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-mono text-ink-muted">03</span>
+                <span>Clean claims are paid out. HR reviews the rest, with the evidence.</span>
+              </li>
+            </ol>
+          </div>
+
+          <p className="text-sm text-ink-muted">Demo build. Every payment uses the PayPal sandbox.</p>
+        </section>
+
+        {/* Right side: sign in. */}
+        <div className="w-full lg:w-1/2 flex flex-col items-center bg-paper px-4 py-8 sm:px-8 sm:py-12 lg:px-14">
+          <div className="w-full max-w-md my-auto">
+            {/* Brand (phones and tablets) */}
+            <div className="lg:hidden mb-6 flex items-center justify-center gap-2.5">
+              <Image src="/images/logo.svg" alt="" width={28} height={28} className="w-7 h-7 object-contain" />
+              <span className="font-display text-xl font-semibold text-ink">Reclaim Pay</span>
             </div>
 
-            <div className="bg-paper border border-line rounded-[1.75rem] p-6 sm:p-8 border border-white/40">
-              <div className="min-h-10 mb-1" aria-live="polite">
-                {restrictionToast && (
-                  <div role="status" className="rounded-xl border border-accent/20 bg-surface/95 px-4 py-2.5 text-center text-xs font-semibold text-accent">
-                    {restrictionToast}
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-7 text-center">
-                <h2 className="font-display text-3xl font-bold text-ink mb-3">
-                  Welcome to Reclaim Pay
-                </h2>
-                <p className="text-ink-muted text-sm">
-                  Pick a demo account, or sign in with your email.
+            <div className="rounded-card border border-line bg-surface p-5 sm:p-8">
+              <div className="mb-6">
+                <h2 className="font-display text-2xl sm:text-3xl font-semibold text-ink">Sign in to Reclaim Pay</h2>
+                <p className="mt-2 text-sm text-ink-muted">
+                  Try a demo account, or sign in with your email and password.
                 </p>
               </div>
 
-              {/* Demo Login Buttons */}
-              <div className="flex gap-3 mb-6">
+              {/* Demo sign-in */}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 mb-6">
                 <button
                   type="button"
                   onClick={() => handleDemoLogin("employee")}
                   disabled={isValidating}
-                  className="flex-1 min-h-11 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-accent/20 bg-accent/5 text-sm font-semibold text-accent hover:bg-accent/10 hover:border-accent/30 disabled:opacity-50 transition-all cursor-pointer"
+                  className={secondaryButtonClass}
                 >
-                  <Users className="w-4 h-4" aria-hidden />
+                  <Users className="w-4 h-4 text-ink-muted" aria-hidden />
                   Sign in as Employee
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDemoLogin("hr")}
                   disabled={isValidating}
-                  className="flex-1 min-h-11 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-accent/20 bg-accent/5 text-sm font-semibold text-accent hover:bg-accent/10 hover:border-accent/30 disabled:opacity-50 transition-all cursor-pointer"
+                  className={secondaryButtonClass}
                 >
-                  <Users className="w-4 h-4" aria-hidden />
+                  <Users className="w-4 h-4 text-ink-muted" aria-hidden />
                   Sign in as HR
                 </button>
               </div>
 
+              <div className="mb-6 flex items-center gap-3 text-sm text-ink-muted">
+                <span aria-hidden className="h-px flex-1 bg-line" />
+                or with your email
+                <span aria-hidden className="h-px flex-1 bg-line" />
+              </div>
+
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 {demoBanner && !error && (
-                  <div className="rounded-lg border border-accent/20 bg-accent/5 p-3 text-center text-xs font-semibold text-accent">
-                    Signing in as {demoBanner === "hr" ? "HR" : "Employee"} demo…
+                  <div role="status" className="rounded-control border border-line bg-surface-muted p-3 text-sm text-ink">
+                    Signing in to the {demoBanner === "hr" ? "HR" : "employee"} demo account...
                   </div>
                 )}
-                {error && <div role="alert" className="bg-danger-soft text-danger p-3 rounded-lg text-sm text-center">{error}</div>}
-
-                <div className="space-y-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted" htmlFor="email">Email Address</label>
-                  <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-line group-focus-within:text-accent transition-colors w-5 h-5" />
-                    <input className="w-full pl-12 pr-4 py-3.5 bg-surface/60 border border-line-strong/20 rounded-xl text-ink focus:outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all" id="email" placeholder="name@company.com" type="email" {...form.register("email")} />
-                    {form.formState.errors.email && <p className="text-danger text-xs mt-1">{form.formState.errors.email.message}</p>}
+                {error && (
+                  <div role="alert" className="rounded-control border border-danger/30 bg-danger-soft p-3 text-sm text-danger">
+                    {error}
                   </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-ink" htmlFor="email">Email</label>
+                  <input
+                    className={inputClass}
+                    id="email"
+                    placeholder="name@company.com"
+                    type="email"
+                    autoComplete="email"
+                    aria-invalid={form.formState.errors.email ? true : undefined}
+                    aria-describedby={form.formState.errors.email ? "email-error" : undefined}
+                    {...form.register("email")}
+                  />
+                  {form.formState.errors.email && (
+                    <p id="email-error" className="text-sm text-danger">{form.formState.errors.email.message}</p>
+                  )}
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-ink-muted" htmlFor="password">Password</label>
-                    <button type="button" onClick={handleForgotPassword} className="text-xs font-semibold text-accent hover:text-accent-hover hover:underline decoration-accent/30 underline-offset-4 transition-all">Forgot Password?</button>
-                  </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-line group-focus-within:text-accent transition-colors w-5 h-5" />
-                    <input className="w-full pl-12 pr-12 py-3.5 bg-surface/60 border border-line-strong/20 rounded-xl text-ink focus:outline-none focus:ring-4 focus:ring-accent/10 focus:border-accent transition-all" id="password" placeholder="••••••••" type={showPassword ? "text" : "password"} {...form.register("password")} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-4 top-1/2 -translate-y-1/2 text-line hover:text-ink transition-colors">
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="block text-sm font-medium text-ink" htmlFor="password">Password</label>
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="-my-2 -mr-2 inline-flex min-h-11 items-center rounded-control px-2 text-sm font-medium text-ink-muted underline-offset-4 transition-colors hover:text-ink hover:underline"
+                    >
+                      Forgot password?
                     </button>
-                    {form.formState.errors.password && <p className="text-danger text-xs mt-1">{form.formState.errors.password.message}</p>}
+                  </div>
+                  <div className="relative">
+                    <input
+                      className={`${inputClass} pr-12`}
+                      id="password"
+                      placeholder="Your password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      aria-invalid={form.formState.errors.password ? true : undefined}
+                      aria-describedby={form.formState.errors.password ? "password-error" : undefined}
+                      {...form.register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-0 top-0 inline-flex h-11 w-11 items-center justify-center rounded-control text-ink-muted transition-colors hover:text-ink"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" aria-hidden /> : <Eye className="w-5 h-5" aria-hidden />}
+                    </button>
+                  </div>
+                  {form.formState.errors.password && (
+                    <p id="password-error" className="text-sm text-danger">{form.formState.errors.password.message}</p>
+                  )}
+                  <div aria-live="polite">
+                    {restrictionToast && (
+                      <p role="status" className="pt-1 text-sm text-ink-muted">
+                        {restrictionToast}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <button className="w-full mt-8 py-4 px-6 bg-gradient-to-r from-accent to-accent-hover text-white rounded-xl font-display font-semibold text-lg active:scale-[0.98] transition-all duration-250 flex justify-center items-center gap-2 cursor-pointer" type="submit" disabled={isLoading || isValidating}>
-                  {isLoading || isValidating ? (
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
+                <button
+                  className="w-full min-h-12 inline-flex items-center justify-center gap-2 rounded-control bg-accent px-6 py-3 text-base font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-60"
+                  type="submit"
+                  disabled={busy}
+                  aria-busy={busy}
+                >
+                  {busy ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Signing in...
+                    </>
                   ) : (
-                    <>Sign In <ArrowRight className="text-xl w-5 h-5" /></>
+                    <>
+                      Sign in
+                      <ArrowRight className="w-5 h-5" aria-hidden />
+                    </>
                   )}
                 </button>
               </form>
 
-              <div className="mt-6 pt-5 border-t border-line/30 text-center">
+              <div className="mt-6 border-t border-line pt-6">
                 {/* A plain link: this route handler redirects to PayPal, so client-side navigation and prefetch must stay off it. */}
                 <a
                   href="/login/paypal/start"
@@ -254,19 +318,19 @@ export default function LoginPage() {
                     if (openingPayPal) event.preventDefault();
                     setOpeningPayPal(true);
                   }}
-                  className="w-full min-h-11 flex items-center justify-center py-2.5 px-4 rounded-xl border border-line-strong text-sm font-semibold text-ink hover:bg-surface-muted transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className={`${secondaryButtonClass} w-full aria-disabled:opacity-60`}
                 >
-                  <PayPalMark className="w-5 h-5 mr-2 shrink-0" />
-                  {openingPayPal ? "Opening PayPal…" : "Sign in with PayPal"}
+                  <PayPalMark className="w-5 h-5 shrink-0" />
+                  {openingPayPal ? "Opening PayPal..." : "Sign in with PayPal"}
                 </a>
-                <p className="mt-2 text-xs text-ink-muted">
+                <p className="mt-2 text-center text-sm text-ink-muted">
                   For employees who have already linked PayPal in Settings.
                 </p>
               </div>
             </div>
           </div>
         </div>
-    </main>
+      </main>
     </>
   );
 }
