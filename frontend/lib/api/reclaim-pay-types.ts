@@ -1,6 +1,6 @@
 // ─── Reclaim Pay Types ───────────────────────────────────────────────────────
 // Mirrors the backend contracts in docs/superpowers/specs/2026-11-02-reclaim-pay-hackathon-design.md.
-// Recovery, settings and back-test types join this file when their endpoints land.
+// Settings and back-test types join this file when their endpoints land.
 // ──────────────────────────────────────────────────────────────────────────────
 
 export type AutonomyTier = "AUTO_PAY" | "HR_QUICK" | "HR_REVIEW" | "DUAL_REVIEW";
@@ -190,6 +190,47 @@ export type BatchSkipReason = "NOT_HR_QUICK" | "NOT_IN_REVIEW" | "SELF_APPROVAL"
 export interface BatchApproveResult {
   approved: string[];
   skipped: { reim_id: string; reason: BatchSkipReason }[];
+}
+
+// ─── Employee trust and recoveries ───────────────────────────────────────────
+
+/** GET /autonomy/me (employee; HR gets 403). Holds no risk scores or signals. */
+export interface TrustInfo {
+  trust_tier: TrustTier;
+  auto_limit: number;
+  paid_claims: number;
+  /** null at the top tier. */
+  next_tier: TrustTier | null;
+  claims_to_next_tier: number;
+  /** Employee-facing sentences, e.g. why instant payouts are limited. Empty when nothing is wrong. */
+  reasons: string[];
+  currency: string;
+  /** null at the top tier. */
+  next_limit: number | null;
+  /** Set while a recent correction keeps the employee at NEW. */
+  limited_until: string | null;
+}
+
+export type RecoveryStatus = "NOTICE_SENT" | "DISPUTED" | "OFFSET" | "INVOICED" | "RECOVERED" | "WAIVED";
+
+/** Why POST /recoveries/{id}/dispute failed: the 409 codes DISPUTE_WINDOW_CLOSED and NOT_DISPUTABLE, or anything else. */
+export type DisputeError = "WINDOW_CLOSED" | "NOT_DISPUTABLE" | "FAILED";
+
+/** GET /recoveries, POST /recoveries/{id}/dispute */
+export interface Recovery {
+  recovery_id: string;
+  reim_id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  status: RecoveryStatus;
+  dispute_until: string;
+  dispute_note: string | null;
+  offset_reim_id: string | null;
+  paypal_invoice_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 /** Formats an amount the way the backend writes it in notifications, e.g. "MYR 48.00". */

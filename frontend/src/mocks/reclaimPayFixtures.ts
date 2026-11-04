@@ -3,9 +3,11 @@ import type {
   PayeeStatus,
   PayoutInfoV2,
   PayoutLedgerRow,
+  Recovery,
   TimelineEvent,
   TimelineStatus,
   TimelineStepId,
+  TrustInfo,
 } from "@/lib/api/reclaim-pay-types";
 
 const inThreeDays = new Date(Date.now() + 72 * 3600 * 1000).toISOString();
@@ -276,3 +278,60 @@ export const timelineS4: TimelineEvent[] = sequence([
   step("judgment.final", "done", "Approve · confidence 1.00"),
   step("autonomy.decide", "done", decisions.S4.explanation),
 ]);
+
+// ─── Employee trust and recoveries ───────────────────────────────────────────
+
+/** GET /autonomy/me states the fast-track card renders. `none` stands in for a 404. */
+export const trustVariants: Record<"standard" | "trusted" | "limited" | "none", TrustInfo | null> = {
+  standard: {
+    trust_tier: "STANDARD", auto_limit: 100, paid_claims: 5, next_tier: "TRUSTED",
+    claims_to_next_tier: 5, reasons: [], currency: "MYR", next_limit: 200, limited_until: null,
+  },
+  trusted: {
+    trust_tier: "TRUSTED", auto_limit: 200, paid_claims: 14, next_tier: null,
+    claims_to_next_tier: 0, reasons: [], currency: "MYR", next_limit: null, limited_until: null,
+  },
+  limited: {
+    trust_tier: "NEW", auto_limit: 50, paid_claims: 6, next_tier: "STANDARD", claims_to_next_tier: 0,
+    reasons: ["Instant payouts are limited after a recent correction. They return to normal on 27 Jan 2027."],
+    currency: "MYR", next_limit: 100, limited_until: "2027-01-27T00:00:00Z",
+  },
+  none: null,
+};
+
+export const trust = trustVariants.standard;
+
+const recoveryBase: Recovery = {
+  recovery_id: "5f0c2d1e-7a4b-4c2e-9d3f-1b2a3c4d5e6f",
+  reim_id: "1a2b3c4d-8e9f-4a0b-b1c2-d3e4f5a6b7c8",
+  user_id: "employee-1",
+  amount: 30,
+  currency: "MYR",
+  reason: "Breakfast was included in the hotel rate and also claimed separately.",
+  status: "NOTICE_SENT",
+  dispute_until: new Date(Date.now() + 96 * 3600 * 1000).toISOString(),
+  dispute_note: null,
+  offset_reim_id: null,
+  paypal_invoice_id: null,
+  created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+  updated_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+};
+
+/** Settled recoveries, reachable on the dashboard only through ?recovery={id}. */
+const settledRecoveries: Recovery[] = [
+  { ...recoveryBase, recovery_id: "rec-disputed", status: "DISPUTED", dispute_note: "Breakfast wasn't included." },
+  { ...recoveryBase, recovery_id: "rec-offset", status: "OFFSET", offset_reim_id: "9c8b7a6d-1e2f-4a3b-8c4d-5e6f7a8b9c0d" },
+  { ...recoveryBase, recovery_id: "rec-invoiced", status: "INVOICED", paypal_invoice_id: "INV2-DEMO-0001" },
+  { ...recoveryBase, recovery_id: "rec-recovered", status: "RECOVERED" },
+  { ...recoveryBase, recovery_id: "rec-waived", status: "WAIVED" },
+];
+
+/** GET /recoveries for the employee (actions filter by status). `none` stands in for a 404. */
+export const recoveryVariants: Record<"open" | "closed" | "empty" | "none", Recovery[] | null> = {
+  open: [recoveryBase, ...settledRecoveries],
+  closed: [{ ...recoveryBase, dispute_until: new Date(Date.now() - 2 * 3600 * 1000).toISOString() }],
+  empty: [],
+  none: null,
+};
+
+export const recoveries = recoveryVariants.open;
