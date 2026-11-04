@@ -15,6 +15,8 @@ services:
     dockerContext: ./backend
     dockerfilePath: ./backend/uv.Dockerfile
     healthCheckPath: /health
+    domains:
+      - api.reclaimai.dev
     autoDeployTrigger: commit
     disk:
       name: reclaim-pay-storage
@@ -28,11 +30,11 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: BACKEND_PUBLIC_URL
-        value: "https://reclaim-pay-api.onrender.com"
+        value: "https://api.reclaimai.dev"
       - key: FRONTEND_PUBLIC_URL
-        value: "https://reclaim-pay-web.onrender.com"
+        value: "https://reclaimai.dev"
       - key: FRONTEND_URL
-        value: "https://reclaim-pay-web.onrender.com"
+        value: "https://reclaimai.dev,https://www.reclaimai.dev,https://reclaim-pay-web.onrender.com"
       - key: VAPID_KEYS_FILE
         value: /app/storage/vapid_keys.json
       - key: LLM_BASE_URL
@@ -80,9 +82,12 @@ services:
     dockerContext: ./frontend
     dockerfilePath: ./frontend/Dockerfile
     healthCheckPath: /
+    # Render adds www.reclaimai.dev as a redirect to the apex.
+    domains:
+      - reclaimai.dev
     autoDeployTrigger: commit
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: "https://reclaim-pay-api.onrender.com"
+        value: "https://api.reclaimai.dev"
       - key: INTERNAL_API_URL
-        value: "https://reclaim-pay-api.onrender.com"
+        value: "https://api.reclaimai.dev"
