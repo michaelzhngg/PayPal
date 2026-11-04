@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   FileText,
   History,
+  CalendarDays,
   ClipboardList,
   Settings,
   LifeBuoy,
@@ -20,6 +21,7 @@ const NAV_LINKS = [
   { href: "/employee/dashboard", label: "Dashboard",    icon: LayoutDashboard },
   { href: "/employee/claims",    label: "Upload Claim", icon: FileText         },
   { href: "/employee/history",   label: "History",      icon: History          },
+  { href: "/employee/calendar",  label: "Calendar",     icon: CalendarDays     },
   { href: "/employee/drafts",    label: "Drafts",       icon: ClipboardList    },
   { href: "/employee/settings",  label: "Settings",     icon: Settings         },
 ];

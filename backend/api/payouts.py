@@ -14,6 +14,7 @@ from core.enums import UserRole, PayoutStatus
 from engine.services.payout_service import initiate_payout_async, payout_plan
 from engine.services.payout_status import FINAL_STATUSES, refresh_payout
 from engine.services.paypal_client import PayPalError
+from engine.services.reconcile_service import ReconcileSummary, reconcile
 from engine.services.recovery_service import offset_for_reim
 
 router = APIRouter()
@@ -109,6 +110,16 @@ def list_payouts(
         query = query.where(Payout.created_at < datetime.combine(to_date + timedelta(days=1), time.min, tzinfo=timezone.utc))
     rows = db.exec(query.order_by(Payout.created_at.desc()).limit(500)).all()
     return [ledger_row(payout, reim, employee) for payout, reim, employee in rows]
+
+
+# Declared before GET /{reim_id}, which would otherwise capture "reconcile". Sync because the PayPal SDK blocks.
+@router.get("/reconcile", response_model=ReconcileSummary)
+def reconcile_payouts(
+    days: int = Query(default=1, ge=1, le=30),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_hr_user),
+):
+    return reconcile(db, days)
 
 
 @router.post("/", response_model=PayoutOut)

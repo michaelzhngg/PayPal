@@ -12,6 +12,7 @@ import type { ReimbursementRaw, Claim, ClaimBundle, PayoutInfo, AiStatus } from 
 import { triageRows, type TriageRow, type TriageSource } from "@/components/hr-grid/rows";
 import { triageReimbursements } from "@/src/mocks/triageFixtures";
 import { formatClaimRef, formatMoney } from "@/lib/format";
+import { toClaimAutonomy } from "@/lib/hr/evidence";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ function mapToClaim(r: ReimbursementRaw): Claim {
 }
 
 /** Map a raw reimbursement to the ClaimBundle detail shape. */
-function mapToBundle(r: ReimbursementRaw): ClaimBundle {
+function mapToBundle(r: TriageSource): ClaimBundle {
   const employeeName = r.employee_name ?? "Unknown";
   const deptName = r.department_name ?? "Unknown";
 
@@ -129,6 +130,7 @@ function mapToBundle(r: ReimbursementRaw): ClaimBundle {
         action: `Judgment: ${r.judgment} (confidence ${Math.round((r.confidence ?? 0) * 100)}%)`,
       },
     ],
+    autonomy: toClaimAutonomy(r),
   };
 }
 
@@ -288,9 +290,12 @@ export async function getHRHistory(): Promise<HistoryClaim[]> {
 
 /** Fetch a single reimbursement by reim_id and map to ClaimBundle for detail view. */
 export async function getHRClaimBundle(reimId: string): Promise<ClaimBundle | null> {
-  const result = await apiGet<ReimbursementRaw>(`${API_PREFIX}/reimbursements/${reimId}`);
-  if (!result.data) return null;
-  return mapToBundle(result.data);
+  const fixture = triageReimbursements.find((r) => r.reim_id === reimId);
+  return withFixture(fixture ? mapToBundle(fixture) : null, async () => {
+    const result = await apiGet<TriageSource>(`${API_PREFIX}/reimbursements/${reimId}`);
+    if (!result.data) return null;
+    return mapToBundle(result.data);
+  });
 }
 
 /** HR updates the status of a reimbursement (approve / reject). */

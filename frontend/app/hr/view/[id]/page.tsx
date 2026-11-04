@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Clock, ShieldCheck, ShieldX, ChevronDown, ZoomIn, CheckCircle2, FileText, ExternalLink, Download, X, Loader2 } from "lucide-react";
 import type { ClaimBundle } from "@/lib/api/types";
 import { formatClaimRef, formatMoney } from "@/lib/format";
-import { SuccessModal } from "../../hr_components/SuccessModal";
+import { SuccessModal, isAwaitingSecondApproval } from "../../hr_components/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
 import { getHRClaimBundle, updateReimbursementStatus } from "@/lib/actions/hr";
 
@@ -321,6 +321,7 @@ export default function ViewPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [awaitingSecond, setAwaitingSecond] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -362,8 +363,10 @@ export default function ViewPage() {
       return;
     }
 
+    const awaiting = isAwaitingSecondApproval(res.data);
+    setAwaitingSecond(awaiting);
     setShowSuccessModal(true);
-    router.push("/hr/dashboard");
+    if (!awaiting) router.push("/hr/dashboard");
   }
 
   return (
@@ -640,7 +643,7 @@ export default function ViewPage() {
         />
       )}
 
-      {showSuccessModal && <SuccessModal decision={hrDecision} id={formatClaimRef(bundle.id)} />}
+      {showSuccessModal && <SuccessModal decision={hrDecision} id={formatClaimRef(bundle.id)} awaitingSecondApproval={awaitingSecond} />}
     </div>
   );
 }

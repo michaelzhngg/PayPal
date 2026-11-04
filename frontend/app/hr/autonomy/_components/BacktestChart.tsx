@@ -1,0 +1,207 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { AgCharts } from "ag-charts-react";
+import {
+  CartesianChartModule,
+  CrossLinesModule,
+  LineSeriesModule,
+  NumberAxisModule,
+  ScatterSeriesModule,
+  type AgCartesianChartOptions,
+} from "ag-charts-community";
+import type { ChartData, CurveDatum } from "../_lib/autonomy";
+
+const MODULES = [CartesianChartModule, NumberAxisModule, LineSeriesModule, ScatterSeriesModule, CrossLinesModule];
+
+// The sweep line is a lighter step of the brand indigo; the current setting carries the
+// full brand color so it is the one thing that stands out. Both clear 3:1 on white.
+const LINE = "#7476e6";
+const CURRENT = "#4647d3";
+const INK_MUTED = "#595c5e";
+const GRID = "#e5e9eb";
+const FONT = "Inter, sans-serif";
+const AUTOMATION_HEIGHT = 170;
+// Taller by the x-axis title it carries for both charts.
+const LEAKAGE_HEIGHT = 200;
+
+type Measure = "automationPct" | "leakage";
+
+function panelOptions(
+  data: ChartData,
+  measure: Measure,
+  currency: string,
+  showXAxisTitle: boolean,
+  height: number,
+): AgCartesianChartOptions {
+  const fmtY = (v: number) =>
+    measure === "automationPct" ? `${Math.round(v)}%` : `${currency} ${Math.round(v).toLocaleString("en-US")}`;
+  const name = measure === "automationPct" ? "Paid automatically" : "Expected leakage";
+  const tooltip = {
+    renderer: ({ datum }: { datum: CurveDatum }) => ({
+      heading: `Standard limit ${currency} ${datum.limit.toLocaleString("en-US")}`,
+      data: [{ label: name, value: fmtY(datum[measure]) }],
+    }),
+  };
+
+  return {
+    data: data.points,
+    height,
+    background: { visible: false },
+    padding: { top: 12, right: 16, bottom: showXAxisTitle ? 4 : 0, left: 4 },
+    legend: { enabled: false },
+    animation: { enabled: false },
+    series: [
+      {
+        type: "line",
+        xKey: "limit",
+        yKey: measure,
+        yName: name,
+        stroke: LINE,
+        strokeWidth: 2,
+        marker: { enabled: true, size: 8, fill: LINE, stroke: "#ffffff", strokeWidth: 2 },
+        tooltip,
+      },
+      {
+        type: "scatter",
+        data: [data.current],
+        xKey: "limit",
+        yKey: measure,
+        yName: "Your setting",
+        size: 14,
+        fill: CURRENT,
+        stroke: "#ffffff",
+        strokeWidth: 2,
+        label: {
+          enabled: true,
+          placement: "top",
+          color: "#2c2f31",
+          fontFamily: FONT,
+          fontSize: 12,
+          fontWeight: 600,
+          formatter: ({ value }: { value: number }) => fmtY(value),
+        },
+        tooltip: {
+          renderer: ({ datum }: { datum: CurveDatum }) => ({
+            heading: `Your setting: ${currency} ${datum.limit.toLocaleString("en-US")}`,
+            data: [{ label: name, value: fmtY(datum[measure]) }],
+          }),
+        },
+      },
+    ],
+    axes: {
+      x: {
+        type: "number",
+        position: "bottom",
+        nice: false,
+        label: {
+          color: INK_MUTED,
+          fontFamily: FONT,
+          fontSize: 12,
+          formatter: ({ value }: { value: number }) => Math.round(value).toLocaleString("en-US"),
+        },
+        line: { stroke: GRID },
+        gridLine: { enabled: false },
+        title: showXAxisTitle
+          ? { enabled: true, text: `Standard employee limit (${currency})`, color: INK_MUTED, fontFamily: FONT, fontSize: 12 }
+          : { enabled: false },
+        crossLines: [{ type: "line", value: data.current.limit, stroke: CURRENT, strokeWidth: 1, strokeOpacity: 0.5 }],
+      },
+      y: {
+        type: "number",
+        position: "left",
+        // Same width on both charts so their plot areas line up over the shared limit axis.
+        thickness: 72,
+        min: 0,
+        ...(measure === "automationPct" ? { max: 100 } : {}),
+        interval: { maxSpacing: 60 },
+        label: {
+          color: INK_MUTED,
+          fontFamily: FONT,
+          fontSize: 12,
+          formatter: ({ value }: { value: number }) => fmtY(value),
+        },
+        line: { enabled: false },
+        gridLine: { style: [{ stroke: GRID, lineDash: [] }] },
+      },
+    },
+  };
+}
+
+interface BacktestChartProps {
+  data: ChartData;
+  currency: string;
+}
+
+/**
+ * Two small charts sharing one x axis (the standard limit) instead of one chart with two
+ * y-scales: automation % on top, expected leakage below. A table view carries every value.
+ */
+export default function BacktestChart({ data, currency }: BacktestChartProps) {
+  const [showTable, setShowTable] = useState(false);
+  const automation = useMemo(() => panelOptions(data, "automationPct", currency, false, AUTOMATION_HEIGHT), [data, currency]);
+  const leakage = useMemo(() => panelOptions(data, "leakage", currency, true, LEAKAGE_HEIGHT), [data, currency]);
+
+  const summary = `At a standard limit of ${currency} ${data.current.limit.toLocaleString("en-US")}, ${data.current.automationPct}% of claims are paid automatically with ${currency} ${data.current.leakage.toLocaleString("en-US")} expected leakage.`;
+
+  return (
+    <div>
+      <p className="sr-only">{summary}</p>
+
+      {!showTable && (
+        <div aria-hidden="true">
+          <h4 className="text-sm font-semibold text-on-surface">Claims paid automatically</h4>
+          <AgCharts options={automation} modules={MODULES} style={{ height: AUTOMATION_HEIGHT }} />
+          <h4 className="mt-3 text-sm font-semibold text-on-surface">Expected leakage, in {currency}</h4>
+          <AgCharts options={leakage} modules={MODULES} style={{ height: LEAKAGE_HEIGHT }} />
+        </div>
+      )}
+
+      {showTable && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <caption className="sr-only">Back-test by standard employee limit</caption>
+            <thead>
+              <tr className="text-left text-on-surface-variant border-b border-outline-variant/40">
+                <th scope="col" className="py-2 pr-4 font-medium">Standard limit</th>
+                <th scope="col" className="py-2 pr-4 font-medium text-right">Paid automatically</th>
+                <th scope="col" className="py-2 font-medium text-right">Expected leakage</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {data.points.map((p) => (
+                <tr key={p.limit} className="border-b border-outline-variant/20">
+                  <td className="py-2 pr-4">{currency} {p.limit.toLocaleString("en-US")}</td>
+                  <td className="py-2 pr-4 text-right">{p.automationPct}%</td>
+                  <td className="py-2 text-right">{currency} {p.leakage.toLocaleString("en-US")}</td>
+                </tr>
+              ))}
+              <tr className="font-semibold text-primary">
+                <td className="py-2 pr-4">Your setting: {currency} {data.current.limit.toLocaleString("en-US")}</td>
+                <td className="py-2 pr-4 text-right">{data.current.automationPct}%</td>
+                <td className="py-2 text-right">{currency} {data.current.leakage.toLocaleString("en-US")}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p className="flex items-center gap-2 text-xs text-on-surface-variant">
+          <span className="inline-block w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_1px_#4647d3] bg-primary" aria-hidden="true" />
+          Your setting
+          <span className="inline-block w-4 h-0.5 ml-3 rounded" style={{ background: LINE }} aria-hidden="true" />
+          Other standard limits
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowTable((v) => !v)}
+          aria-pressed={showTable}
+          className="min-h-[44px] px-3 rounded-lg text-sm font-semibold text-primary hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-primary cursor-pointer"
+        >
+          {showTable ? "Show chart" : "Show as table"}
+        </button>
+      </div>
+    </div>
+  );
+}

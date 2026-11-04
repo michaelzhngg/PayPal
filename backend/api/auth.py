@@ -29,7 +29,7 @@ def login_access_token(
     statement = select(User).where(User.email == form_data.username)
     user = db.exec(statement).first()
     
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
+    if not user or not user.is_active or not security.verify_password(form_data.password, user.hashed_password):
         logging.warning(f"Login failed: Invalid credentials for email {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -51,10 +51,11 @@ def login_access_token(
 def register_user(
     request: Request,
     user_in: schemas.UserCreate,
-    db: Session = Depends(deps.get_db)
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_hr_user),
 ) -> Any:
     """
-    Register a new user.
+    Create a user. HR only: an open route would let anyone create an HR account.
     """
     statement = select(User).where(User.email == user_in.email)
     user = db.exec(statement).first()
@@ -134,10 +135,17 @@ def update_profile(
     body: UpdateProfileRequest,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_user),
+    claims: dict = Depends(deps.get_session_claims),
 ) -> dict:
     """Update current user's profile."""
     # Check email uniqueness if it changed
     if body.email != current_user.email:
+        # The email is the password login, and that login is how an employee recovers from a PayPal takeover.
+        if deps.payout_changes_paused_until(claims):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Sign in with your password to change your email.",
+            )
         existing = db.exec(select(User).where(User.email == body.email)).first()
         if existing and existing.user_id != current_user.user_id:
             raise HTTPException(

@@ -42,8 +42,15 @@ class Settings(BaseSettings):
     PAYPAL_CLIENT_SECRET: str = ""
     PAYPAL_WEBHOOK_ID: str = ""
     PAYPAL_CURRENCY: str = "MYR"
+    # The only identity mock mode's fake PayPal reports at sign-in (the seeded demo employee). Empty turns it off.
+    PAYPAL_MOCK_SIGNIN_PAYER_ID: str = "DEMOMOCKS123"
     BACKEND_PUBLIC_URL: str = "http://localhost:8000"
     FRONTEND_PUBLIC_URL: str = "http://localhost:3000"
+
+    # Channel3 market-price check. Off unless both the key and the claim currency's USD rate are set.
+    CHANNEL3_API_KEY: str = ""
+    CHANNEL3_CATEGORIES: str = "Equipment,Office Supplies,IT Equipment"
+    FX_TO_USD: float = 0.0
 
     # Autonomous reimbursement — kill switch (set to false to force all claims through HR)
     AUTO_REIMBURSE_ENABLED: bool = True

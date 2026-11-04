@@ -9,3 +9,12 @@ export async function withFixture<T>(fixture: T, real: () => Promise<T>): Promis
   if (FIXTURES_ON) return structuredClone(fixture);
   return real();
 }
+
+/**
+ * Picks one named fixture variant, so a screen's other states can be checked
+ * without editing code, e.g. RECLAIM_PAY_FIXTURE_TRUST=trusted. Unknown names
+ * fall back to the default variant.
+ */
+export function pickFixture<K extends string, T>(variants: Record<K, T>, name: string | undefined, fallback: K): T {
+  return name && name in variants ? variants[name as K] : variants[fallback];
+}

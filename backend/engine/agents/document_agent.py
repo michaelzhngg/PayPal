@@ -9,7 +9,7 @@ from uuid import UUID
 from datetime import datetime, date
 
 import pymupdf4llm
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from sqlmodel import Session, select
 
 from core.models import (
@@ -17,7 +17,14 @@ from core.models import (
     SettlementCategory, SettlementReceipt,
 )
 from engine.llm import get_vision_llm, get_text_llm
-from engine.prompts.document_prompts import RECEIPT_OCR_PROMPT, RECEIPT_OCR_PROMPT_WITH_CATEGORIES
+from engine.prompts.document_prompts import (
+    RECEIPT_OCR_PROMPT,
+    RECEIPT_OCR_PROMPT_WITH_CATEGORIES,
+    RECEIPT_OCR_SYSTEM_PROMPT,
+)
+from engine.prompts.untrusted import DATA_RULE, wrap_text
+from engine.risk.shield.fingerprint import phash_file, sha256_file
+from engine.risk.shield.provenance import inspect_image
 from engine.tools.generate_reimbursement_template import generate_reimbursement_template  # noqa: F401 (re-exported)
 
 logger = logging.getLogger(__name__)
@@ -139,7 +146,7 @@ def _ocr_image(file_path: str, prompt: str) -> dict:
         {"type": "text", "text": prompt},
         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64_str}"}},
     ])
-    response = get_vision_llm().invoke([message])
+    response = get_vision_llm().invoke([SystemMessage(content=RECEIPT_OCR_SYSTEM_PROMPT), message])
     logger.info("[OCR_IMAGE] LLM responded for %s, content type=%s", file_path, type(response.content).__name__)
     try:
         extracted = _extract_json_object(_normalize_llm_content(response.content))
@@ -160,8 +167,9 @@ def _ocr_pdf(file_path: str, prompt: str) -> dict:
         logger.error("[OCR_PDF] Failed to extract PDF text from %s: %s", file_path, e)
         return {}
 
-    full_prompt = f"{prompt}\n\nDocument Text:\n{md_text[:8000]}"
-    response = get_text_llm().invoke([HumanMessage(content=full_prompt)])
+    full_prompt = f"{prompt}\n\nDocument Text:\n{wrap_text(md_text[:8000])}"
+    system = f"{RECEIPT_OCR_SYSTEM_PROMPT}\n{DATA_RULE}"
+    response = get_text_llm().invoke([SystemMessage(content=system), HumanMessage(content=full_prompt)])
     logger.info("[OCR_PDF] LLM responded for %s, content type=%s", file_path, type(response.content).__name__)
     try:
         extracted = _extract_json_object(_normalize_llm_content(response.content))
@@ -319,6 +327,24 @@ def _parse_date_str(date_str: Optional[str]) -> Optional[date]:
 
 
 # ---------------------------------------------------------------------------
+# Upload-time fingerprints and provenance (read later by the Receipt Shield)
+# ---------------------------------------------------------------------------
+
+def _fingerprint(doc: SupportingDocument, file_path: str, file_type: str) -> None:
+    """A file that can't be read keeps no fingerprint; the shield then skips its duplicate check."""
+    try:
+        doc.sha256 = sha256_file(file_path)
+    except OSError:
+        logger.exception("[PROCESS_RECEIPTS] Could not hash %s", file_path)
+        return
+    if file_type == "pdf":
+        return
+    doc.phash = phash_file(file_path)
+    signals = inspect_image(file_path, str(doc.document_id))
+    doc.shield = {"provenance": [s.model_dump(mode="json") for s in signals]}
+
+
+# ---------------------------------------------------------------------------
 # Main entry point — parallel LLM calls, serial DB writes
 # ---------------------------------------------------------------------------
 
@@ -396,6 +422,7 @@ def process_receipts(
         )
         session.add(doc)
         session.flush()
+        _fingerprint(doc, r["file_path"], r["file_type"])
         r["document_id"] = str(doc.document_id)
         document_ids.append(str(doc.document_id))
         logger.info("[PROCESS_RECEIPTS] Saved doc_id=%s for %s", r["document_id"], r["document_name"])

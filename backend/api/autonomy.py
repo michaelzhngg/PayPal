@@ -1,14 +1,17 @@
-"""HR endpoints for autonomy settings, the kill switch, today's status and the action log."""
+"""Autonomy settings, kill switch, status, action log and back-test (HR), and the employee trust card."""
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import Session, select
 
 from api import deps
+from core.enums import UserRole
 from core.models import AgentAction, User
+from engine.risk.types import TrustTier
 from engine.services import autonomy_store as store
+from engine.services.backtest_service import BacktestResult, employee_trust, load_backtest_cases, run_backtest
 from engine.services.action_log import action_to_dict, verify_chain
 from engine.services.risk_contract import AutonomyConfig
 
@@ -20,6 +23,16 @@ class AutonomySettingsOut(BaseModel):
     enabled: bool
     version: int
     breaker_until: datetime | None
+
+
+class AutonomySettingsIn(AutonomyConfig):
+    """A full AutonomyConfig plus why it changed. The reason goes to the action log, never into the stored config."""
+    reason: str | None = Field(default=None, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def blank_reason_is_none(cls, v: str | None) -> str | None:
+        return (v or "").strip() or None
 
 
 class KillSwitchIn(BaseModel):
@@ -59,6 +72,23 @@ class AgentActionsOut(BaseModel):
     actions: list[AgentActionOut]
 
 
+class BacktestIn(BaseModel):
+    config: AutonomyConfig
+
+
+class TrustInfoOut(BaseModel):
+    trust_tier: TrustTier
+    auto_limit: float
+    paid_claims: int
+    next_tier: TrustTier | None
+    claims_to_next_tier: int
+    reasons: list[str]
+    currency: str
+    next_limit: float | None
+    # Set while a recent correction keeps the employee at NEW.
+    limited_until: datetime | None
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -84,12 +114,13 @@ def get_settings(
 
 @router.put("/settings", response_model=AutonomySettingsOut)
 def put_settings(
-    body: AutonomyConfig,
+    body: AutonomySettingsIn,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_hr_user),
 ):
     """`enabled` and `version` in the body are ignored: use the kill switch, and the server bumps the version."""
-    store.update_config(db, body, current_user.user_id, _now())
+    config = AutonomyConfig.model_validate(body.model_dump(exclude={"reason"}))
+    store.update_config(db, config, current_user.user_id, _now(), reason=body.reason)
     return _settings_out(db)
 
 
@@ -131,3 +162,24 @@ def get_actions(
         chain_valid=verify_chain(db),
         actions=[AgentActionOut(**action_to_dict(a)) for a in rows],
     )
+
+
+@router.post("/backtest", response_model=BacktestResult)
+def backtest(
+    body: BacktestIn,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_hr_user),
+):
+    now = _now()
+    return run_backtest(load_backtest_cases(db, now), body.config, now)
+
+
+@router.get("/me", response_model=TrustInfoOut)
+def my_trust(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """HR users get 403: their own claims never auto-pay (HR_SELF_CLAIM)."""
+    if current_user.role != UserRole.Employee:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Trust tiers apply to employees only")
+    return employee_trust(db, current_user.user_id, store.get_config(db), _now())

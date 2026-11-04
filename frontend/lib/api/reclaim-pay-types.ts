@@ -1,6 +1,6 @@
 // ─── Reclaim Pay Types ───────────────────────────────────────────────────────
 // Mirrors the backend contracts in docs/superpowers/specs/2026-11-02-reclaim-pay-hackathon-design.md.
-// Recovery, settings and back-test types join this file when their endpoints land.
+// Settings and back-test types join this file when their endpoints land.
 // ──────────────────────────────────────────────────────────────────────────────
 
 export type AutonomyTier = "AUTO_PAY" | "HR_QUICK" | "HR_REVIEW" | "DUAL_REVIEW";
@@ -72,6 +72,7 @@ export const TIMELINE_STEP_IDS = [
   "shield.provenance",
   "shield.arithmetic",
   "shield.split",
+  "shield.price",
   "totals.aggregate",
   "judgment.final",
   "autonomy.decide",
@@ -122,6 +123,8 @@ export interface PayeeStatus {
   verified: boolean;
   linked_at: string | null;
   cooldown_until: string | null;
+  /** Set only in a session started with Sign in with PayPal. */
+  link_changes_paused_until?: string | null;
 }
 
 /** GET /payouts/{reim_id} */
@@ -190,6 +193,151 @@ export type BatchSkipReason = "NOT_HR_QUICK" | "NOT_IN_REVIEW" | "SELF_APPROVAL"
 export interface BatchApproveResult {
   approved: string[];
   skipped: { reim_id: string; reason: BatchSkipReason }[];
+}
+
+// ─── Employee trust and recoveries ───────────────────────────────────────────
+
+/** GET /autonomy/me (employee; HR gets 403). Holds no risk scores or signals. */
+export interface TrustInfo {
+  trust_tier: TrustTier;
+  auto_limit: number;
+  paid_claims: number;
+  /** null at the top tier. */
+  next_tier: TrustTier | null;
+  claims_to_next_tier: number;
+  /** Employee-facing sentences, e.g. why instant payouts are limited. Empty when nothing is wrong. */
+  reasons: string[];
+  currency: string;
+  /** null at the top tier. */
+  next_limit: number | null;
+  /** Set while a recent correction keeps the employee at NEW. */
+  limited_until: string | null;
+}
+
+export type RecoveryStatus = "NOTICE_SENT" | "DISPUTED" | "OFFSET" | "INVOICED" | "RECOVERED" | "WAIVED";
+
+/** Why POST /recoveries/{id}/dispute failed: the 409 codes DISPUTE_WINDOW_CLOSED and NOT_DISPUTABLE, or anything else. */
+export type DisputeError = "WINDOW_CLOSED" | "NOT_DISPUTABLE" | "FAILED";
+
+/** GET /recoveries, POST /recoveries/{id}/dispute */
+export interface Recovery {
+  recovery_id: string;
+  reim_id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  status: RecoveryStatus;
+  dispute_until: string;
+  dispute_note: string | null;
+  offset_reim_id: string | null;
+  paypal_invoice_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** What POST /recoveries/{id}/execute would do right now. */
+export type RecoveryPath = "WAIT" | "OFFSET" | "INVOICE";
+
+/** GET /recoveries/{id}/invoice-preview */
+export interface RecoveryInvoicePreview {
+  note: string;
+  amount: number;
+  currency: string;
+  recipient_email_masked: string;
+  path: RecoveryPath;
+}
+
+/** The autonomy engine's tunable limits (DETAIL-PLAN §7.1). `enabled` and `version` are server-owned on save. */
+export interface AutonomyConfig {
+  enabled: boolean;
+  currency: string;
+  auto_limit_new: number;
+  auto_limit_standard: number;
+  auto_limit_trusted: number;
+  dual_approval_above: number;
+  employee_daily_cap: number;
+  employee_monthly_cap: number;
+  agent_daily_budget: number;
+  quick_min_score: number;
+  review_min_score: number;
+  dual_min_score: number;
+  review_cost: number;
+  review_minutes: number;
+  recovery_rate: number;
+  audit_sample_rate: number;
+  payee_cooldown_hours: number;
+  breaker_window: number;
+  breaker_high_ratio: number;
+  breaker_pause_minutes: number;
+  dispute_window_hours: number;
+  version: number;
+}
+
+/** GET/PUT /autonomy/settings and POST /autonomy/kill-switch */
+export interface AutonomySettings {
+  config: AutonomyConfig;
+  enabled: boolean;
+  version: number;
+  /** ISO time the circuit breaker lifts, or null when it isn't tripped. */
+  breaker_until: string | null;
+}
+
+/** GET /autonomy/status */
+export interface AutonomyStatus {
+  enabled: boolean;
+  breaker_until: string | null;
+  auto_paid_today: number;
+  agent_daily_budget: number;
+  decisions_today_by_tier: Partial<Record<AutonomyTier, number>>;
+}
+
+/** One point of the back-test sweep over the standard limit. */
+export interface BacktestPoint {
+  auto_limit_standard: number;
+  automation_rate: number;
+  projected_leakage: number;
+}
+
+/** POST /autonomy/backtest: the last 90 days replayed under a candidate config. */
+export interface BacktestResult {
+  total_claims: number;
+  auto_paid_count: number;
+  automation_rate: number;
+  auto_paid_amount: number;
+  bad_auto_paid_count: number;
+  projected_leakage: number;
+  caught_bad_count: number;
+  hr_reviews_avoided: number;
+  hr_hours_saved: number;
+  by_tier: Partial<Record<AutonomyTier, number>>;
+  curve: BacktestPoint[];
+  assumptions: string[];
+}
+
+export type AgentActionType =
+  | "CONFIG_CHANGED"
+  | "KILL_SWITCH"
+  | "BREAKER_TRIPPED"
+  | "PAYOUT_CREATED"
+  | (string & {});
+
+/** One entry of the hash-chained agent log. */
+export interface AgentAction {
+  action_id: number;
+  action_type: AgentActionType;
+  actor: string;
+  reim_id: string | null;
+  payload: Record<string, unknown>;
+  prev_hash?: string;
+  hash: string;
+  created_at: string;
+}
+
+/** GET /autonomy/actions */
+export interface AgentActionsResult {
+  chain_valid: boolean;
+  actions: AgentAction[];
 }
 
 /** Formats an amount the way the backend writes it in notifications, e.g. "MYR 48.00". */

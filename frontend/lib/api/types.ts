@@ -4,6 +4,7 @@
 // ──────────────────────────────────────────────────────────────────────────────
 
 import { formatMoney, type AutonomyDecision, type AutonomyTier } from "./reclaim-pay-types";
+import type { ClaimAutonomy } from "@/lib/hr/evidence";
 
 // ─── Generic API Result ──────────────────────────────────────────────────────
 
@@ -115,6 +116,8 @@ export interface ReimbursementRaw {
   reviewed_at?: string | null;
   ready_for_payout?: boolean;
   payout?: PayoutInfo | null;
+  /** The backend reports DUAL_REVIEW as HR_REVIEW to employees. */
+  tier?: AutonomyTier | null;
   created_at: string | null;
   updated_at?: string | null;
   sub_categories: string[];
@@ -274,6 +277,8 @@ export interface ClaimBundle {
   summary: string;
   overall_status: AiStatus;
   audit_log: AuditLogEntry[];
+  /** The autonomy engine's decision. null for claims decided before it existed. */
+  autonomy?: ClaimAutonomy | null;
 }
 
 /** Dashboard list row. */

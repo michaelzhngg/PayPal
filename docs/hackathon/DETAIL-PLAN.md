@@ -581,7 +581,7 @@ To get a token: `POST /api/v1/auth/login`, form-encoded `username=<email>&passwo
  "enabled": true, "version": 1, "breaker_until": null}
 ```
 
-**`PUT /autonomy/settings`** (HR): body is a full `AutonomyConfig`. Returns the same shape with `version` raised, and logs CONFIG_CHANGED. Returns 422 if the values fail validation.
+**`PUT /autonomy/settings`** (HR): body is a full `AutonomyConfig`, plus an optional `reason` (up to 500 characters) that goes into the CONFIG_CHANGED payload. Returns the same shape with `version` raised, and logs CONFIG_CHANGED. Returns 422 if the values fail validation.
 
 **`POST /autonomy/kill-switch`** (HR): `{"enabled": false, "reason": "Pausing during month-end close"}`. The reason is required (422 if empty). Returns the settings shape.
 
@@ -691,6 +691,7 @@ The SSE stream `/reimbursements/analyze/progress/{task_id}` carries an `event: p
 | 5 | `shield.provenance` | Checking where the image came from | Camera photo |
 | 6 | `shield.arithmetic` | Checking the totals add up | Items + tax = total |
 | 7 | `shield.split` | Checking for split claims | No related claims |
+| 7a | `shield.price` | Comparing prices with the market | Equipment claims only, and only when Channel3 is configured |
 | 8 | `totals.aggregate` | Calculating totals | MYR 48.00 claimed · MYR 48.00 eligible |
 | 9 | `judgment.final` | AI recommendation | Approve · confidence 0.95 |
 | 10 | `autonomy.decide` | Deciding: pay now or ask HR | *(the decision explanation)* |
