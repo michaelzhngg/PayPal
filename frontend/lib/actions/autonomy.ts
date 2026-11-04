@@ -51,8 +51,7 @@ export async function getSettings(): Promise<Outcome<"settings", AutonomySetting
 
 /**
  * Saves a full config. The backend ignores `enabled` and `version` and raises the version itself.
- * `reason` rides along in the body for the CONFIG_CHANGED log entry; the current backend drops
- * unknown fields, so it is only stored once the API accepts it.
+ * `reason` is stored on the CONFIG_CHANGED log entry, not in the config.
  */
 export async function saveSettings(
   config: AutonomyConfig,

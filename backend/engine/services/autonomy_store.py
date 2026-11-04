@@ -154,7 +154,9 @@ def breaker_active(db: Session, now: datetime) -> bool:
     return active_breaker_until(settings_row(db), now) is not None
 
 
-def update_config(db: Session, new: AutonomyConfig, actor_id: UUID, now: datetime) -> AutonomySettings:
+def update_config(
+    db: Session, new: AutonomyConfig, actor_id: UUID, now: datetime, reason: str | None = None
+) -> AutonomySettings:
     row = settings_row(db, for_update=True)
     old_cfg = row.config or {}
     new_cfg = new.model_dump(mode="json", exclude=SERVER_OWNED_FIELDS)
@@ -172,6 +174,7 @@ def update_config(db: Session, new: AutonomyConfig, actor_id: UUID, now: datetim
         "changed": changed,
         "old": {k: old_cfg.get(k) for k in changed},
         "new": {k: merged.get(k) for k in changed},
+        **({"reason": reason} if reason else {}),
     })
     return row
 

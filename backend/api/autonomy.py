@@ -25,6 +25,16 @@ class AutonomySettingsOut(BaseModel):
     breaker_until: datetime | None
 
 
+class AutonomySettingsIn(AutonomyConfig):
+    """A full AutonomyConfig plus why it changed. The reason goes to the action log, never into the stored config."""
+    reason: str | None = Field(default=None, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def blank_reason_is_none(cls, v: str | None) -> str | None:
+        return (v or "").strip() or None
+
+
 class KillSwitchIn(BaseModel):
     enabled: bool
     reason: str = Field(min_length=1, max_length=500)
@@ -104,12 +114,13 @@ def get_settings(
 
 @router.put("/settings", response_model=AutonomySettingsOut)
 def put_settings(
-    body: AutonomyConfig,
+    body: AutonomySettingsIn,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_hr_user),
 ):
     """`enabled` and `version` in the body are ignored: use the kill switch, and the server bumps the version."""
-    store.update_config(db, body, current_user.user_id, _now())
+    config = AutonomyConfig.model_validate(body.model_dump(exclude={"reason"}))
+    store.update_config(db, config, current_user.user_id, _now(), reason=body.reason)
     return _settings_out(db)
 
 
