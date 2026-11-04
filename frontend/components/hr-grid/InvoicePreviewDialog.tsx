@@ -117,7 +117,7 @@ function Body({
   };
 
   const footer = (primary?: React.ReactNode, closeLabel = "Close") => (
-    <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line/20 sm:flex-row sm:justify-end">
+    <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line sm:flex-row sm:justify-end">
       <button type="button" onClick={onClose} disabled={sending} className={closeBtn}>
         {closeLabel}
       </button>
@@ -173,7 +173,7 @@ function Body({
       <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4 text-sm">
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
           <dt className="text-ink-muted">Amount</dt>
-          <dd className="font-display font-bold tabular-nums">{formatMoney(preview.currency, preview.amount)}</dd>
+          <dd className="font-mono font-medium">{formatMoney(preview.currency, preview.amount)}</dd>
           <dt className="text-ink-muted">Send to</dt>
           <dd className="font-medium break-all">{preview.recipient_email_masked}</dd>
         </dl>

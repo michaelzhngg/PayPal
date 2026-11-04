@@ -68,12 +68,12 @@ export default function BatchApproveSheet({
         if (submitting) e.preventDefault();
         else onClose();
       }}
-      className="m-0 mt-auto w-full max-w-none max-h-[85dvh] rounded-t-2xl p-0 bg-surface text-ink backdrop:bg-black/40 sm:m-auto sm:max-w-lg sm:rounded-2xl"
+      className="m-0 mt-auto w-full max-w-none max-h-[85dvh] rounded-t-dialog p-0 bg-surface text-ink backdrop:bg-ink/40 sm:m-auto sm:max-w-lg sm:rounded-dialog"
     >
       <div className="flex flex-col max-h-[85dvh]">
-        <header className="flex items-start justify-between gap-4 px-5 pt-5 pb-3 border-b border-line/20">
+        <header className="flex items-start justify-between gap-4 px-5 pt-5 pb-3 border-b border-line">
           <div>
-            <h2 id="batch-approve-title" className="font-display font-bold text-lg">
+            <h2 id="batch-approve-title" className="font-display font-semibold text-lg">
               {result ? "Batch approval finished" : approveButtonLabel(selected)}
             </h2>
             {!result && (
@@ -102,7 +102,7 @@ export default function BatchApproveSheet({
                   <p className="text-ink-muted mt-3">
                     These changed since the page loaded, so they were left for you to open one by one:
                   </p>
-                  <ul className="mt-2 divide-y divide-line/20">
+                  <ul className="mt-2 divide-y divide-line">
                     {result.skipped.map((s) => (
                       <li key={s.reim_id} className="flex items-center justify-between gap-3 py-2">
                         <span className="font-mono text-xs">{refFor(s.reim_id)}</span>
@@ -115,20 +115,20 @@ export default function BatchApproveSheet({
             </>
           ) : (
             <>
-              <ul className="divide-y divide-line/20" aria-label="Claims to approve">
+              <ul className="divide-y divide-line" aria-label="Claims to approve">
                 {selected.map((row) => (
                   <li key={row.reimId} className="flex items-center justify-between gap-3 py-2">
                     <span className="min-w-0">
                       <span className="block truncate font-medium">{row.employee}</span>
                       <span className="block font-mono text-xs text-ink-muted">{row.ref}</span>
                     </span>
-                    <span className="tabular-nums font-semibold shrink-0">{formatMoney(row.currency, row.amount)}</span>
+                    <span className="font-mono font-medium shrink-0">{formatMoney(row.currency, row.amount)}</span>
                   </li>
                 ))}
               </ul>
-              <p className="flex items-center justify-between gap-3 pt-3 mt-1 border-t border-line/40 font-semibold">
+              <p className="flex items-center justify-between gap-3 pt-3 mt-1 border-t border-line font-semibold">
                 <span>Total</span>
-                <span className="tabular-nums">{formatTotal(selected)}</span>
+                <span className="font-mono">{formatTotal(selected)}</span>
               </p>
 
               {summary && (
@@ -159,7 +159,7 @@ export default function BatchApproveSheet({
           )}
         </div>
 
-        <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line/20 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:pb-4">
+        <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:justify-end sm:pb-4">
           {result ? (
             <button
               type="button"
@@ -174,7 +174,7 @@ export default function BatchApproveSheet({
                 type="button"
                 onClick={onClose}
                 disabled={submitting}
-                className="min-h-[44px] px-5 rounded-lg border border-line/50 font-semibold text-ink hover:bg-surface-muted disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 cursor-pointer"
+                className="min-h-[44px] px-5 rounded-lg border border-line font-semibold text-ink hover:bg-surface-muted disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 cursor-pointer"
               >
                 Keep reviewing
               </button>

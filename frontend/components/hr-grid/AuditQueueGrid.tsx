@@ -34,7 +34,7 @@ function inRecoveryText(row: AuditRow): string {
 
 function AuditCard({ row, onRecord }: { row: AuditRow; onRecord: (row: AuditRow) => void }) {
   return (
-    <li className="bg-surface rounded-xl border border-line/20 p-4">
+    <li className="bg-surface rounded-card border border-line p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold text-sm text-ink truncate">{row.employee}</p>
@@ -42,7 +42,7 @@ function AuditCard({ row, onRecord }: { row: AuditRow; onRecord: (row: AuditRow)
             {row.category} · {row.statusLabel}
           </p>
         </div>
-        <p className="font-display font-bold text-sm text-ink tabular-nums shrink-0">
+        <p className="font-mono font-medium text-sm text-ink shrink-0">
           {formatMoney(row.currency, row.approved)}
         </p>
       </div>
@@ -77,7 +77,7 @@ export default function AuditQueueGrid({ rows, onRecord }: { rows: AuditRow[]; o
         headerName: "Paid",
         width: 112,
         type: "rightAligned",
-        cellClass: "tabular-nums font-semibold",
+        cellClass: "font-mono font-medium",
         valueFormatter: (p) => (p.data ? formatMoney(p.data.currency, p.data.approved) : ""),
       },
       { field: "statusLabel", headerName: "Status", width: 96 },
@@ -86,7 +86,7 @@ export default function AuditQueueGrid({ rows, onRecord }: { rows: AuditRow[]; o
         headerName: "In recovery",
         width: 112,
         type: "rightAligned",
-        cellClass: "tabular-nums",
+        cellClass: "font-mono",
         valueFormatter: (p) => (p.data ? inRecoveryText(p.data) : ""),
       },
       {

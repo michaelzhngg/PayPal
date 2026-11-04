@@ -92,13 +92,13 @@ function RowActions({ recovery, onPreview, onWaive, wide = false }: { recovery: 
 function RecoveryCard({ recovery, onPreview, onWaive }: { recovery: HRRecovery } & RowHandlers) {
   const hint = disputeHint(recovery);
   return (
-    <li className="bg-surface rounded-xl border border-line/20 p-4">
+    <li className="bg-surface rounded-card border border-line p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold text-sm text-ink truncate">{recovery.employee_name ?? "Employee"}</p>
           <ClaimLink reimId={recovery.reim_id} />
         </div>
-        <p className="font-display font-bold text-sm text-ink tabular-nums shrink-0">
+        <p className="font-mono font-medium text-sm text-ink shrink-0">
           {formatMoney(recovery.currency, recovery.amount)}
         </p>
       </div>
@@ -145,7 +145,7 @@ export default function RecoveriesGrid({ rows, onPreview, onWaive }: { rows: HRR
         headerName: "Amount",
         width: 104,
         type: "rightAligned",
-        cellClass: "tabular-nums font-semibold",
+        cellClass: "font-mono font-medium",
         valueFormatter: (p) => (p.data ? formatMoney(p.data.currency, p.data.amount) : ""),
       },
       {

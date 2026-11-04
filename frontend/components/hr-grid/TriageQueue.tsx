@@ -47,7 +47,7 @@ function QueueSkeleton() {
   return (
     <div className="flex flex-col gap-2" aria-hidden="true">
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-[52px] rounded-lg bg-surface-muted animate-pulse" />
+        <div key={i} className="h-[52px] rounded-control bg-surface-muted animate-pulse" />
       ))}
     </div>
   );
@@ -129,7 +129,7 @@ export default function TriageQueue({ rows, isLoading, error, selfId, onRetry, o
         Claims by tier
       </h3>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between border-b border-line/30 mb-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between border-b border-line mb-4">
         <div role="tablist" aria-label="Claims by tier" className="flex gap-1 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           {TIER_TABS.map(({ id, label }, i) => {
             const active = tab === id;
@@ -148,14 +148,14 @@ export default function TriageQueue({ rows, isLoading, error, selfId, onRetry, o
                 onKeyDown={(e) => onTabKeyDown(e, i)}
                 className={`shrink-0 inline-flex items-center gap-2 min-h-[44px] px-3 -mb-px border-b-2 font-body text-sm whitespace-nowrap focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] cursor-pointer ${
                   active
-                    ? "border-accent font-semibold text-accent"
-                    : "border-transparent text-ink-muted hover:text-ink"
+                    ? "border-ink font-semibold text-ink"
+                    : "border-transparent text-ink-muted hover:text-ink hover:border-line-strong"
                 }`}
               >
                 {label}
                 <span
-                  className={`min-w-[1.5rem] px-1.5 py-0.5 rounded-full text-xs font-semibold tabular-nums ${
-                    active ? "bg-accent/10 text-accent" : "bg-surface-muted text-ink-muted"
+                  className={`min-w-[1.5rem] px-1.5 py-0.5 rounded-control text-center text-xs font-mono font-medium ${
+                    active ? "bg-ink text-paper" : "bg-surface-muted text-ink-muted"
                   }`}
                 >
                   {isLoading ? "…" : counts[id]}
@@ -171,7 +171,7 @@ export default function TriageQueue({ rows, isLoading, error, selfId, onRetry, o
               type="button"
               onClick={openSheet}
               disabled={selectedRows.length === 0}
-              className="w-full lg:w-auto min-h-[44px] px-4 rounded-lg bg-accent text-on-accent text-sm font-semibold tabular-nums hover:bg-accent-hover disabled:bg-line disabled:text-ink-muted disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 cursor-pointer"
+              className="w-full lg:w-auto min-h-[44px] px-4 rounded-control bg-accent text-on-accent text-sm font-semibold tabular-nums hover:bg-accent-hover disabled:bg-line disabled:text-ink-muted disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 cursor-pointer"
             >
               {approveButtonLabel(selectedRows)}
             </button>
@@ -187,7 +187,7 @@ export default function TriageQueue({ rows, isLoading, error, selfId, onRetry, o
         {!isLoading && error && (
           <div
             role="alert"
-            className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft px-4 py-4 text-sm text-danger"
+            className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-card border border-danger/30 bg-danger-soft px-4 py-4 text-sm text-danger"
           >
             <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span className="flex-1">{error}</span>
@@ -203,9 +203,9 @@ export default function TriageQueue({ rows, isLoading, error, selfId, onRetry, o
         )}
 
         {!isLoading && !error && visible.length === 0 && (
-          <div className="rounded-xl border border-line/30 bg-surface px-6 py-14 text-center">
+          <div className="rounded-card border border-line bg-surface px-6 py-14 text-center">
             <Inbox className="w-8 h-8 mx-auto text-ink-muted" aria-hidden="true" />
-            <p className="font-display font-bold text-lg text-ink mt-3">{emptyCopy(tab)}</p>
+            <p className="font-display font-semibold text-lg text-ink mt-3">{emptyCopy(tab)}</p>
             {tab === "all" && (
               <p className="text-sm text-ink-muted mt-1">
                 New claims land here when the agent can&apos;t pay them on its own.

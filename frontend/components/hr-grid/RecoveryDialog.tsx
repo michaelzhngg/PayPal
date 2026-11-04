@@ -70,7 +70,7 @@ function Form({
             autoComplete="off"
             placeholder="0.00"
             aria-describedby="recovery-amount-hint"
-            className="mt-1.5 w-full min-h-[44px] rounded-lg border border-line/60 bg-surface px-3 text-sm tabular-nums placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
+            className="mt-1.5 w-full min-h-[44px] rounded-lg border border-line bg-surface px-3 text-sm tabular-nums placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
           />
           <p id="recovery-amount-hint" className="mt-1 text-xs text-ink-muted">
             Up to {formatMoney(row.currency, row.remaining)}
@@ -88,12 +88,12 @@ function Form({
             rows={3}
             maxLength={1000}
             placeholder="For example: breakfast was included in the hotel rate and also claimed separately"
-            className="mt-1.5 w-full rounded-lg border border-line/60 bg-surface px-3 py-2 text-sm placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
+            className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
           />
         </div>
         <ErrorLine error={error} />
       </div>
-      <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line/20 sm:flex-row sm:justify-end">
+      <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line sm:flex-row sm:justify-end">
         <button type="button" onClick={onClose} disabled={sending} className={`${btnBase} text-ink hover:bg-surface-muted focus-visible:outline-accent`}>
           Cancel
         </button>

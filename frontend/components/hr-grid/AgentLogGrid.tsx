@@ -15,7 +15,7 @@ function PayloadDetails({ action }: { action: AgentAction }) {
   const summary = actionSummary(action);
   return (
     <details className="py-2 leading-snug whitespace-normal">
-      <summary className="cursor-pointer min-h-[28px] rounded-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">
+      <summary className="cursor-pointer min-h-[44px] flex items-center rounded-sm focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2">
         {summary ?? "Show details"}
       </summary>
       <pre className="mt-2 p-3 rounded-lg bg-surface-muted text-xs font-mono whitespace-pre-wrap break-all text-ink">
@@ -35,7 +35,7 @@ function PayloadDetails({ action }: { action: AgentAction }) {
 
 function LogCard({ action, actorNames }: { action: AgentAction; actorNames: Record<string, string> }) {
   return (
-    <li className="bg-surface rounded-xl border border-line/20 p-4">
+    <li className="bg-surface rounded-card border border-line p-4">
       <div className="flex items-start justify-between gap-3">
         <p className="font-semibold text-sm text-ink min-w-0">{actionLabel(action)}</p>
         <p className="text-xs text-ink-muted shrink-0">{formatUpdated(action.created_at)}</p>

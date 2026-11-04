@@ -20,7 +20,7 @@ export function TabError({ message, onRetry }: { message: string; onRetry: () =>
   return (
     <div
       role="alert"
-      className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft px-4 py-4 text-sm text-danger"
+      className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-card border border-danger/30 bg-danger-soft px-4 py-4 text-sm text-danger"
     >
       <AlertCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
       <span className="flex-1">{message}</span>
@@ -38,9 +38,9 @@ export function TabError({ message, onRetry }: { message: string; onRetry: () =>
 
 export function TabEmpty({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-line/30 bg-surface px-6 py-14 text-center">
+    <div className="rounded-card border border-line bg-surface px-6 py-14 text-center">
       <Inbox className="w-8 h-8 mx-auto text-ink-muted" aria-hidden="true" />
-      <p className="font-display font-bold text-lg text-ink mt-3">{title}</p>
+      <p className="font-display font-semibold text-lg text-ink mt-3">{title}</p>
       <p className="text-sm text-ink-muted mt-1">{children}</p>
       {action && <div className="mt-4">{action}</div>}
     </div>

@@ -21,7 +21,7 @@ export const TONE_CLASSES: Record<StatusTone, string> = {
   success: "bg-success-soft text-success border-success/30",
   progress: "bg-warning-soft text-warning border-warning/30",
   danger: "bg-danger-soft text-danger border-danger/30",
-  neutral: "bg-surface-muted text-ink-muted border-line/30",
+  neutral: "bg-surface-muted text-ink-muted border-line",
 };
 
 /** The backend leaves `tier` empty until the autonomy engine records one. */

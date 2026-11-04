@@ -4,7 +4,7 @@ import { SIGNAL_LABEL, type TriageSignal } from "../rows";
 const SEVERITY_TONE: Record<Severity, string> = {
   HIGH: "bg-danger-soft text-danger border-danger/30",
   MEDIUM: "bg-warning-soft text-warning border-warning/30",
-  LOW: "bg-surface-muted text-ink-muted border-line/40",
+  LOW: "bg-surface-muted text-ink-muted border-line",
 };
 
 const SEVERITY_WORD: Record<Severity, string> = { HIGH: "High", MEDIUM: "Medium", LOW: "Low" };
@@ -33,7 +33,7 @@ export function SignalChips({ signals }: { signals: TriageSignal[] }) {
       {hidden.length > 0 && (
         <li
           title={hidden.map((s) => SIGNAL_LABEL[s.code]).join(", ")}
-          className="px-1.5 py-0.5 rounded border border-line/40 text-[11px] font-semibold leading-4 text-ink-muted"
+          className="px-1.5 py-0.5 rounded border border-line text-[11px] font-semibold leading-4 text-ink-muted"
         >
           <span aria-hidden="true">+{hidden.length}</span>
           <span className="sr-only">and {hidden.length} more: {hidden.map((s) => SIGNAL_LABEL[s.code]).join(", ")}</span>
