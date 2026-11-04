@@ -134,7 +134,9 @@ def _parse_user(data: dict) -> PayPalUser:
         emails = data.get("emails") or []
         primary = next((e for e in emails if e.get("primary")), emails[0] if emails else None)
         email = primary.get("value") if primary else None
-    verified = data.get("verified_account", False)
+    verified = data.get("verified_account")
+    if verified is None:
+        verified = data.get("email_verified", False)
     if isinstance(verified, str):
         verified = verified.lower() == "true"
     return PayPalUser(payer_id=data.get("payer_id") or data.get("user_id", ""), email=email, verified=bool(verified))
