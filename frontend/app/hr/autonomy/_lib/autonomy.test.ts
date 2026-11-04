@@ -17,7 +17,7 @@ describe("autonomySchema", () => {
   it("rejects limits out of order", () => {
     const r = autonomySchema.safeParse({ ...DEFAULT_CONFIG, auto_limit_new: 150 });
     expect(r.success).toBe(false);
-    expect(r.error?.issues[0].path).toEqual(["auto_limit_standard"]);
+    expect(r.error?.issues.map((i) => i.path[0])).toEqual(["auto_limit_new", "auto_limit_standard"]);
   });
 
   it("rejects overlapping score bands", () =>

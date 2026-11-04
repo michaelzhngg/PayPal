@@ -21,6 +21,9 @@ const CURRENT = "#4647d3";
 const INK_MUTED = "#595c5e";
 const GRID = "#e5e9eb";
 const FONT = "Inter, sans-serif";
+const AUTOMATION_HEIGHT = 170;
+// Taller by the x-axis title it carries for both charts.
+const LEAKAGE_HEIGHT = 200;
 
 type Measure = "automationPct" | "leakage";
 
@@ -29,6 +32,7 @@ function panelOptions(
   measure: Measure,
   currency: string,
   showXAxisTitle: boolean,
+  height: number,
 ): AgCartesianChartOptions {
   const fmtY = (v: number) =>
     measure === "automationPct" ? `${Math.round(v)}%` : `${currency} ${Math.round(v).toLocaleString("en-US")}`;
@@ -42,6 +46,7 @@ function panelOptions(
 
   return {
     data: data.points,
+    height,
     background: { visible: false },
     padding: { top: 12, right: 16, bottom: showXAxisTitle ? 4 : 0, left: 4 },
     legend: { enabled: false },
@@ -105,6 +110,8 @@ function panelOptions(
       y: {
         type: "number",
         position: "left",
+        // Same width on both charts so their plot areas line up over the shared limit axis.
+        thickness: 72,
         min: 0,
         ...(measure === "automationPct" ? { max: 100 } : {}),
         interval: { maxSpacing: 60 },
@@ -132,8 +139,8 @@ interface BacktestChartProps {
  */
 export default function BacktestChart({ data, currency }: BacktestChartProps) {
   const [showTable, setShowTable] = useState(false);
-  const automation = useMemo(() => panelOptions(data, "automationPct", currency, false), [data, currency]);
-  const leakage = useMemo(() => panelOptions(data, "leakage", currency, true), [data, currency]);
+  const automation = useMemo(() => panelOptions(data, "automationPct", currency, false, AUTOMATION_HEIGHT), [data, currency]);
+  const leakage = useMemo(() => panelOptions(data, "leakage", currency, true, LEAKAGE_HEIGHT), [data, currency]);
 
   const summary = `At a standard limit of ${currency} ${data.current.limit.toLocaleString("en-US")}, ${data.current.automationPct}% of claims are paid automatically with ${currency} ${data.current.leakage.toLocaleString("en-US")} expected leakage.`;
 
@@ -144,9 +151,9 @@ export default function BacktestChart({ data, currency }: BacktestChartProps) {
       {!showTable && (
         <div aria-hidden="true">
           <h4 className="text-sm font-semibold text-on-surface">Claims paid automatically</h4>
-          <AgCharts options={automation} modules={MODULES} style={{ height: 170 }} />
+          <AgCharts options={automation} modules={MODULES} style={{ height: AUTOMATION_HEIGHT }} />
           <h4 className="mt-3 text-sm font-semibold text-on-surface">Expected leakage, in {currency}</h4>
-          <AgCharts options={leakage} modules={MODULES} style={{ height: 196 }} />
+          <AgCharts options={leakage} modules={MODULES} style={{ height: LEAKAGE_HEIGHT }} />
         </div>
       )}
 

@@ -162,7 +162,7 @@ function StatusStrip({
             <span
               aria-hidden="true"
               className={`relative inline-flex h-7 w-12 items-center rounded-full border-2 transition-colors ${
-                paused ? "bg-error border-error" : "bg-surface-container-high border-error/60 group-hover:border-error"
+                paused ? "bg-error border-error" : "bg-surface-container-high border-error"
               }`}
             >
               <span

@@ -2,7 +2,7 @@
 
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import type { AutonomyConfig } from "@/lib/api/reclaim-pay-types";
-import { formatField, type AutonomyFormValues } from "../_lib/autonomy";
+import { RELATED_FIELDS, formatField, type AutonomyFormValues } from "../_lib/autonomy";
 
 type NumberKey = {
   [K in keyof AutonomyFormValues]: AutonomyFormValues[K] extends number ? K : never;
@@ -49,7 +49,7 @@ function NumberField({ name, label, hint, prefix, step = 1, register, errors, sa
           aria-invalid={!!error}
           aria-describedby={describedBy}
           className="w-full min-w-0 bg-transparent px-3 py-2 text-sm tabular-nums text-on-surface outline-none"
-          {...register(name, { valueAsNumber: true })}
+          {...register(name, { valueAsNumber: true, deps: RELATED_FIELDS[name] as NumberKey[] | undefined })}
         />
       </div>
       {error ? (

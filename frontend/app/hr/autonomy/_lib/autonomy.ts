@@ -16,6 +16,28 @@ const score = z.number({ error: "Enter a score" }).int("Use a whole number").min
 const rate = z.number({ error: "Enter a number" }).min(0, "Use a value from 0 to 1").max(1, "Use a value from 0 to 1");
 const count = z.number({ error: "Enter a number" }).int("Use a whole number").min(0, "Can't be negative");
 
+type Pair = [keyof AutonomyConfig, keyof AutonomyConfig, string, string, boolean];
+
+/** Fields that must rise in order: [lower, upper, message on lower, message on upper, strictly above]. */
+const ORDERED_PAIRS: Pair[] = [
+  ["auto_limit_new", "auto_limit_standard", "Can't be above the Standard limit", "Can't be below the New limit", false],
+  ["auto_limit_standard", "auto_limit_trusted", "Can't be above the Trusted limit", "Can't be below the Standard limit", false],
+  ["auto_limit_trusted", "dual_approval_above", "Can't be above the two-person amount", "Can't be below the Trusted limit", false],
+  ["employee_daily_cap", "employee_monthly_cap", "Can't be above the monthly cap", "Can't be below the daily cap", false],
+  ["quick_min_score", "review_min_score", "Must be below the HR review score", "Must be above the quick approval score", true],
+  ["review_min_score", "dual_min_score", "Must be below the two-person score", "Must be above the HR review score", true],
+];
+
+/** For each field, the fields it is compared with, so editing one re-checks the others. */
+export const RELATED_FIELDS: Partial<Record<keyof AutonomyConfig, (keyof AutonomyConfig)[]>> = ORDERED_PAIRS.reduce(
+  (acc, [lower, upper]) => {
+    (acc[lower] ??= []).push(upper);
+    (acc[upper] ??= []).push(lower);
+    return acc;
+  },
+  {} as Partial<Record<keyof AutonomyConfig, (keyof AutonomyConfig)[]>>,
+);
+
 /** Mirrors `AutonomyConfig`. Limits rise with trust; score bands rise with risk. */
 export const autonomySchema = z
   .object({
@@ -43,18 +65,16 @@ export const autonomySchema = z
     version: z.number().int(),
   })
   .superRefine((c, ctx) => {
-    const order = (lower: keyof AutonomyConfig, upper: keyof AutonomyConfig, message: string, strict = false) => {
+    // Each broken pair is reported on both fields, so the message shows on whichever one HR is editing.
+    for (const [lower, upper, lowerMsg, upperMsg, strict] of ORDERED_PAIRS) {
       const a = c[lower] as number;
       const b = c[upper] as number;
-      if (Number.isNaN(a) || Number.isNaN(b)) return;
-      if (strict ? a >= b : a > b) ctx.addIssue({ code: "custom", path: [upper], message });
-    };
-    order("auto_limit_new", "auto_limit_standard", "Must be at least the New limit");
-    order("auto_limit_standard", "auto_limit_trusted", "Must be at least the Standard limit");
-    order("auto_limit_trusted", "dual_approval_above", "Must be at least the Trusted limit");
-    order("employee_daily_cap", "employee_monthly_cap", "Must be at least the daily cap");
-    order("quick_min_score", "review_min_score", "Must be above the quick-approval score", true);
-    order("review_min_score", "dual_min_score", "Must be above the HR review score", true);
+      if (Number.isNaN(a) || Number.isNaN(b)) continue;
+      if (strict ? a >= b : a > b) {
+        ctx.addIssue({ code: "custom", path: [lower], message: lowerMsg });
+        ctx.addIssue({ code: "custom", path: [upper], message: upperMsg });
+      }
+    }
   });
 
 export type AutonomyFormValues = z.infer<typeof autonomySchema>;
