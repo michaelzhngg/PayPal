@@ -53,6 +53,35 @@ def test_put_bumps_version_and_logs_config_change(client):
     assert change["payload"]["new"] == {"auto_limit_standard": 150.0}
 
 
+def test_put_logs_reason_without_storing_it_in_config(client, pg_db):
+    c, _, _ = client
+    cfg = c.get("/api/v1/autonomy/settings").json()["config"]
+    cfg.update(auto_limit_standard=150.0, reason="  Raising limits after the Q3 audit ")
+    body = c.put("/api/v1/autonomy/settings", json=cfg).json()
+    assert "reason" not in body["config"]
+    pg_db.expire_all()
+    assert "reason" not in pg_db.get(AutonomySettings, 1).config
+    change = c.get("/api/v1/autonomy/actions?limit=1").json()["actions"][0]
+    assert change["action_type"] == "CONFIG_CHANGED"
+    assert change["payload"]["reason"] == "Raising limits after the Q3 audit"
+
+
+@pytest.mark.parametrize("extra", [{}, {"reason": None}, {"reason": "   "}])
+def test_put_reason_is_optional(client, extra):
+    c, _, _ = client
+    cfg = c.get("/api/v1/autonomy/settings").json()["config"]
+    cfg.update(auto_limit_standard=150.0, **extra)
+    assert c.put("/api/v1/autonomy/settings", json=cfg).status_code == 200
+    change = c.get("/api/v1/autonomy/actions?limit=1").json()["actions"][0]
+    assert "reason" not in change["payload"]
+
+
+def test_put_rejects_overlong_reason(client):
+    c, _, _ = client
+    cfg = c.get("/api/v1/autonomy/settings").json()["config"]
+    assert c.put("/api/v1/autonomy/settings", json={**cfg, "reason": "x" * 501}).status_code == 422
+
+
 def test_put_rejects_invalid_config(client):
     c, _, _ = client
     assert c.put("/api/v1/autonomy/settings", json={"auto_limit_standard": "lots"}).status_code == 422

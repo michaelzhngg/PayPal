@@ -8,6 +8,7 @@ import { apiGet, apiDelete, API_PREFIX } from "@/lib/api/client";
 import { withFixture } from "@/lib/api/fixtures";
 import type { LedgerFilters, PayeeStatus, PayoutInfoV2, PayoutLedgerRow } from "@/lib/api/reclaim-pay-types";
 import { ledgerRows, payee, payoutS1 } from "@/src/mocks/reclaimPayFixtures";
+import { FIXTURE_PAYOUTS_EMPTY } from "@/src/mocks/recoveryFixtures";
 
 /** Current employee's linked PayPal account. */
 export async function getPayeeStatus(): Promise<PayeeStatus | null> {
@@ -42,7 +43,7 @@ export async function getPayout(reimId: string): Promise<PayoutInfoV2 | null> {
 
 /** HR payout ledger. Throws on a failed request so the page can tell an outage from an empty ledger. */
 export async function getLedger(filters: LedgerFilters = {}): Promise<PayoutLedgerRow[]> {
-  return withFixture(ledgerRows, async () => {
+  return withFixture(FIXTURE_PAYOUTS_EMPTY ? [] : ledgerRows, async () => {
     const params = new URLSearchParams();
     if (filters.status) params.set("status", filters.status);
     if (filters.from) params.set("from", filters.from);

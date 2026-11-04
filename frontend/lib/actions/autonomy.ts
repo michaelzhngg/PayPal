@@ -15,9 +15,11 @@ import type {
   BacktestResult,
   BatchApproveResult,
 } from "@/lib/api/reclaim-pay-types";
+import { getEmployees } from "@/lib/actions/employees";
 import { fixtureBatchApprove } from "@/src/mocks/triageFixtures";
 import {
   fixtureActions,
+  fixtureActorNames,
   fixtureBacktest,
   fixtureKillSwitch,
   fixtureSaveSettings,
@@ -51,8 +53,7 @@ export async function getSettings(): Promise<Outcome<"settings", AutonomySetting
 
 /**
  * Saves a full config. The backend ignores `enabled` and `version` and raises the version itself.
- * `reason` rides along in the body for the CONFIG_CHANGED log entry; the current backend drops
- * unknown fields, so it is only stored once the API accepts it.
+ * `reason` is stored on the CONFIG_CHANGED log entry, not in the config.
  */
 export async function saveSettings(
   config: AutonomyConfig,
@@ -84,6 +85,15 @@ export async function getActions(limit = 50): Promise<Outcome<"result", AgentAct
   if (FIXTURES_ON) return { result: fixtureActions(limit), error: null };
   const res = await apiGet<AgentActionsResult>(`${API_PREFIX}/autonomy/actions?limit=${limit}`);
   return { result: res.data, error: res.data ? null : (res.error ?? NO_RESPONSE) };
+}
+
+/** The Agent log tab: the chain plus the names behind the user IDs. Names are a nicety, so losing them isn't an error. */
+export async function getAgentLog(
+  limit = 200,
+): Promise<Outcome<"result", AgentActionsResult> & { actorNames: Record<string, string> }> {
+  if (FIXTURES_ON) return { result: fixtureActions(limit), error: null, actorNames: fixtureActorNames() };
+  const [log, people] = await Promise.all([getActions(limit), getEmployees().catch(() => [])]);
+  return { ...log, actorNames: Object.fromEntries(people.map((p) => [p.user_id, p.name])) };
 }
 
 /**
