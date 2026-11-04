@@ -38,7 +38,8 @@ from engine.prompts.untrusted import wrap_json, wrap_text
 from engine.risk import queries
 from engine.risk.autonomy import breaker_should_trip, decide, limit_for, trust_tier
 from engine.risk.shield.fingerprint import amount_and_date
-from engine.risk.shield.run import ShieldDoc, run_shield, split_related
+from engine.risk.shield.market_price import channel3_search
+from engine.risk.shield.run import PriceCheck, ShieldDoc, run_shield, split_related
 from engine.risk.timeline import SENT_TO_HR, decision_copy, employee_safe, make_step
 from engine.risk.types import (
     AutonomyDecision,
@@ -619,6 +620,18 @@ def _claim_lite(state: ComplianceWorkflowState, now: datetime) -> ClaimLite:
     )
 
 
+def _price_check(state: ComplianceWorkflowState) -> Optional[PriceCheck]:
+    """None turns the market-price check off: no Channel3 key, or no rate to compare the claim in USD."""
+    if not settings.CHANNEL3_API_KEY or settings.FX_TO_USD <= 0:
+        return None
+    return PriceCheck(
+        search=lambda query: channel3_search(query, settings.CHANNEL3_API_KEY),
+        categories=frozenset(c.strip().lower() for c in settings.CHANNEL3_CATEGORIES.split(",") if c.strip()),
+        fx_to_usd=settings.FX_TO_USD,
+        currency=state.get("currency") or settings.PAYPAL_CURRENCY,
+    )
+
+
 def receipt_shield(
     state: ComplianceWorkflowState, session: Session, emit: Emit = _no_emit, now: Optional[datetime] = None
 ) -> dict:
@@ -633,6 +646,7 @@ def receipt_shield(
         queries.fingerprint_candidates(session, None, now),
         limit_for(config, trust_tier(history)),
         emit,
+        price_check=_price_check(state),
     )
     logger.info("[RECEIPT_SHIELD] %d signal(s): %s", len(signals), [s.code.value for s in signals])
     return {"signals": [s.model_dump(mode="json") for s in signals]}

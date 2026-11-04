@@ -299,7 +299,8 @@ def run_graph(monkeypatch, store, extracted: dict, final: dict):
 def test_timeline_sequence_and_labels_for_a_clean_claim(monkeypatch, store):
     timeline, events, reim = run_graph(monkeypatch, store, {"visible_text": "Fare 45.00 Booking fee 3.00"},
                                        {"overall_judgment": "APPROVED", "confidence": 0.95, "summary": "ok"})
-    expected = [s for s in LABELS if s != "payout.create"]
+    # shield.price only appears with a Channel3 key.
+    expected = [s for s in LABELS if s not in ("payout.create", "shield.price")]
     assert [e["step"] for e in timeline] == [s for s in expected for _ in (0, 1)]
     assert [e["status"] for e in timeline] == ["running", "done"] * len(expected)
     assert all(e["label"] == LABELS[e["step"]] for e in timeline)
@@ -313,6 +314,25 @@ def test_timeline_sequence_and_labels_for_a_clean_claim(monkeypatch, store):
     # Existing stage events are still sent.
     assert {"load_context", "analyze_receipts", "aggregate_totals", "final_judgment", "save_reimbursement"} <= {s for s, _ in events}
     assert reim.tier == "AUTO_PAY"
+
+
+@pytest.mark.parametrize("key,fx", [("", 0.23), ("KEY", 0.0)])
+def test_price_check_is_off_without_a_key_or_a_rate(monkeypatch, key, fx):
+    monkeypatch.setattr(ca.settings, "CHANNEL3_API_KEY", key)
+    monkeypatch.setattr(ca.settings, "FX_TO_USD", fx)
+    assert ca._price_check({"currency": "MYR"}) is None
+
+
+def test_price_check_reads_settings_and_binds_the_key(monkeypatch):
+    monkeypatch.setattr(ca.settings, "CHANNEL3_API_KEY", "KEY")
+    monkeypatch.setattr(ca.settings, "FX_TO_USD", 0.23)
+    monkeypatch.setattr(ca.settings, "CHANNEL3_CATEGORIES", "Equipment, IT Equipment,")
+    seen = []
+    monkeypatch.setattr(ca, "channel3_search", lambda query, key: seen.append((query, key)) or [])
+    check = ca._price_check({"currency": "MYR"})
+    assert check.categories == {"equipment", "it equipment"} and check.fx_to_usd == 0.23 and check.currency == "MYR"
+    check.search("monitor")
+    assert seen == [("monitor", "KEY")]
 
 
 def test_employee_timeline_never_reveals_what_the_shield_found(monkeypatch, store):
