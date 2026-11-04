@@ -15,12 +15,12 @@ export default function BuiltWith() {
   return (
     <section
       aria-labelledby="built-with-heading"
-      className="px-5 sm:px-8 lg:px-12 py-10 bg-surface-container-low border-y border-surface-container-high"
+      className="px-5 sm:px-8 lg:px-12 py-10 bg-surface-muted border-y border-line"
     >
       <div className="mx-auto max-w-7xl flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-10">
         <h2
           id="built-with-heading"
-          className="shrink-0 font-headline text-sm font-bold text-on-surface"
+          className="shrink-0 font-display text-sm font-bold text-ink"
         >
           Built with
         </h2>
@@ -28,7 +28,7 @@ export default function BuiltWith() {
           {BUILT_WITH.map((tool) => (
             <li
               key={tool}
-              className="rounded-lg bg-surface-container-lowest px-3 py-1.5 text-sm font-medium text-on-surface-variant"
+              className="rounded-lg bg-surface px-3 py-1.5 text-sm font-medium text-ink-muted"
             >
               {tool}
             </li>

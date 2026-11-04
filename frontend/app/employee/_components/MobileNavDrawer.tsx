@@ -96,7 +96,7 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
     >
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${open ? "opacity-100" : "opacity-0"}`}
         onClick={onClose}
       />
 
@@ -106,28 +106,28 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="absolute top-0 right-0 bottom-0 w-full md:w-[280px] md:max-w-[80vw] bg-surface-container-low border-l border-outline-variant/10 shadow-[-1px_0_20px_rgba(44,47,49,0.04)] flex flex-col h-full p-4 touch-pan-y"
+        className="absolute top-0 right-0 bottom-0 w-full md:w-[280px] md:max-w-[80vw] bg-surface-muted border-l border-line/10 shadow-overlay flex flex-col h-full p-4 touch-pan-y"
         style={panelStyle}
       >
         {/* Close + Brand */}
         <div className="flex items-center justify-between px-4 py-3 mb-2">
           <div className="flex items-center gap-2.5">
             <Image src="/images/logo.svg" alt="Reclaim Logo" width={28} height={28} className="w-7 h-7 object-contain" />
-            <h1 className="font-headline font-black text-xl text-primary tracking-tight">
+            <h1 className="font-display font-bold text-xl text-accent">
               Reclaim Pay
             </h1>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-surface-container transition-all"
+            className="p-2 rounded-xl hover:bg-surface-muted transition-all"
             aria-label="Close navigation"
           >
-            <X className="w-5 h-5 text-on-surface" strokeWidth={2} />
+            <X className="w-5 h-5 text-ink" strokeWidth={2} />
           </button>
         </div>
 
         <p
-          className="font-body text-xs font-medium text-on-surface-variant px-4 mb-6 leading-tight transition-all duration-300"
+          className="font-body text-xs font-medium text-ink-muted px-4 mb-6 leading-tight transition-all duration-300"
           style={{ transitionDelay: open ? "40ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
         >
           Employee Portal
@@ -135,17 +135,17 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
 
         {/* User identity chip */}
         <div
-          className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-surface-container/50 transition-all duration-300"
+          className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-surface-muted/50 transition-all duration-300"
           style={{ transitionDelay: open ? "80ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
         >
-          <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary-container to-tertiary-container shrink-0 flex items-center justify-center font-headline font-bold text-base text-on-primary-container border-2 border-surface-container-lowest shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-linear-to-br from-accent-soft to-accent-soft shrink-0 flex items-center justify-center font-display font-bold text-base text-accent-hover border-2 border-surface">
             {user?.name?.charAt(0).toUpperCase() ?? "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-body font-semibold text-sm text-on-surface truncate leading-tight">
+            <p className="font-body font-semibold text-sm text-ink truncate leading-tight">
               {user?.name ?? "Employee"}
             </p>
-            <p className="font-body text-[11px] text-on-surface-variant truncate">
+            <p className="font-body text-[11px] text-ink-muted truncate">
               {user?.department_name ?? "General"}
             </p>
           </div>
@@ -158,14 +158,14 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
             onClick={onClose}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
               isCalendarActive
-                ? "bg-surface-container font-bold text-primary"
-                : "font-medium text-on-surface hover:bg-surface-container/60 hover:text-on-surface"
+                ? "bg-surface-muted font-bold text-accent"
+                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
             }`}
             style={{ transitionDelay: open ? "100ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
           >
             <CalendarDays
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isCalendarActive ? "text-primary" : "text-on-surface-variant"
+                isCalendarActive ? "text-accent" : "text-ink-muted"
               }`}
               strokeWidth={isCalendarActive ? 2.5 : 1.75}
             />
@@ -177,14 +177,14 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
             onClick={onClose}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
               isSettingsActive
-                ? "bg-surface-container font-bold text-primary"
-                : "font-medium text-on-surface hover:bg-surface-container/60 hover:text-on-surface"
+                ? "bg-surface-muted font-bold text-accent"
+                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
             }`}
             style={{ transitionDelay: open ? "120ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
           >
             <Settings
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isSettingsActive ? "text-primary" : "text-on-surface-variant"
+                isSettingsActive ? "text-accent" : "text-ink-muted"
               }`}
               strokeWidth={isSettingsActive ? 2.5 : 1.75}
             />
@@ -196,14 +196,14 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
             onClick={onClose}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
               isSupportActive
-                ? "bg-surface-container font-bold text-primary"
-                : "font-medium text-on-surface hover:bg-surface-container/60 hover:text-on-surface"
+                ? "bg-surface-muted font-bold text-accent"
+                : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
             }`}
             style={{ transitionDelay: open ? "160ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
           >
             <LifeBuoy
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                isSupportActive ? "text-primary" : "text-on-surface-variant"
+                isSupportActive ? "text-accent" : "text-ink-muted"
               }`}
               strokeWidth={isSupportActive ? 2.5 : 1.75}
             />
@@ -213,16 +213,16 @@ export default function MobileNavDrawer({ open, onClose }: MobileNavDrawerProps)
 
         {/* Bottom: Logout */}
         <div
-          className="mt-auto pt-4 border-t border-outline-variant/10 transition-all duration-300"
+          className="mt-auto pt-4 border-t border-line/10 transition-all duration-300"
           style={{ transitionDelay: open ? "200ms" : "0ms", opacity: open ? 1 : 0, transform: open ? "translateY(0)" : "translateY(8px)" }}
         >
           <button
             id="drawer-logout-btn"
             onClick={() => { logout(); onClose(); }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-medium text-on-surface hover:bg-error/10 hover:text-error group transition-all hover:translate-x-0.5 active:scale-[0.97]"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-medium text-ink hover:bg-danger/10 hover:text-danger group transition-all hover:translate-x-0.5 active:scale-[0.97]"
           >
             <LogOut
-              className="w-[18px] h-[18px] text-on-surface-variant group-hover:text-error transition-colors"
+              className="w-[18px] h-[18px] text-ink-muted group-hover:text-danger transition-colors"
               strokeWidth={1.75}
             />
             Logout

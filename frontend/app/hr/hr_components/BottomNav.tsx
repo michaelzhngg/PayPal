@@ -36,7 +36,7 @@ export default function BottomNav() {
       {/* FAB exception: `fixed` is allowed here per layout constraints */}
       <nav
         aria-label="Mobile bottom navigation"
-        className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/85 backdrop-blur-2xl border-t border-outline-variant/10 rounded-t-3xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] pb-safe"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-line/10 rounded-t-3xl shadow-overlay pb-safe"
       >
         <div className="flex justify-between items-center px-2 h-16 max-w-lg mx-auto">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -48,7 +48,7 @@ export default function BottomNav() {
                   className="w-[22px] h-[22px]"
                   strokeWidth={isActive ? 2.5 : 1.5}
                 />
-                <span className="text-[10px] font-label font-semibold uppercase tracking-wider whitespace-nowrap max-w-[64px] overflow-hidden text-ellipsis">
+                <span className="text-[10px] font-body font-semibold uppercase tracking-wider whitespace-nowrap max-w-[64px] overflow-hidden text-ellipsis">
                   {label}
                 </span>
               </>
@@ -61,8 +61,8 @@ export default function BottomNav() {
                 aria-current={isActive ? "page" : undefined}
                 className={`relative flex-1 flex flex-col items-center justify-center gap-1 px-1 py-2 rounded-2xl transition-all duration-200 ${
                   isActive
-                    ? "text-primary bg-primary/10 scale-110"
-                    : "text-on-surface/50 hover:text-on-surface"
+                    ? "text-accent bg-accent/10 scale-110"
+                    : "text-ink/50 hover:text-ink"
                 }`}
               >
                 {content}

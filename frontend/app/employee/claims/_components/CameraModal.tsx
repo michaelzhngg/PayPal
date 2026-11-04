@@ -275,7 +275,7 @@ export function CameraModal({ isOpen, onCapture, onClose }: CameraModalProps) {
           <X className="w-5 h-5 text-white" strokeWidth={2} />
         </button>
 
-        <span className="text-white text-sm font-semibold font-headline tracking-wide">
+        <span className="text-white text-sm font-semibold font-display tracking-wide">
           {previewBlob ? "Review Photo" : "Scan Receipt"}
         </span>
 
@@ -285,7 +285,7 @@ export function CameraModal({ isOpen, onCapture, onClose }: CameraModalProps) {
             onClick={toggleTorch}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 ${
               torchOn
-                ? "bg-amber-400 text-black shadow-[0_0_14px_rgba(251,191,36,0.7)]"
+                ? "bg-warning text-black"
                 : "bg-white/15 text-white hover:bg-white/25"
             }`}
           >
@@ -306,7 +306,7 @@ export function CameraModal({ isOpen, onCapture, onClose }: CameraModalProps) {
           className="absolute left-4 right-4 z-30 flex justify-center"
           style={{ top: `calc(4.5rem + env(safe-area-inset-top, 0px))` }}
         >
-          <div className="bg-black/85 backdrop-blur-sm text-white text-xs px-5 py-3 rounded-2xl border border-white/10 max-w-xs text-center shadow-xl leading-relaxed">
+          <div className="bg-black text-white text-xs px-5 py-3 rounded-2xl border border-white/10 max-w-xs text-center leading-relaxed">
             {notification}
           </div>
         </div>
@@ -322,7 +322,7 @@ export function CameraModal({ isOpen, onCapture, onClose }: CameraModalProps) {
             <img
               src={previewBlob}
               alt="Captured receipt"
-              className="max-w-full max-h-full rounded-2xl object-contain shadow-[0_8px_48px_rgba(0,0,0,0.6)]"
+              className="max-w-full max-h-full rounded-2xl object-contain"
             />
           </div>
 
@@ -350,7 +350,7 @@ export function CameraModal({ isOpen, onCapture, onClose }: CameraModalProps) {
 
             <button
               onClick={handleConfirm}
-              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 active:scale-95 transition-all shadow-[0_4px_16px_rgba(70,71,211,0.4)]"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-accent text-white text-sm font-semibold hover:bg-accent/90 active:scale-95 transition-all"
             >
               <Check className="w-4 h-4" strokeWidth={2.5} />
               Use Photo
@@ -370,7 +370,7 @@ export function CameraModal({ isOpen, onCapture, onClose }: CameraModalProps) {
                   <Camera className="w-10 h-10 text-white/40" strokeWidth={1.25} />
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-base font-headline mb-2">Camera Unavailable</p>
+                  <p className="text-white font-semibold text-base font-display mb-2">Camera Unavailable</p>
                   <p className="text-white/55 text-sm font-body leading-relaxed">{cameraError}</p>
                 </div>
                 <button
@@ -475,7 +475,7 @@ export function CameraModal({ isOpen, onCapture, onClose }: CameraModalProps) {
                 onClick={toggleTorch}
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
                   torchOn
-                    ? "bg-amber-400 text-black shadow-[0_0_14px_rgba(251,191,36,0.7)]"
+                    ? "bg-warning text-black"
                     : "bg-white/15 border border-white/20 text-white hover:bg-white/25"
                 }`}
                 aria-label="Toggle flash"

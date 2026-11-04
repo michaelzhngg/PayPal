@@ -23,8 +23,8 @@ const ACCOUNTS: DemoAccount[] = [
     email: "hr@example.com",
     password: "password",
     description: "Review risky claims with the evidence, and track every payout.",
-    iconBg: "bg-primary/10",
-    iconText: "text-primary",
+    iconBg: "bg-accent/10",
+    iconText: "text-accent",
   },
   {
     role: "Employee",
@@ -32,8 +32,8 @@ const ACCOUNTS: DemoAccount[] = [
     email: "employee@example.com",
     password: "password",
     description: "Submit a multi-receipt claim, check what the AI read, and watch it get decided.",
-    iconBg: "bg-tertiary/10",
-    iconText: "text-tertiary",
+    iconBg: "bg-accent/10",
+    iconText: "text-accent",
   },
 ];
 
@@ -55,14 +55,14 @@ function CopyField({ value }: { value: string }) {
       type="button"
       onClick={onCopy}
       aria-label={copied ? `Copied ${value}` : `Copy ${value}`}
-      className="group flex w-full items-center justify-between gap-3 rounded-xl border border-outline/15 bg-surface px-4 py-3 text-left font-mono text-sm text-on-surface hover:border-primary/40 hover:bg-surface-container-low transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:border-primary/60"
+      className="group flex w-full items-center justify-between gap-3 rounded-xl border border-line-strong/15 bg-paper px-4 py-3 text-left font-mono text-sm text-ink hover:border-accent/40 hover:bg-surface-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:border-accent/60"
     >
       <span className="truncate">{value}</span>
       <span
         className={`shrink-0 inline-flex items-center gap-1 text-xs font-semibold ${
           copied
-            ? "text-primary"
-            : "text-on-surface-variant group-hover:text-primary"
+            ? "text-accent"
+            : "text-ink-muted group-hover:text-accent"
         }`}
       >
         {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -76,7 +76,7 @@ export default function DemoSection() {
   return (
     <section
       id="demo"
-      className="relative py-14 lg:py-20 px-5 sm:px-8 lg:px-12 bg-surface overflow-hidden"
+      className="relative py-14 lg:py-20 px-5 sm:px-8 lg:px-12 bg-paper overflow-hidden"
     >
       <div
         aria-hidden="true"
@@ -91,14 +91,14 @@ export default function DemoSection() {
           whileInView="visible"
           viewport={revealViewport}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-accent">
             <KeyRound className="w-3 h-3" />
             Try the demo
           </span>
-          <h2 className="mt-4 font-headline text-3xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight">
+          <h2 className="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-ink">
             One click. You&rsquo;re inside.
           </h2>
-          <p className="mt-4 text-on-surface-variant text-base sm:text-lg leading-relaxed">
+          <p className="mt-4 text-ink-muted text-base sm:text-lg leading-relaxed">
             Pick a role and we&rsquo;ll sign you in with sample data. No setup and no typing.
             The credentials are below if you&rsquo;d rather copy them.
           </p>
@@ -116,7 +116,7 @@ export default function DemoSection() {
               key={acc.role}
               variants={revealItem}
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className="glass-card relative overflow-hidden rounded-3xl border border-white/50 p-7 lg:p-8 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300"
+              className="bg-paper border border-line relative overflow-hidden rounded-3xl border border-white/50 p-7 lg:p-8 transition-shadow duration-300"
             >
               <div className="flex items-center gap-3 mb-5">
                 <motion.div
@@ -127,10 +127,10 @@ export default function DemoSection() {
                   <ShieldCheck className="w-5 h-5" strokeWidth={2} />
                 </motion.div>
                 <div>
-                  <h3 className="font-headline text-xl font-bold text-on-surface tracking-tight">
+                  <h3 className="font-display text-xl font-bold text-ink">
                     {acc.role} Demo
                   </h3>
-                  <p className="text-xs text-on-surface-variant">
+                  <p className="text-xs text-ink-muted">
                     {acc.description}
                   </p>
                 </div>
@@ -138,26 +138,26 @@ export default function DemoSection() {
 
               <Link
                 href={`/login?demo=${acc.slug}`}
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-primary to-primary-dim shadow-ambient hover:shadow-[0_0_24px_rgba(70,71,211,0.4)] active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30"
+                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-accent to-accent-hover active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
               >
                 Sign in as {acc.role}
                 <ArrowRight className="w-4 h-4" />
               </Link>
 
               <details className="mt-5 group">
-                <summary className="cursor-pointer text-xs font-semibold text-on-surface-variant hover:text-on-surface transition-colors list-none flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 rounded">
+                <summary className="cursor-pointer text-xs font-semibold text-ink-muted hover:text-ink transition-colors list-none flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30 rounded">
                   <span className="inline-block transition-transform group-open:rotate-90">›</span>
                   Or copy credentials
                 </summary>
                 <div className="space-y-3 mt-3">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.16em] text-on-surface-variant mb-1.5">
+                    <label className="block text-[10px] font-bold uppercase tracking-[0.16em] text-ink-muted mb-1.5">
                       Email
                     </label>
                     <CopyField value={acc.email} />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.16em] text-on-surface-variant mb-1.5">
+                    <label className="block text-[10px] font-bold uppercase tracking-[0.16em] text-ink-muted mb-1.5">
                       Password
                     </label>
                     <CopyField value={acc.password} />
@@ -168,9 +168,9 @@ export default function DemoSection() {
           ))}
         </motion.div>
 
-        <p className="mt-8 text-center text-xs text-on-surface-variant max-w-xl mx-auto">
+        <p className="mt-8 text-center text-xs text-ink-muted max-w-xl mx-auto">
           These accounts are seeded by{" "}
-          <code className="px-1.5 py-0.5 rounded bg-surface-container-high text-[11px]">
+          <code className="px-1.5 py-0.5 rounded bg-line text-[11px]">
             seed_demo_employees.py
           </code>{" "}
           for hackathon evaluation only and are reset on every container rebuild.

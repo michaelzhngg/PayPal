@@ -3,10 +3,10 @@ import { employeeTierCopy, tierLabel } from "./copy";
 
 // Auto-pay is the only outcome that means money is moving now, so it alone takes the brand color.
 const PILL: Record<AutonomyTier, string> = {
-  AUTO_PAY: "bg-primary/10 text-primary",
-  HR_QUICK: "bg-surface-container-high text-on-surface",
-  HR_REVIEW: "bg-surface-container-high text-on-surface",
-  DUAL_REVIEW: "bg-surface-container-high text-on-surface",
+  AUTO_PAY: "bg-accent/10 text-accent",
+  HR_QUICK: "bg-line text-ink",
+  HR_REVIEW: "bg-line text-ink",
+  DUAL_REVIEW: "bg-line text-ink",
 };
 
 interface DecisionCardProps {
@@ -23,17 +23,17 @@ export default function DecisionCard({ decision, amount, audience, caption }: De
   const pillTier: AutonomyTier = audience === "employee" && decision.tier === "DUAL_REVIEW" ? "HR_REVIEW" : decision.tier;
 
   return (
-    <div className="w-full text-left rounded-2xl border border-outline-variant/15 bg-surface-container-lowest p-4">
-      {caption && <p className="font-body text-xs text-on-surface-variant mb-2">{caption}</p>}
+    <div className="w-full text-left rounded-2xl border border-line/15 bg-surface p-4">
+      {caption && <p className="font-body text-xs text-ink-muted mb-2">{caption}</p>}
       <span className={`inline-block rounded-md px-2 py-0.5 font-body text-xs font-semibold ${PILL[pillTier]}`}>
         {tierLabel(decision.tier, audience)}
       </span>
       {audience === "employee" ? (
-        <p className="mt-2 font-body text-sm text-on-surface">{employeeTierCopy(decision.tier, amount)}</p>
+        <p className="mt-2 font-body text-sm text-ink">{employeeTierCopy(decision.tier, amount)}</p>
       ) : (
         <>
-          <p className="mt-2 font-body text-sm text-on-surface">{decision.explanation}</p>
-          <p className="mt-1 font-body text-xs text-on-surface-variant">
+          <p className="mt-2 font-body text-sm text-ink">{decision.explanation}</p>
+          <p className="mt-1 font-body text-xs text-ink-muted">
             Risk {decision.risk_score}/100 · {amount}
             {decision.hard_stops.length > 0 && ` · ${decision.hard_stops.length} hard stop${decision.hard_stops.length === 1 ? "" : "s"}`}
           </p>

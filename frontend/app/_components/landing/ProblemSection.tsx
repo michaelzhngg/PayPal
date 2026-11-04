@@ -31,7 +31,7 @@ export default function ProblemSection() {
   return (
     <section
       id="problem"
-      className="relative py-14 lg:py-20 px-5 sm:px-8 lg:px-12 bg-surface"
+      className="relative py-14 lg:py-20 px-5 sm:px-8 lg:px-12 bg-paper"
     >
       <div className="mx-auto max-w-7xl">
         <motion.div
@@ -41,13 +41,13 @@ export default function ProblemSection() {
           whileInView="visible"
           viewport={revealViewport}
         >
-          <span className="inline-flex items-center rounded-full border border-error/20 bg-error-container/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-error">
+          <span className="inline-flex items-center rounded-full border border-danger/20 bg-danger-soft/30 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-danger">
             The Problem
           </span>
-          <h2 className="mt-4 font-headline text-3xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight">
+          <h2 className="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-ink">
             Every claim gets the same slow, manual check.
           </h2>
-          <p className="mt-4 text-on-surface-variant text-base sm:text-lg leading-relaxed">
+          <p className="mt-4 text-ink-muted text-base sm:text-lg leading-relaxed">
             A MYR 15 lunch and a MYR 8,000 trip go through the same loop: open the attachment,
             read the amounts, find the rule in a policy PDF, write a reply.
           </p>
@@ -65,24 +65,24 @@ export default function ProblemSection() {
               key={title}
               variants={revealItem}
               whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              className="relative overflow-hidden rounded-2xl bg-surface-container-lowest p-6 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300 group"
+              className="relative overflow-hidden rounded-2xl bg-surface p-6 transition-shadow duration-300 group"
             >
               <div
                 aria-hidden="true"
-                className="absolute -top-10 -right-10 w-36 h-36 rounded-bl-full bg-error-container/30 group-hover:scale-110 transition-transform duration-500"
+                className="absolute -top-10 -right-10 w-36 h-36 rounded-bl-full bg-danger-soft/30 group-hover:scale-110 transition-transform duration-500"
               />
               <div className="relative z-10">
                 <motion.div
-                  className="inline-flex p-3 rounded-xl bg-error-container/40 text-error mb-5"
+                  className="inline-flex p-3 rounded-xl bg-danger-soft/40 text-danger mb-5"
                   whileHover={{ rotate: [0, -8, 8, 0] }}
                   transition={{ duration: 0.5 }}
                 >
                   <Icon className="w-5 h-5" strokeWidth={2} />
                 </motion.div>
-                <h3 className="font-headline text-lg font-bold text-on-surface tracking-tight mb-2">
+                <h3 className="font-display text-lg font-bold text-ink mb-2">
                   {title}
                 </h3>
-                <p className="text-sm text-on-surface-variant leading-relaxed">
+                <p className="text-sm text-ink-muted leading-relaxed">
                   {body}
                 </p>
               </div>

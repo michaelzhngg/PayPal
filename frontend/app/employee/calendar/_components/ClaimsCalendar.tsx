@@ -73,7 +73,7 @@ export default function ClaimsCalendar({ events }: { events: ClaimCalendarEvent[
 
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      <ul className="flex flex-wrap gap-x-5 gap-y-1.5 font-body text-xs text-on-surface-variant">
+      <ul className="flex flex-wrap gap-x-5 gap-y-1.5 font-body text-xs text-ink-muted">
         {TONES.map((tone) => (
           <li key={tone} className="flex items-center gap-1.5">
             <span aria-hidden className={`claim-legend-swatch claim-legend-${tone}`}>
@@ -84,7 +84,7 @@ export default function ClaimsCalendar({ events }: { events: ClaimCalendarEvent[
         ))}
       </ul>
 
-      <div ref={hostRef} className="claims-calendar h-[calc(100dvh-16rem)] min-h-[40rem] min-w-0 overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest">
+      <div ref={hostRef} className="claims-calendar h-[calc(100dvh-16rem)] min-h-[40rem] min-w-0 overflow-hidden rounded-2xl border border-line/30 bg-surface">
         {width !== null && (
           <BryntumCalendar
             date={openingDate}

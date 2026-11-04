@@ -50,7 +50,7 @@ export default function FeaturesSection() {
   return (
     <section
       id="features"
-      className="relative py-14 lg:py-20 px-5 sm:px-8 lg:px-12 bg-surface"
+      className="relative py-14 lg:py-20 px-5 sm:px-8 lg:px-12 bg-paper"
     >
       <div className="mx-auto max-w-7xl">
         <motion.div
@@ -60,13 +60,13 @@ export default function FeaturesSection() {
           whileInView="visible"
           viewport={revealViewport}
         >
-          <span className="inline-flex items-center rounded-full border border-tertiary/20 bg-tertiary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-tertiary">
+          <span className="inline-flex items-center rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-accent">
             Core Features
           </span>
-          <h2 className="mt-4 font-headline text-3xl sm:text-4xl lg:text-5xl font-extrabold text-on-surface tracking-tight">
+          <h2 className="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-ink">
             Built around accountability.
           </h2>
-          <p className="mt-4 text-on-surface-variant text-base sm:text-lg leading-relaxed">
+          <p className="mt-4 text-ink-muted text-base sm:text-lg leading-relaxed">
             Reclaim Pay pays the easy claims and hands the hard ones to people. Every flag comes with a reason HR can read.
           </p>
         </motion.div>
@@ -83,23 +83,23 @@ export default function FeaturesSection() {
               key={title}
               variants={revealItem}
               whileHover={{ y: -6, transition: { duration: 0.25 } }}
-              className={`${span} relative overflow-hidden rounded-3xl bg-surface-container-lowest p-7 lg:p-8 shadow-ambient hover:shadow-ambient-lg transition-shadow duration-300 group`}
+              className={`${span} relative overflow-hidden rounded-3xl bg-surface p-7 lg:p-8 transition-shadow duration-300 group`}
             >
               <div
                 aria-hidden="true"
-                className="absolute -top-12 -right-12 w-44 h-44 rounded-bl-full bg-gradient-to-br from-primary/15 to-tertiary/10 group-hover:scale-110 transition-transform duration-500"
+                className="absolute -top-12 -right-12 w-44 h-44 rounded-bl-full bg-gradient-to-br from-accent/15 to-accent/10 group-hover:scale-110 transition-transform duration-500"
               />
               <div className="relative z-10">
                 <motion.div
-                  className="inline-flex p-3.5 rounded-2xl bg-primary/10 text-primary mb-5"
+                  className="inline-flex p-3.5 rounded-2xl bg-accent/10 text-accent mb-5"
                   whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
                 >
                   <Icon className="w-6 h-6" strokeWidth={2} />
                 </motion.div>
-                <h3 className="font-headline text-xl lg:text-2xl font-bold text-on-surface tracking-tight mb-3">
+                <h3 className="font-display text-xl lg:text-2xl font-bold text-ink mb-3">
                   {title}
                 </h3>
-                <p className="max-w-3xl text-sm lg:text-base text-on-surface-variant leading-relaxed">
+                <p className="max-w-3xl text-sm lg:text-base text-ink-muted leading-relaxed">
                   {body}
                 </p>
                 {points && (
@@ -107,7 +107,7 @@ export default function FeaturesSection() {
                     {points.map((point) => (
                       <li
                         key={point}
-                        className="rounded-lg bg-primary/10 px-3 py-1.5 text-sm font-medium text-on-surface"
+                        className="rounded-lg bg-accent/10 px-3 py-1.5 text-sm font-medium text-ink"
                       >
                         {point}
                       </li>

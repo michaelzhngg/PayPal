@@ -46,14 +46,14 @@ interface VerificationScreenProps {
 
 function LockedField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface-container-low rounded-xl p-3 border border-outline-variant/15 relative group">
-      <label className="block text-[10px] font-bold text-on-surface-variant/60 font-label uppercase tracking-widest mb-1">
+    <div className="bg-surface-muted rounded-xl p-3 border border-line/15 relative group">
+      <label className="block text-[10px] font-bold text-ink-muted/60 font-body uppercase tracking-widest mb-1">
         {label}
       </label>
-      <div className="text-on-surface font-semibold text-sm font-body pr-5 truncate">
+      <div className="text-ink font-semibold text-sm font-body pr-5 truncate">
         {value || "—"}
       </div>
-      <Lock className="w-3 h-3 text-outline-variant/50 absolute top-3 right-3" />
+      <Lock className="w-3 h-3 text-line/50 absolute top-3 right-3" />
     </div>
   );
 }
@@ -71,14 +71,14 @@ function AmountInput({ label, value, onChange, required }: AmountInputProps) {
   const showError = required && value === 0;
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs font-semibold text-on-surface-variant font-label">
+      <label className="text-xs font-semibold text-ink-muted font-body">
         {label}
-        {required && <span className="text-error ml-0.5">*</span>}
+        {required && <span className="text-danger ml-0.5">*</span>}
       </label>
-      <div className={`relative flex items-center bg-surface-container-lowest border rounded-xl overflow-hidden transition-all ${
-        showError ? "border-error/60 ring-2 ring-error/10" : "border-outline-variant/30 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10"
+      <div className={`relative flex items-center bg-surface border rounded-xl overflow-hidden transition-all ${
+        showError ? "border-danger/60 ring-2 ring-danger/10" : "border-line/30 focus-within:border-accent/50 focus-within:ring-2 focus-within:ring-accent/10"
       }`}>
-        <span className="pl-3 pr-1 text-sm text-on-surface-variant font-body shrink-0">MYR</span>
+        <span className="pl-3 pr-1 text-sm text-ink-muted font-body shrink-0">MYR</span>
         <input
           type="number"
           min={0}
@@ -86,11 +86,11 @@ function AmountInput({ label, value, onChange, required }: AmountInputProps) {
           value={value === 0 ? "" : value}
           onChange={e => onChange(parseFloat(e.target.value) || 0)}
           placeholder="0.00"
-          className="flex-1 bg-transparent text-sm text-on-surface font-body py-2.5 pr-3 focus:outline-none placeholder:text-on-surface-variant/30"
+          className="flex-1 bg-transparent text-sm text-ink font-body py-2.5 pr-3 focus:outline-none placeholder:text-ink-muted/30"
         />
       </div>
       {showError && (
-        <p className="text-[11px] text-error font-body flex items-center gap-1">
+        <p className="text-[11px] text-danger font-body flex items-center gap-1">
           <AlertCircle className="w-3 h-3" /> Required
         </p>
       )}
@@ -117,9 +117,9 @@ function ReceiptCard({ receipt, index, onChange }: ReceiptCardProps) {
   return (
     <div className={`rounded-2xl border transition-all duration-200 ${
       !receipt.success
-        ? "border-amber-300/60 bg-amber-50/50"
-        : "border-outline-variant/15 bg-surface-container-lowest"
-    } shadow-[0_4px_20px_-4px_rgba(44,47,49,0.06)]`}>
+        ? "border-warning/60 bg-warning-soft/50"
+        : "border-line/15 bg-surface"
+    }`}>
 
       {/* Card header */}
       <button
@@ -128,39 +128,39 @@ function ReceiptCard({ receipt, index, onChange }: ReceiptCardProps) {
         className="w-full flex items-center justify-between px-4 py-3.5 gap-3 text-left"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold font-label ${
-            receipt.success ? "bg-primary/10 text-primary" : "bg-amber-200/70 text-amber-700"
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-xs font-bold font-body ${
+            receipt.success ? "bg-accent/10 text-accent" : "bg-warning/70 text-warning"
           }`}>
             {index + 1}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-on-surface font-headline truncate">
+            <p className="text-sm font-semibold text-ink font-display truncate">
               {receipt.merchant || `Receipt #${index + 1}`}
             </p>
             {receipt.expenseDate && (
-              <p className="text-xs text-on-surface-variant font-body">{receipt.expenseDate}</p>
+              <p className="text-xs text-ink-muted font-body">{receipt.expenseDate}</p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {!receipt.success && (
-            <span className="text-[11px] font-bold text-amber-600 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full font-label">
+            <span className="text-[11px] font-bold text-warning bg-warning-soft border border-warning/30 px-2 py-0.5 rounded-full font-body">
               Manual Entry
             </span>
           )}
-          <span className="text-sm font-bold text-on-surface font-body">{fmt(total)}</span>
+          <span className="text-sm font-bold text-ink font-body">{fmt(total)}</span>
           {open
-            ? <ChevronUp   className="w-4 h-4 text-outline-variant" strokeWidth={1.75} />
-            : <ChevronDown className="w-4 h-4 text-outline-variant" strokeWidth={1.75} />
+            ? <ChevronUp   className="w-4 h-4 text-line" strokeWidth={1.75} />
+            : <ChevronDown className="w-4 h-4 text-line" strokeWidth={1.75} />
           }
         </div>
       </button>
 
       {/* OCR failure warning */}
       {!receipt.success && (
-        <div className="mx-4 mb-3 px-3 py-2.5 rounded-xl bg-amber-100/80 border border-amber-200/60 flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" strokeWidth={1.75} />
-          <p className="text-xs text-amber-700 font-body leading-relaxed">
+        <div className="mx-4 mb-3 px-3 py-2.5 rounded-xl bg-warning-soft/80 border border-warning/60 flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" strokeWidth={1.75} />
+          <p className="text-xs text-warning font-body leading-relaxed">
             {receipt.lowConfidence
               ? "Low confident! OCR could make mistake reading this receipt. Please check!"
               : "OCR could not read this receipt. Please fill in all fields manually."}
@@ -175,38 +175,38 @@ function ReceiptCard({ receipt, index, onChange }: ReceiptCardProps) {
           {/* Date + Merchant */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-on-surface-variant font-label">
-                Expense Date<span className="text-error ml-0.5">*</span>
+              <label className="text-xs font-semibold text-ink-muted font-body">
+                Expense Date<span className="text-danger ml-0.5">*</span>
               </label>
               <input
                 type="date"
                 value={receipt.expenseDate}
                 onChange={e => patch("expenseDate", e.target.value)}
-                className={`w-full bg-surface-container-lowest border rounded-xl px-3 py-2.5 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all ${
-                  !receipt.expenseDate ? "border-error/60 ring-2 ring-error/10" : "border-outline-variant/30"
+                className={`w-full bg-surface border rounded-xl px-3 py-2.5 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent/50 transition-all ${
+                  !receipt.expenseDate ? "border-danger/60 ring-2 ring-danger/10" : "border-line/30"
                 }`}
               />
               {!receipt.expenseDate && (
-                <p className="text-[11px] text-error font-body flex items-center gap-1">
+                <p className="text-[11px] text-danger font-body flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" /> Required
                 </p>
               )}
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-on-surface-variant font-label">
-                Merchant / Description<span className="text-error ml-0.5">*</span>
+              <label className="text-xs font-semibold text-ink-muted font-body">
+                Merchant / Description<span className="text-danger ml-0.5">*</span>
               </label>
               <input
                 type="text"
                 value={receipt.merchant}
                 onChange={e => patch("merchant", e.target.value)}
                 placeholder="e.g. Grab, Hotel Istana"
-                className={`w-full bg-surface-container-lowest border rounded-xl px-3 py-2.5 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-on-surface-variant/30 ${
-                  !receipt.merchant ? "border-error/60 ring-2 ring-error/10" : "border-outline-variant/30"
+                className={`w-full bg-surface border rounded-xl px-3 py-2.5 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent/50 transition-all placeholder:text-ink-muted/30 ${
+                  !receipt.merchant ? "border-danger/60 ring-2 ring-danger/10" : "border-line/30"
                 }`}
               />
               {!receipt.merchant && (
-                <p className="text-[11px] text-error font-body flex items-center gap-1">
+                <p className="text-[11px] text-danger font-body flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" /> Required
                 </p>
               )}
@@ -223,22 +223,22 @@ function ReceiptCard({ receipt, index, onChange }: ReceiptCardProps) {
 
           {/* Notes */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface-variant font-label">
-              Notes <span className="text-on-surface-variant/40 font-normal">(optional)</span>
+            <label className="text-xs font-semibold text-ink-muted font-body">
+              Notes <span className="text-ink-muted/40 font-normal">(optional)</span>
             </label>
             <textarea
               value={receipt.notes}
               onChange={e => patch("notes", e.target.value)}
               placeholder="Any additional context for this receipt…"
               rows={2}
-              className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-3 py-2.5 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all resize-none placeholder:text-on-surface-variant/30"
+              className="w-full bg-surface border border-line/30 rounded-xl px-3 py-2.5 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent/50 transition-all resize-none placeholder:text-ink-muted/30"
             />
           </div>
 
           {/* Row subtotal */}
-          <div className="flex items-center justify-end gap-2 pt-1 border-t border-outline-variant/10">
-            <span className="text-xs text-on-surface-variant font-body">Receipt Subtotal:</span>
-            <span className="text-sm font-bold text-on-surface font-headline">{fmt(total)}</span>
+          <div className="flex items-center justify-end gap-2 pt-1 border-t border-line/10">
+            <span className="text-xs text-ink-muted font-body">Receipt Subtotal:</span>
+            <span className="text-sm font-bold text-ink font-display">{fmt(total)}</span>
           </div>
         </div>
       )}
@@ -446,34 +446,34 @@ export function VerificationScreen({
     <div className="h-full min-h-0 w-full lg:w-[480px] shrink-0 flex flex-col gap-5 overflow-y-auto
       [&::-webkit-scrollbar]:w-1.5
       [&::-webkit-scrollbar-track]:bg-transparent
-      [&::-webkit-scrollbar-thumb]:bg-outline-variant/30
+      [&::-webkit-scrollbar-thumb]:bg-line/30
       [&::-webkit-scrollbar-thumb]:rounded-full
       pb-4">
 
       {/* Back button (desktop only — mobile has it in the header) */}
       <button
         onClick={onBack}
-        className="hidden lg:flex items-center gap-1.5 self-start bg-surface-container text-on-surface-variant text-sm font-semibold font-body px-4 py-2 rounded-full hover:bg-surface-container-high active:scale-95 transition-all"
+        className="hidden lg:flex items-center gap-1.5 self-start bg-surface-muted text-ink-muted text-sm font-semibold font-body px-4 py-2 rounded-full hover:bg-line active:scale-95 transition-all"
       >
         <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
         Back to Upload
       </button>
 
       {/* Section 1: Identity Block */}
-      <div className="shrink-0 bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-[0_4px_20px_-4px_rgba(44,47,49,0.06)] overflow-hidden">
+      <div className="shrink-0 bg-surface rounded-2xl border border-line/15 overflow-hidden">
         <button
           type="button"
           onClick={() => setIdentityOpen(o => !o)}
           className="w-full flex items-center justify-between px-5 py-4 text-left"
         >
           <div className="flex items-center gap-2.5">
-            <Lock className="w-4 h-4 text-outline-variant" strokeWidth={1.75} />
-            <span className="text-sm font-bold text-on-surface font-headline">Employee Identity</span>
-            <span className="text-[11px] font-semibold text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full font-label">Read-only</span>
+            <Lock className="w-4 h-4 text-line" strokeWidth={1.75} />
+            <span className="text-sm font-bold text-ink font-display">Employee Identity</span>
+            <span className="text-[11px] font-semibold text-ink-muted bg-surface-muted px-2 py-0.5 rounded-full font-body">Read-only</span>
           </div>
           {identityOpen
-            ? <ChevronUp   className="w-4 h-4 text-outline-variant" strokeWidth={1.75} />
-            : <ChevronDown className="w-4 h-4 text-outline-variant" strokeWidth={1.75} />
+            ? <ChevronUp   className="w-4 h-4 text-line" strokeWidth={1.75} />
+            : <ChevronDown className="w-4 h-4 text-line" strokeWidth={1.75} />
           }
         </button>
         {identityOpen && (
@@ -489,27 +489,27 @@ export function VerificationScreen({
       </div>
 
       {/* Section 2: Claim Context */}
-      <div className="shrink-0 bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-[0_4px_20px_-4px_rgba(44,47,49,0.06)] p-5 flex flex-col gap-4">
+      <div className="shrink-0 bg-surface rounded-2xl border border-line/15 p-5 flex flex-col gap-4">
         <div>
-          <h3 className="text-sm font-bold text-on-surface font-headline">Claim Context</h3>
-          <p className="text-xs text-on-surface-variant font-body mt-0.5">Trip details for this expense report.</p>
+          <h3 className="text-sm font-bold text-ink font-display">Claim Context</h3>
+          <p className="text-xs text-ink-muted font-body mt-0.5">Trip details for this expense report.</p>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-on-surface-variant font-label">
-            Travel Destination<span className="text-error ml-0.5">*</span>
+          <label className="text-xs font-semibold text-ink-muted font-body">
+            Travel Destination<span className="text-danger ml-0.5">*</span>
           </label>
           <input
             type="text"
             value={claimContext.travelDestination}
             onChange={e => patchContext("travelDestination", e.target.value)}
             placeholder="e.g. Kuching, Sarawak"
-            className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-3 py-2.5 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all placeholder:text-on-surface-variant/30"
+            className="w-full bg-surface border border-line/30 rounded-xl px-3 py-2.5 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent/50 transition-all placeholder:text-ink-muted/30"
           />
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-on-surface-variant font-label">
+          <label className="text-xs font-semibold text-ink-muted font-body">
             Travel Purpose
           </label>
           <textarea
@@ -517,47 +517,47 @@ export function VerificationScreen({
             onChange={e => patchContext("travelPurpose", e.target.value)}
             placeholder="Briefly describe the business purpose of this trip…"
             rows={2}
-            className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-3 py-2.5 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all resize-none placeholder:text-on-surface-variant/30"
+            className="w-full bg-surface border border-line/30 rounded-xl px-3 py-2.5 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent/50 transition-all resize-none placeholder:text-ink-muted/30"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface-variant font-label">
-              Departure Date<span className="text-error ml-0.5">*</span>
+            <label className="text-xs font-semibold text-ink-muted font-body">
+              Departure Date<span className="text-danger ml-0.5">*</span>
             </label>
             <input
               type="date"
               value={claimContext.departureDate}
               onChange={e => patchContext("departureDate", e.target.value)}
-              className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-3 py-2.5 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all"
+              className="w-full bg-surface border border-line/30 rounded-xl px-3 py-2.5 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent/50 transition-all"
             />
           </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-on-surface-variant font-label">
-              Arrival Date<span className="text-error ml-0.5">*</span>
+            <label className="text-xs font-semibold text-ink-muted font-body">
+              Arrival Date<span className="text-danger ml-0.5">*</span>
             </label>
             <input
               type="date"
               value={claimContext.arrivalDate}
               min={claimContext.departureDate}
               onChange={e => patchContext("arrivalDate", e.target.value)}
-              className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-3 py-2.5 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/50 transition-all"
+              className="w-full bg-surface border border-line/30 rounded-xl px-3 py-2.5 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/10 focus:border-accent/50 transition-all"
             />
           </div>
         </div>
 
         {/* Overseas toggle */}
-        <div className="flex items-center justify-between py-2 px-3 bg-surface-container-low/50 rounded-xl border border-outline-variant/10">
-          <span className="text-sm font-medium text-on-surface font-body">Overseas Travel?</span>
+        <div className="flex items-center justify-between py-2 px-3 bg-surface-muted/50 rounded-xl border border-line/10">
+          <span className="text-sm font-medium text-ink font-body">Overseas Travel?</span>
           <button
             type="button"
             onClick={() => patchContext("overseas", !claimContext.overseas)}
-            className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30 ${
-              claimContext.overseas ? "bg-primary" : "bg-outline-variant/40"
+            className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-accent/30 ${
+              claimContext.overseas ? "bg-accent" : "bg-line/40"
             }`}
           >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-overlay transition-transform duration-300 ${
               claimContext.overseas ? "translate-x-6" : "translate-x-0"
             }`} />
           </button>
@@ -567,8 +567,8 @@ export function VerificationScreen({
       {/* Section 3: Financial Breakdown */}
       <div className="shrink-0 flex flex-col gap-3">
         <div>
-          <h3 className="text-sm font-bold text-on-surface font-headline">Financial Breakdown</h3>
-          <p className="text-xs text-on-surface-variant font-body mt-0.5">
+          <h3 className="text-sm font-bold text-ink font-display">Financial Breakdown</h3>
+          <p className="text-xs text-ink-muted font-body mt-0.5">
             Review and edit AI-extracted data for each receipt.
           </p>
         </div>
@@ -583,18 +583,18 @@ export function VerificationScreen({
       </div>
 
       {/* Section 4: Summary & Action */}
-      <div className="shrink-0 bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-[0_4px_20px_-4px_rgba(44,47,49,0.06)] p-5">
+      <div className="shrink-0 bg-surface rounded-2xl border border-line/15 p-5">
         <div className="flex items-center justify-between mb-5">
-          <span className="text-sm font-bold text-on-surface font-headline">Sub-Total</span>
+          <span className="text-sm font-bold text-ink font-display">Sub-Total</span>
           <div className="flex items-center gap-2">
-            <span className="text-xl font-extrabold text-on-surface font-headline tracking-tight">{fmt(subTotal)}</span>
-            <Lock className="w-3.5 h-3.5 text-outline-variant" />
+            <span className="text-xl font-bold text-ink font-display">{fmt(subTotal)}</span>
+            <Lock className="w-3.5 h-3.5 text-line" />
           </div>
         </div>
         {!canSubmit && (
-          <div className="mb-4 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200/60 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" strokeWidth={1.75} />
-            <p className="text-xs text-amber-700 font-body">
+          <div className="mb-4 px-3 py-2.5 rounded-xl bg-warning-soft border border-warning/60 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-warning shrink-0" strokeWidth={1.75} />
+            <p className="text-xs text-warning font-body">
               {!contextValid
                 ? "Please complete the Claim Context section."
                 : "Please fill in all required receipt fields."}
@@ -607,8 +607,8 @@ export function VerificationScreen({
           onClick={onSubmit}
           className={`w-full py-3.5 rounded-xl font-bold text-sm font-body transition-all duration-200 flex items-center justify-center gap-2 ${
             canSubmit && !isSubmitting
-              ? "bg-linear-to-r from-primary to-primary-dim text-on-primary shadow-[0_4px_20px_rgba(70,71,211,0.35)] hover:shadow-[0_6px_28px_rgba(70,71,211,0.45)] hover:scale-[1.01] active:scale-[0.97]"
-              : "bg-primary/25 text-on-primary/50 cursor-not-allowed"
+              ? "bg-linear-to-r from-accent to-accent-hover text-on-accent hover:scale-[1.01] active:scale-[0.97]"
+              : "bg-accent/25 text-on-accent/50 cursor-not-allowed"
           }`}
         >
           {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />}
@@ -643,10 +643,10 @@ export function VerificationScreen({
   const totalScale  = +(baseScale * previewZoom).toFixed(3);
 
   const previewPanel = (
-    <div className="flex-1 bg-surface-container/50 rounded-2xl flex flex-col overflow-hidden min-h-[500px] lg:min-h-0">
+    <div className="flex-1 bg-surface-muted/50 rounded-2xl flex flex-col overflow-hidden min-h-[500px] lg:min-h-0">
       {/* Preview toolbar */}
-      <div className="px-4 py-2.5 border-b border-outline-variant/10 bg-surface-container-lowest shrink-0 flex items-center justify-between">
-        <p className="text-xs font-bold text-on-surface-variant/60 font-label uppercase tracking-widest">
+      <div className="px-4 py-2.5 border-b border-line/10 bg-surface shrink-0 flex items-center justify-between">
+        <p className="text-xs font-bold text-ink-muted/60 font-body uppercase tracking-widest">
           Live Document Preview
         </p>
         <div className="flex items-center gap-1 sm:gap-1.5">
@@ -654,18 +654,18 @@ export function VerificationScreen({
             type="button"
             onClick={() => setPreviewZoom(z => Math.max(0.4, +(z - 0.2).toFixed(1)))}
             aria-label="Zoom out preview"
-            className="w-5 h-5 sm:w-7 sm:h-7 bg-surface-container border border-outline-variant/20 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface active:scale-90 transition-all"
+            className="w-5 h-5 sm:w-7 sm:h-7 bg-surface-muted border border-line/20 rounded-full flex items-center justify-center text-ink-muted hover:bg-line hover:text-ink active:scale-90 transition-all"
           >
             <ZoomOut className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={1.75} />
           </button>
-          <span className="hidden sm:inline text-[11px] font-semibold text-on-surface-variant w-9 text-center font-label">
+          <span className="hidden sm:inline text-[11px] font-semibold text-ink-muted w-9 text-center font-body">
             {Math.round(previewZoom * 100)}%
           </span>
           <button
             type="button"
             onClick={() => setPreviewZoom(z => Math.min(2.5, +(z + 0.2).toFixed(1)))}
             aria-label="Zoom in preview"
-            className="w-5 h-5 sm:w-7 sm:h-7 bg-surface-container border border-outline-variant/20 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface active:scale-90 transition-all"
+            className="w-5 h-5 sm:w-7 sm:h-7 bg-surface-muted border border-line/20 rounded-full flex items-center justify-center text-ink-muted hover:bg-line hover:text-ink active:scale-90 transition-all"
           >
             <ZoomIn className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={1.75} />
           </button>
@@ -673,7 +673,7 @@ export function VerificationScreen({
             type="button"
             onClick={() => setPreviewZoom(1)}
             aria-label="Reset preview zoom"
-            className="hidden sm:flex w-7 h-7 bg-surface-container border border-outline-variant/20 rounded-full items-center justify-center text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface active:scale-90 transition-all"
+            className="hidden sm:flex w-7 h-7 bg-surface-muted border border-line/20 rounded-full items-center justify-center text-ink-muted hover:bg-line hover:text-ink active:scale-90 transition-all"
           >
             <Maximize2 className="w-3.5 h-3.5" strokeWidth={1.75} />
           </button>
@@ -688,7 +688,7 @@ export function VerificationScreen({
         className="flex-1 overflow-auto
           [&::-webkit-scrollbar]:w-1.5
           [&::-webkit-scrollbar-track]:bg-transparent
-          [&::-webkit-scrollbar-thumb]:bg-outline-variant/30
+          [&::-webkit-scrollbar-thumb]:bg-line/30
           [&::-webkit-scrollbar-thumb]:rounded-full"
         style={{ touchAction: "pinch-zoom" }}
       >
@@ -749,22 +749,22 @@ export function VerificationScreen({
         {/* Back button */}
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 self-start bg-surface-container text-on-surface-variant text-sm font-semibold font-body px-4 py-2 rounded-full hover:bg-surface-container-high active:scale-95 transition-all"
+          className="flex items-center gap-1.5 self-start bg-surface-muted text-ink-muted text-sm font-semibold font-body px-4 py-2 rounded-full hover:bg-line active:scale-95 transition-all"
         >
           <ChevronLeft className="w-4 h-4" strokeWidth={2.5} />
           Back to Upload
         </button>
 
         {/* Tab bar */}
-        <div className="flex bg-surface-container rounded-2xl p-1 gap-1">
+        <div className="flex bg-surface-muted rounded-2xl p-1 gap-1">
           <button
             type="button"
             id="tab-form"
             onClick={() => setActiveTab("form")}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold font-body transition-all duration-200 ${
               activeTab === "form"
-                ? "bg-surface-container-lowest text-primary shadow-sm"
-                : "text-on-surface-variant hover:text-on-surface"
+                ? "bg-surface text-accent"
+                : "text-ink-muted hover:text-ink"
             }`}
           >
             <ClipboardList className="w-4 h-4" strokeWidth={1.75} />
@@ -776,8 +776,8 @@ export function VerificationScreen({
             onClick={() => setActiveTab("preview")}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold font-body transition-all duration-200 ${
               activeTab === "preview"
-                ? "bg-surface-container-lowest text-primary shadow-sm"
-                : "text-on-surface-variant hover:text-on-surface"
+                ? "bg-surface text-accent"
+                : "text-ink-muted hover:text-ink"
             }`}
           >
             <Eye className="w-4 h-4" strokeWidth={1.75} />

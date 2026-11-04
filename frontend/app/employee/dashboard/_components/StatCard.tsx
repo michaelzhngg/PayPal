@@ -20,31 +20,31 @@ export interface StatCardProps {
  */
 const VARIANT_CONFIG = {
   pending: {
-    card:        "bg-surface-container-lowest",
-    iconBg:      "bg-secondary-container/60",
-    iconColor:   "text-on-secondary-container",
-    badge:       "bg-secondary-container/60 text-on-secondary-container",
+    card:        "bg-surface",
+    iconBg:      "bg-accent-soft/60",
+    iconColor:   "text-accent-hover",
+    badge:       "bg-accent-soft/60 text-accent-hover",
     badgeLabel:  "Pending",
-    subtext:     "text-on-surface-variant",
-    blobColor:   "bg-secondary-container/30",
+    subtext:     "text-ink-muted",
+    blobColor:   "bg-accent-soft/30",
   },
   approved: {
-    card:        "bg-surface-container-lowest",
-    iconBg:      "bg-primary/10",
-    iconColor:   "text-primary",
-    badge:       "bg-primary/10 text-primary",
+    card:        "bg-surface",
+    iconBg:      "bg-accent/10",
+    iconColor:   "text-accent",
+    badge:       "bg-accent/10 text-accent",
     badgeLabel:  "Approved",
-    subtext:     "text-on-surface-variant",
-    blobColor:   "bg-primary/30",
+    subtext:     "text-ink-muted",
+    blobColor:   "bg-accent/30",
   },
   paid: {
-    card:        "bg-gradient-to-br from-tertiary-container/20 to-error-container/5 border border-tertiary/10",
-    iconBg:      "bg-tertiary/10",
-    iconColor:   "text-tertiary",
-    badge:       "bg-tertiary/10 text-tertiary",
+    card:        "bg-gradient-to-br from-accent-soft/20 to-danger-soft/5 border border-accent/10",
+    iconBg:      "bg-accent/10",
+    iconColor:   "text-accent",
+    badge:       "bg-accent/10 text-accent",
     badgeLabel:  "Paid",
-    subtext:     "text-on-surface-variant",
-    blobColor:   "bg-tertiary/30",
+    subtext:     "text-ink-muted",
+    blobColor:   "bg-accent/30",
   },
 } as const;
 
@@ -68,8 +68,6 @@ export default function StatCard({
         relative overflow-hidden
         ${c.card}
         rounded-2xl p-6
-        shadow-[0_10px_50px_-12px_rgba(44,47,49,0.06)]
-        hover:shadow-[0_16px_60px_-10px_rgba(44,47,49,0.10)]
         transition-shadow duration-300
         group
       `}
@@ -109,10 +107,10 @@ export default function StatCard({
         </div>
 
         {/* Value block */}
-        <p className="font-body text-on-surface-variant text-sm font-medium mb-1">
+        <p className="font-body text-ink-muted text-sm font-medium mb-1">
           {label}
         </p>
-        <h3 className="font-headline text-3xl font-extrabold text-on-surface tabular-nums tracking-tight">
+        <h3 className="font-display text-3xl font-bold text-ink tabular-nums">
           {value}
         </h3>
         <p className={`font-body text-xs ${c.subtext} mt-2 flex items-center gap-1`}>

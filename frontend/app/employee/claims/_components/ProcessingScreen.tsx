@@ -89,7 +89,7 @@ export function ProcessingScreen({
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col justify-center mt-6 md:mt-12">
-      <div className="relative rounded-3xl overflow-hidden shadow-[0_24px_80px_-16px_rgba(44,47,49,0.18)] flex flex-col sm:flex-row min-h-[480px] w-full">
+      <div className="relative rounded-3xl overflow-hidden flex flex-col sm:flex-row min-h-[480px] w-full">
 
         {/* ── Left: Gradient anchor ──────────────────────────────────────────── */}
         <div
@@ -98,14 +98,14 @@ export function ProcessingScreen({
         >
           {/* Decorative blobs */}
           <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-900/20 rounded-full blur-2xl translate-y-1/4 -translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-accent/20 rounded-full blur-2xl translate-y-1/4 -translate-x-1/4 pointer-events-none" />
 
           {/* Icon + Title */}
           <div className="relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
               <ScanLine className="w-6 h-6 text-white" strokeWidth={1.75} />
             </div>
-            <h2 className="font-headline text-2xl font-bold text-white tracking-tight leading-snug">
+            <h2 className="font-display text-2xl font-bold text-white leading-snug">
               Processing<br />Receipts
             </h2>
             <p className="text-white/70 text-sm font-body mt-2 leading-relaxed">
@@ -117,10 +117,10 @@ export function ProcessingScreen({
           <div className="relative z-10 mt-6">
             <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] text-white/70 font-label font-semibold uppercase tracking-widest">
+                <p className="text-[10px] text-white/70 font-body font-semibold uppercase tracking-widest">
                   Overall Progress
                 </p>
-                <span className="text-white text-xs font-bold font-label">
+                <span className="text-white text-xs font-bold font-body">
                   {overallPct}%
                 </span>
               </div>
@@ -146,17 +146,17 @@ export function ProcessingScreen({
         </div>
 
         {/* ── Right: Trail log stepper ───────────────────────────────────────── */}
-        <div className="flex-1 bg-surface-container-lowest p-8 sm:p-10 flex flex-col">
+        <div className="flex-1 bg-surface p-8 sm:p-10 flex flex-col">
 
           {/* Active receipt label */}
           <div className="mb-8">
-            <p className="text-[11px] text-primary/80 font-label font-bold uppercase tracking-widest mb-1">
+            <p className="text-[11px] text-accent/80 font-body font-bold uppercase tracking-widest mb-1">
               Currently Processing
             </p>
-            <h3 className="font-headline text-lg font-semibold text-on-surface leading-tight">
+            <h3 className="font-display text-lg font-semibold text-ink leading-tight">
               {(stageData?.filename ? String(stageData.filename) : null) || `Receipt ${currentIndex + 1} of ${totalFiles}`}
             </h3>
-            <p className="text-on-surface-variant text-sm font-body mt-0.5">
+            <p className="text-ink-muted text-sm font-body mt-0.5">
               {stageLabel || "Running AI vision extraction…"}
             </p>
           </div>
@@ -164,10 +164,10 @@ export function ProcessingScreen({
           {/* Trail log stepper */}
           <div className="relative ml-3 mb-8">
             {/* Background track */}
-            <div className="absolute top-3 bottom-3 left-[11px] w-0.5 bg-surface-container-high rounded-full" />
+            <div className="absolute top-3 bottom-3 left-[11px] w-0.5 bg-line rounded-full" />
             {/* Progress fill */}
             <div
-              className="absolute top-3 left-[11px] w-0.5 bg-primary rounded-full transition-all duration-700 ease-in-out"
+              className="absolute top-3 left-[11px] w-0.5 bg-accent rounded-full transition-all duration-700 ease-in-out"
               style={{
                 height:
                   currentStep === 0 ? "0%" :
@@ -187,46 +187,46 @@ export function ProcessingScreen({
                   <div key={step.id} className="flex items-start gap-5 relative">
                     {/* Dot indicator */}
                     {isCompleted && (
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5 shadow-[0_4px_12px_rgba(70,71,211,0.35)] z-10">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-on-primary" strokeWidth={2.5} />
+                      <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center shrink-0 mt-0.5 z-10">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-on-accent" strokeWidth={2.5} />
                       </div>
                     )}
                     {isActive && (
-                      <div className="w-6 h-6 rounded-full bg-primary border-[3px] border-surface-container-lowest flex items-center justify-center shrink-0 mt-0.5 relative z-10 shadow-[0_0_0_2px_#4647d3]">
-                        <div className="absolute inset-[-4px] rounded-full border-2 border-primary/50 animate-ping" />
+                      <div className="w-6 h-6 rounded-full bg-accent border-[3px] border-surface flex items-center justify-center shrink-0 mt-0.5 relative z-10">
+                        <div className="absolute inset-[-4px] rounded-full border-2 border-accent/50 animate-ping" />
                         <div className="w-2 h-2 rounded-full bg-white" />
                       </div>
                     )}
                     {isPending && (
-                      <div className="w-6 h-6 rounded-full bg-surface-container border border-outline-variant/30 shrink-0 mt-0.5 z-10" />
+                      <div className="w-6 h-6 rounded-full bg-surface-muted border border-line/30 shrink-0 mt-0.5 z-10" />
                     )}
 
                     {/* Step text */}
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300 ${
-                        isActive    ? "bg-primary/15" :
-                        isCompleted ? "bg-primary/10" :
-                                      "bg-surface-container"
+                        isActive    ? "bg-accent/15" :
+                        isCompleted ? "bg-accent/10" :
+                                      "bg-surface-muted"
                       }`}>
                         <StepIcon
                           className={`w-4 h-4 transition-colors ${
-                            isActive    ? "text-primary" :
-                            isCompleted ? "text-primary/70" :
-                                          "text-outline-variant/40"
+                            isActive    ? "text-accent" :
+                            isCompleted ? "text-accent/70" :
+                                          "text-line/40"
                           }`}
                           strokeWidth={1.75}
                         />
                       </div>
                       <div>
-                        <p className={`font-semibold text-sm leading-tight font-headline ${
-                          isActive    ? "text-primary" :
-                          isCompleted ? "text-on-surface" :
-                                        "text-on-surface-variant/40"
+                        <p className={`font-semibold text-sm leading-tight font-display ${
+                          isActive    ? "text-accent" :
+                          isCompleted ? "text-ink" :
+                                        "text-ink-muted/40"
                         }`}>
                           {step.label}
                         </p>
                         {(isCompleted || isActive) && (
-                          <p className="text-on-surface-variant text-xs mt-0.5 font-body leading-relaxed">
+                          <p className="text-ink-muted text-xs mt-0.5 font-body leading-relaxed">
                             {step.subtitle}
                           </p>
                         )}
@@ -240,21 +240,21 @@ export function ProcessingScreen({
 
           {/* Completed receipts log */}
           {completedFileNames.length > 0 && (
-            <div className="mt-auto pt-4 border-t border-outline-variant/10">
-              <p className="text-[10px] text-on-surface-variant/60 font-label font-semibold uppercase tracking-widest mb-2">
+            <div className="mt-auto pt-4 border-t border-line/10">
+              <p className="text-[10px] text-ink-muted/60 font-body font-semibold uppercase tracking-widest mb-2">
                 Completed
               </p>
               <div className="flex flex-col gap-1.5 max-h-28 overflow-y-auto pr-1
                 [&::-webkit-scrollbar]:w-1
                 [&::-webkit-scrollbar-track]:bg-transparent
-                [&::-webkit-scrollbar-thumb]:bg-outline-variant/20
+                [&::-webkit-scrollbar-thumb]:bg-line/20
                 [&::-webkit-scrollbar-thumb]:rounded-full">
                 {completedFileNames.map((name, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-2 text-xs font-body text-on-surface-variant animate-in fade-in slide-in-from-bottom-1 duration-300"
+                    className="flex items-center gap-2 text-xs font-body text-ink-muted animate-in fade-in slide-in-from-bottom-1 duration-300"
                   >
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" strokeWidth={2} />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" strokeWidth={2} />
                     <span className="truncate">{name}</span>
                   </div>
                 ))}

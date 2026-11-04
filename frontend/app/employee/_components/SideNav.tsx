@@ -38,7 +38,7 @@ export default function SideNav() {
   return (
     <nav
       aria-label="Desktop sidebar"
-      className="hidden lg:flex flex-col w-64 shrink-0 h-screen bg-surface-container-low border-r border-outline-variant/10 shadow-[1px_0_20px_rgba(44,47,49,0.04)]"
+      className="hidden lg:flex flex-col w-64 shrink-0 h-screen bg-surface-muted border-r border-line/10"
     >
       <div className="flex flex-col h-full p-4">
 
@@ -46,11 +46,11 @@ export default function SideNav() {
         <div className="px-4 py-5 mb-3">
           <div className="flex items-center gap-2.5">
             <Image src="/images/logo.svg" alt="Reclaim Logo" width={28} height={28} className="w-7 h-7 object-contain" />
-            <h1 className="font-headline font-black text-xl text-primary tracking-tight">
+            <h1 className="font-display font-bold text-xl text-accent">
               Reclaim Pay
             </h1>
           </div>
-          <p className="font-body text-xs font-medium text-on-surface-variant mt-1.5 leading-tight">
+          <p className="font-body text-xs font-medium text-ink-muted mt-1.5 leading-tight">
             Employee Portal
           </p>
         </div>
@@ -66,19 +66,19 @@ export default function SideNav() {
                 href={href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 active:scale-[0.97] ${
                   isActive
-                    ? "bg-surface-container font-bold text-primary"
-                    : "font-medium text-on-surface hover:bg-surface-container/60 hover:text-on-surface"
+                    ? "bg-surface-muted font-bold text-accent"
+                    : "font-medium text-ink hover:bg-surface-muted/60 hover:text-ink"
                 }`}
               >
                 <Icon
                   className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                    isActive ? "text-primary" : "text-on-surface-variant"
+                    isActive ? "text-accent" : "text-ink-muted"
                   }`}
                   strokeWidth={isActive ? 2.5 : 1.75}
                 />
                 {label}
                 {isDrafts && draftCount > 0 && (
-                  <span className="ml-auto bg-primary text-on-primary text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm">
+                  <span className="ml-auto bg-accent text-on-accent text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                     {draftCount > 9 ? "9+" : draftCount}
                   </span>
                 )}
@@ -88,17 +88,17 @@ export default function SideNav() {
         </div>
 
         {/* ── Bottom: User + Utility ────────────────── */}
-        <div className="mt-auto pt-4 border-t border-outline-variant/10">
+        <div className="mt-auto pt-4 border-t border-line/10">
           {/* User identity chip */}
           <div className="flex items-center gap-3 px-4 py-3 mb-1 rounded-xl">
-            <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary-container to-tertiary-container shrink-0 flex items-center justify-center font-headline font-bold text-sm text-on-primary-container border-2 border-surface-container-lowest shadow-sm">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-accent-soft to-accent-soft shrink-0 flex items-center justify-center font-display font-bold text-sm text-accent-hover border-2 border-surface">
               {user?.name?.charAt(0).toUpperCase() ?? "U"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-body font-semibold text-sm text-on-surface truncate leading-tight">
+              <p className="font-body font-semibold text-sm text-ink truncate leading-tight">
                 {user?.name ?? "Employee"}
               </p>
-              <p className="font-body text-[11px] text-on-surface-variant truncate">
+              <p className="font-body text-[11px] text-ink-muted truncate">
                 {user?.department_name ?? "General"}
               </p>
             </div>
@@ -108,13 +108,13 @@ export default function SideNav() {
             href="/employee/support"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm transition-all duration-200 hover:translate-x-0.5 active:scale-[0.97] ${
               pathname.startsWith("/employee/support")
-                ? "bg-surface-container font-bold text-primary"
-                : "font-medium text-on-surface hover:bg-surface-container/50"
+                ? "bg-surface-muted font-bold text-accent"
+                : "font-medium text-ink hover:bg-surface-muted/50"
             }`}
           >
             <LifeBuoy
               className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                pathname.startsWith("/employee/support") ? "text-primary" : "text-on-surface-variant"
+                pathname.startsWith("/employee/support") ? "text-accent" : "text-ink-muted"
               }`}
               strokeWidth={pathname.startsWith("/employee/support") ? 2.5 : 1.75}
             />
@@ -124,10 +124,10 @@ export default function SideNav() {
           <button
             id="sidenav-logout-btn"
             onClick={logout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-medium text-on-surface hover:bg-error/10 hover:text-error group transition-all hover:translate-x-0.5 active:scale-[0.97]"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-medium text-ink hover:bg-danger/10 hover:text-danger group transition-all hover:translate-x-0.5 active:scale-[0.97]"
           >
             <LogOut
-              className="w-[18px] h-[18px] text-on-surface-variant group-hover:text-error transition-colors"
+              className="w-[18px] h-[18px] text-ink-muted group-hover:text-danger transition-colors"
               strokeWidth={1.75}
             />
             Logout

@@ -171,7 +171,7 @@ function HistoryPageContent() {
       {/* Ambient gradient blob */}
       <div
         aria-hidden
-        className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 rounded-full bg-linear-to-br from-primary/15 to-tertiary/10 blur-3xl z-0"
+        className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 rounded-full bg-linear-to-br from-accent/15 to-accent/10 blur-3xl z-0"
       />
 
       <div className="relative z-10 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -179,14 +179,14 @@ function HistoryPageContent() {
         {/* ── Header ── */}
         <div className="flex flex-col gap-1">
           <h2
-            className="font-headline font-extrabold text-3xl md:text-4xl text-on-surface tracking-tight"
+            className="font-display font-bold text-3xl md:text-4xl text-ink"
             style={{ letterSpacing: "-0.02em" }}
           >
             History
           </h2>
-          <p className="text-base text-on-surface-variant font-body leading-relaxed flex items-center gap-2">
-            <span className="font-semibold text-on-surface">Total Reimbursed: {summary.total}</span>
-            <span className="text-outline-variant">•</span>
+          <p className="text-base text-ink-muted font-body leading-relaxed flex items-center gap-2">
+            <span className="font-semibold text-ink">Total Reimbursed: {summary.total}</span>
+            <span className="text-line">•</span>
             <span>Pending: {summary.pending}</span>
           </p>
         </div>
@@ -194,7 +194,7 @@ function HistoryPageContent() {
         {/* ── Localized Search Bar ── */}
         <div className="relative max-w-md w-full">
           <Search
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-on-surface-variant/50"
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted/50"
             strokeWidth={2}
           />
           <input
@@ -202,7 +202,7 @@ function HistoryPageContent() {
             placeholder="Search by merchant, category or ID…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface text-sm rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-on-surface-variant/40 shadow-sm"
+            className="w-full bg-surface border border-line/30 text-ink text-sm rounded-xl py-2.5 pl-10 pr-4 focus:outline-none focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all placeholder:text-ink-muted/40"
           />
         </div>
 

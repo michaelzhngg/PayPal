@@ -38,9 +38,9 @@ export default function SettingsLegacyContent() {
     <div className="relative min-h-full p-6 md:p-10 lg:p-12">
       {/* Ambient glow */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full bg-primary opacity-[0.07] blur-[80px]" />
-        <div className="absolute top-32 right-40 w-[320px] h-[320px] rounded-full bg-tertiary opacity-[0.06] blur-[64px]" />
-        <div className="absolute -top-8 right-[15%] w-[200px] h-[200px] rounded-full bg-primary-container opacity-[0.12] blur-[48px]" />
+        <div className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full bg-accent opacity-[0.07] blur-[80px]" />
+        <div className="absolute top-32 right-40 w-[320px] h-[320px] rounded-full bg-accent opacity-[0.06] blur-[64px]" />
+        <div className="absolute -top-8 right-[15%] w-[200px] h-[200px] rounded-full bg-accent-soft opacity-[0.12] blur-[48px]" />
       </div>
 
       <div className="relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto">
@@ -48,17 +48,17 @@ export default function SettingsLegacyContent() {
         {/* ── Header ── */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div className="max-w-2xl">
-            <div className="flex items-center gap-2 text-primary mb-2">
+            <div className="flex items-center gap-2 text-accent mb-2">
               <Settings className="w-5 h-5" />
-              <span className="font-label font-bold tracking-widest uppercase text-xs">Preferences</span>
+              <span className="font-body font-bold tracking-widest uppercase text-xs">Preferences</span>
             </div>
             <h2
-              className="font-headline font-extrabold text-on-background mb-2 tracking-tight"
+              className="font-display font-bold text-ink mb-2"
               style={{ fontSize: "2.5rem", letterSpacing: "-0.02em" }}
             >
               Settings
             </h2>
-            <p className="text-on-surface-variant text-lg font-body">
+            <p className="text-ink-muted text-lg font-body">
               Manage your account preferences and the PayPal account your reimbursements are paid to.
             </p>
           </div>
@@ -72,10 +72,10 @@ export default function SettingsLegacyContent() {
                 key={item.id}
                 href={`#${item.id}`}
                 aria-current={active === item.id ? "true" : undefined}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-primary ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-accent ${
                   active === item.id
-                    ? "bg-primary/10 text-primary"
-                    : "text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface"
+                    ? "bg-accent/10 text-accent"
+                    : "text-ink-muted hover:bg-surface hover:text-ink"
                 }`}
               >
                 <item.icon className="w-4 h-4" aria-hidden />
@@ -84,7 +84,7 @@ export default function SettingsLegacyContent() {
             ))}
             <Link
               href="/employee/support"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-semibold transition-colors text-on-surface-variant hover:bg-surface-container-lowest hover:text-on-surface focus-visible:outline-2 focus-visible:outline-primary"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl font-body text-sm font-semibold transition-colors text-ink-muted hover:bg-surface hover:text-ink focus-visible:outline-2 focus-visible:outline-accent"
             >
               <LifeBuoy className="w-4 h-4" aria-hidden />
               Help & Support
@@ -100,7 +100,7 @@ export default function SettingsLegacyContent() {
               ref={paypalRef}
               tabIndex={-1}
               className={`scroll-mt-24 rounded-2xl outline-none transition-shadow ${
-                hash === "#paypal" ? "ring-2 ring-primary/50 ring-offset-2 ring-offset-surface" : ""
+                hash === "#paypal" ? "ring-2 ring-accent/50 ring-offset-2 ring-offset-paper" : ""
               }`}
             >
               <Suspense>
@@ -111,19 +111,19 @@ export default function SettingsLegacyContent() {
             <ProfileCard key={user?.user_id ?? "anon"} />
 
             {/* Mobile Support Link */}
-            <section className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm md:hidden block">
+            <section className="bg-surface border border-line/10 rounded-2xl overflow-hidden md:hidden block">
               <div className="p-6">
-                <Link href="/employee/support" className="flex items-center justify-between p-4 border border-outline-variant/20 rounded-xl bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors group">
+                <Link href="/employee/support" className="flex items-center justify-between p-4 border border-line/20 rounded-xl bg-surface-muted hover:bg-surface-muted cursor-pointer transition-colors group">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-tertiary-container text-on-tertiary-container rounded-lg">
+                    <div className="p-3 bg-accent-soft text-accent-hover rounded-lg">
                       <LifeBuoy className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-headline font-bold text-sm text-on-surface">Help & Support</p>
-                      <p className="font-body text-xs text-on-surface-variant">Access FAQs or contact HR</p>
+                      <p className="font-display font-bold text-sm text-ink">Help & Support</p>
+                      <p className="font-body text-xs text-ink-muted">Access FAQs or contact HR</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-on-surface-variant group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight className="w-5 h-5 text-ink-muted group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </section>

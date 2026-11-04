@@ -84,15 +84,15 @@ export default function EmployeeDashboardPage() {
 
         <div className="flex flex-wrap items-start justify-between gap-3 relative z-10">
           <div className="flex flex-col gap-3">
-            <h2 className="font-headline text-3xl md:text-4xl font-extrabold text-on-surface tracking-tight">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-ink">
               Welcome back, {firstName}.
             </h2>
             <PayPalStatusChip />
           </div>
 
           {/* Current date pill — visible on md+ */}
-          <div className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-surface-container-low rounded-xl shrink-0">
-            <span className="font-label text-sm font-semibold text-primary">
+          <div className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-surface-muted rounded-xl shrink-0">
+            <span className="font-body text-sm font-semibold text-accent">
               {today || "Loading..."}
             </span>
           </div>
@@ -109,17 +109,17 @@ export default function EmployeeDashboardPage() {
         /* ── First run: one clear next step instead of zero cards ── */
         <section
           aria-labelledby="empty-claims-heading"
-          className="bg-surface-container-low rounded-2xl p-6 md:p-10 flex flex-col items-start gap-4 max-w-xl"
+          className="bg-surface-muted rounded-2xl p-6 md:p-10 flex flex-col items-start gap-4 max-w-xl"
         >
-          <h3 id="empty-claims-heading" className="font-headline text-xl font-bold text-on-surface">
+          <h3 id="empty-claims-heading" className="font-display text-xl font-bold text-ink">
             No claims yet
           </h3>
-          <p className="font-body text-sm text-on-surface-variant leading-relaxed">
+          <p className="font-body text-sm text-ink-muted leading-relaxed">
             Snap or upload a receipt. We read it, check it against your policy, and pay approved claims to your PayPal.
           </p>
           <Link
             href="/employee/claims"
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 font-body text-sm font-semibold text-on-primary hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent px-5 py-2.5 font-body text-sm font-semibold text-on-accent hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             <Upload className="h-4 w-4" aria-hidden />
             Upload your first receipt

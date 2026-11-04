@@ -14,7 +14,7 @@ import StatsBand from "./StatsBand";
 export default function LandingPage({ user }: { user: User | null }) {
   return (
     <LandingMotion>
-      <div className="min-h-screen flex flex-col bg-surface">
+      <div className="min-h-screen flex flex-col bg-paper">
         <a href="#main" className="skip-link">
           Skip to content
         </a>

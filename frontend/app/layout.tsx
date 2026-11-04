@@ -10,13 +10,21 @@ import { ToastProvider } from "@/components/toast/ToastProvider";
 const inter = localFont({
   src: "./fonts/inter-latin-wght-normal.woff2",
   weight: "100 900",
-  variable: "--font-body",
+  variable: "--font-inter",
 });
 
-const plusJakartaSans = localFont({
-  src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+const bricolage = localFont({
+  src: "./fonts/bricolage-grotesque-latin-wght-normal.woff2",
   weight: "200 800",
-  variable: "--font-headline",
+  variable: "--font-bricolage",
+});
+
+const plexMono = localFont({
+  src: [
+    { path: "./fonts/ibm-plex-mono-latin-400-normal.woff2", weight: "400" },
+    { path: "./fonts/ibm-plex-mono-latin-500-normal.woff2", weight: "500" },
+  ],
+  variable: "--font-plex-mono",
 });
 
 export const viewport: Viewport = {
@@ -24,11 +32,11 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   interactiveWidget: "resizes-visual",
-  themeColor: "#f5f7f9",
+  themeColor: "#f7f6f2",
 };
 
 const DESCRIPTION =
-  "An AI agent checks each expense claim against policy, pays clean low-risk claims to the employee's PayPal in seconds, and sends everything else to HR with the evidence. Automation where it's safe, judgment where it matters.";
+  "An AI agent checks each expense claim against policy, pays clean low-risk claims to the employee's PayPal in under a minute, and sends everything else to HR with the evidence. Automation where it's safe, judgment where it matters.";
 
 export const metadata: Metadata = {
   title: "Reclaim Pay",
@@ -72,7 +80,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${plusJakartaSans.variable} h-full antialiased`}
+      className={`${inter.variable} ${bricolage.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ToastProvider>

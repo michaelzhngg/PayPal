@@ -99,13 +99,13 @@ function DocViewer({ file }: DocViewerProps) {
 
   if (!file) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-surface-container-low/30 rounded-2xl border-2 border-dashed border-outline-variant/20 min-h-[360px]">
-        <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center">
-          <FileText className="w-8 h-8 text-outline-variant/50" strokeWidth={1.25} />
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-surface-muted/30 rounded-2xl border-2 border-dashed border-line/20 min-h-[360px]">
+        <div className="w-16 h-16 rounded-2xl bg-surface-muted flex items-center justify-center">
+          <FileText className="w-8 h-8 text-line/50" strokeWidth={1.25} />
         </div>
         <div className="text-center px-6">
-          <p className="text-sm font-semibold text-on-surface-variant font-headline">No receipt selected</p>
-          <p className="text-xs text-on-surface-variant/60 font-body mt-1">Click a receipt from the list to preview it here.</p>
+          <p className="text-sm font-semibold text-ink-muted font-display">No receipt selected</p>
+          <p className="text-xs text-ink-muted/60 font-body mt-1">Click a receipt from the list to preview it here.</p>
         </div>
       </div>
     );
@@ -115,28 +115,28 @@ function DocViewer({ file }: DocViewerProps) {
   const isPDF = file.type === "application/pdf";
 
   return (
-    <div className="flex-1 flex flex-col bg-surface-container-lowest rounded-2xl border border-outline-variant/15 shadow-[0_8px_40px_-8px_rgba(44,47,49,0.08)] overflow-hidden min-h-[360px]">
+    <div className="flex-1 flex flex-col bg-surface rounded-2xl border border-line/15 overflow-hidden min-h-[360px]">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-outline-variant/10 shrink-0">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-line/10 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <FileText className="w-4 h-4 text-primary shrink-0" strokeWidth={1.75} />
-          <span className="text-sm font-medium text-on-surface font-body truncate">{file.name}</span>
+          <FileText className="w-4 h-4 text-accent shrink-0" strokeWidth={1.75} />
+          <span className="text-sm font-medium text-ink font-body truncate">{file.name}</span>
         </div>
         {isImage && (
           <div className="flex items-center gap-1.5 shrink-0 ml-3">
             <button onClick={() => setZoom(z => Math.max(0.5, +(z - 0.25).toFixed(2)))} aria-label="Zoom out"
-              className="w-7 h-7 bg-surface-container border border-outline-variant/20 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface active:scale-90 transition-all">
+              className="w-7 h-7 bg-surface-muted border border-line/20 rounded-full flex items-center justify-center text-ink-muted hover:bg-line hover:text-ink active:scale-90 transition-all">
               <ZoomOut className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
-            <span className="text-[11px] font-semibold text-on-surface-variant w-9 text-center font-label">
+            <span className="text-[11px] font-semibold text-ink-muted w-9 text-center font-body">
               {Math.round(zoom * 100)}%
             </span>
             <button onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))} aria-label="Zoom in"
-              className="w-7 h-7 bg-surface-container border border-outline-variant/20 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface active:scale-90 transition-all">
+              className="w-7 h-7 bg-surface-muted border border-line/20 rounded-full flex items-center justify-center text-ink-muted hover:bg-line hover:text-ink active:scale-90 transition-all">
               <ZoomIn className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
             <button onClick={() => setZoom(1)} aria-label="Reset zoom"
-              className="w-7 h-7 bg-surface-container border border-outline-variant/20 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface active:scale-90 transition-all">
+              className="w-7 h-7 bg-surface-muted border border-line/20 rounded-full flex items-center justify-center text-ink-muted hover:bg-line hover:text-ink active:scale-90 transition-all">
               <Maximize2 className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
           </div>
@@ -144,7 +144,7 @@ function DocViewer({ file }: DocViewerProps) {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-auto bg-surface-container-low/20 flex items-center justify-center" style={{ minHeight: 0 }}>
+      <div className="flex-1 overflow-auto bg-surface-muted/20 flex items-center justify-center" style={{ minHeight: 0 }}>
         {isImage ? (
           <div className="w-full h-full overflow-auto flex items-center justify-center p-4" style={{ touchAction: "pinch-zoom" }}>
             <img
@@ -158,15 +158,15 @@ function DocViewer({ file }: DocViewerProps) {
                 maxWidth: "100%",
                 display: "block",
               }}
-              className="rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] select-none"
+              className="rounded-xl select-none"
             />
           </div>
         ) : isPDF ? (
           <iframe src={file.previewUrl} title={file.name} className="w-full h-full border-0" />
         ) : (
           <div className="flex flex-col items-center gap-4 py-16">
-            <FileText className="w-12 h-12 text-outline-variant" strokeWidth={1.25} />
-            <p className="text-sm text-on-surface-variant font-body">Preview not available</p>
+            <FileText className="w-12 h-12 text-line" strokeWidth={1.25} />
+            <p className="text-sm text-ink-muted font-body">Preview not available</p>
           </div>
         )}
       </div>
@@ -210,15 +210,15 @@ function FileCard({ file, index, isActive, onSelect, onRemove, onRename }: FileC
     <div
       onClick={onSelect}
       className={`flex items-center gap-3 rounded-xl px-3 py-2.5 cursor-pointer transition-all duration-150 group ${isActive
-        ? "bg-primary/8 border border-primary/30 shadow-[0_0_0_2px_rgba(70,71,211,0.12)]"
-        : "bg-surface-container-lowest border border-outline-variant/15 hover:border-primary/20 hover:bg-primary/3 shadow-[0_2px_8px_-2px_rgba(44,47,49,0.06)]"
+        ? "bg-accent/8 border border-accent/30 shadow-[0_0_0_2px_rgba(70,71,211,0.12)]"
+        : "bg-surface border border-line/15 hover:border-accent/20 hover:bg-accent/3 shadow-[0_2px_8px_-2px_rgba(44,47,49,0.06)]"
         }`}
     >
       {/* Thumbnail */}
-      <div className="w-9 h-9 rounded-lg bg-surface-container overflow-hidden flex items-center justify-center shrink-0">
+      <div className="w-9 h-9 rounded-lg bg-surface-muted overflow-hidden flex items-center justify-center shrink-0">
         {isImage
           ? <img src={file.previewUrl} alt={file.name} className="w-full h-full object-cover" />
-          : <FileText className="w-4 h-4 text-primary" strokeWidth={1.75} />
+          : <FileText className="w-4 h-4 text-accent" strokeWidth={1.75} />
         }
       </div>
 
@@ -235,19 +235,19 @@ function FileCard({ file, index, isActive, onSelect, onRemove, onRename }: FileC
               if (e.key === "Enter") commitRename();
               if (e.key === "Escape") { setDraftName(file.name); setEditing(false); }
             }}
-            className="w-full text-sm font-medium text-on-surface font-body bg-surface-container-lowest border border-primary/40 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full text-sm font-medium text-ink font-body bg-surface border border-accent/40 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-accent/20"
             onClick={e => e.stopPropagation()}
           />
         ) : (
-          <p className="text-sm font-medium text-on-surface font-body truncate">{file.name}</p>
+          <p className="text-sm font-medium text-ink font-body truncate">{file.name}</p>
         )}
-        <p className="text-xs text-on-surface-variant font-body mt-0.5">
+        <p className="text-xs text-ink-muted font-body mt-0.5">
           {(file.size / 1024).toFixed(0)} KB
         </p>
       </div>
 
       {/* Index badge */}
-      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full font-label shrink-0 transition-colors ${isActive ? "bg-primary/15 text-primary" : "bg-surface-container text-on-surface-variant"
+      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full font-body shrink-0 transition-colors ${isActive ? "bg-accent/15 text-accent" : "bg-surface-muted text-ink-muted"
         }`}>
         #{index + 1}
       </span>
@@ -259,14 +259,14 @@ function FileCard({ file, index, isActive, onSelect, onRemove, onRename }: FileC
             <button
               onClick={e => { e.stopPropagation(); commitRename(); }}
               aria-label="Confirm rename"
-              className="p-1.5 rounded-lg text-green-600 hover:bg-green-50 active:scale-90 transition-all"
+              className="p-1.5 rounded-lg text-success hover:bg-success-soft active:scale-90 transition-all"
             >
               <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
             </button>
             <button
               onClick={e => { e.stopPropagation(); setDraftName(file.name); setEditing(false); }}
               aria-label="Cancel rename"
-              className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container active:scale-90 transition-all"
+              className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-muted active:scale-90 transition-all"
             >
               <X className="w-3.5 h-3.5" strokeWidth={2} />
             </button>
@@ -276,7 +276,7 @@ function FileCard({ file, index, isActive, onSelect, onRemove, onRename }: FileC
             <button
               onClick={startEdit}
               aria-label={`Rename ${file.name}`}
-              className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface active:scale-90 transition-all"
+              className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-muted hover:text-ink active:scale-90 transition-all"
             >
               <Pencil className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
@@ -284,7 +284,7 @@ function FileCard({ file, index, isActive, onSelect, onRemove, onRename }: FileC
               id={`remove-file-${index}`}
               onClick={e => { e.stopPropagation(); onRemove(); }}
               aria-label={`Remove ${file.name}`}
-              className="p-1.5 rounded-lg text-on-surface-variant hover:bg-error/10 hover:text-error active:scale-90 transition-all"
+              className="p-1.5 rounded-lg text-ink-muted hover:bg-danger/10 hover:text-danger active:scale-90 transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" strokeWidth={1.75} />
             </button>
@@ -335,16 +335,16 @@ function BatchDropzone({ isFull, isLoading, onAdd, inputRef, cameraRef, expanded
         role="button"
         tabIndex={0}
         aria-label="Scan or upload receipts"
-        className={`md:hidden flex flex-col items-center justify-center gap-4 ${expanded ? "py-14" : "py-7"} px-4 rounded-[20px] border-[2.5px] border-dashed border-primary/40 bg-primary/3 cursor-pointer active:scale-[0.97] transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary`}
+        className={`md:hidden flex flex-col items-center justify-center gap-4 ${expanded ? "py-14" : "py-7"} px-4 rounded-[20px] border-[2.5px] border-dashed border-accent/40 bg-accent/3 cursor-pointer active:scale-[0.97] transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent`}
         onClick={() => cameraRef.current?.click()}
         onKeyDown={activateOnKey(() => cameraRef.current?.click())}
       >
-        <div className="w-12 h-12 rounded-[16px] bg-primary/10 flex items-center justify-center shadow-sm">
-          <Camera className="w-6 h-6 text-primary" strokeWidth={1.75} />
+        <div className="w-12 h-12 rounded-[16px] bg-accent/10 flex items-center justify-center shadow-sm">
+          <Camera className="w-6 h-6 text-accent" strokeWidth={1.75} />
         </div>
         <div className="text-center">
-          <p className="text-sm font-bold text-primary font-headline tracking-wide">Tap to Scan / Upload</p>
-          <p className="text-xs text-primary/60 font-body mt-0.5">PDF, JPG or PNG · Max limit: 10 receipts.</p>
+          <p className="text-sm font-bold text-accent font-display tracking-wide">Tap to Scan / Upload</p>
+          <p className="text-xs text-accent/60 font-body mt-0.5">PDF, JPG or PNG · Max limit: 10 receipts.</p>
         </div>
       </div>
 
@@ -358,20 +358,20 @@ function BatchDropzone({ isFull, isLoading, onAdd, inputRef, cameraRef, expanded
         role="button"
         tabIndex={0}
         aria-label="Upload receipts"
-        className={`hidden md:flex border-2 border-dashed rounded-2xl flex-col items-center justify-center ${expanded ? "min-h-[360px] py-16" : "py-9"} px-6 text-center cursor-pointer transition-all duration-200 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${dragging
-          ? "border-primary/60 bg-primary/5"
-          : "border-outline-variant/40 bg-surface-container-lowest hover:border-primary/40 hover:bg-primary/3"
+        className={`hidden md:flex border-2 border-dashed rounded-2xl flex-col items-center justify-center ${expanded ? "min-h-[360px] py-16" : "py-9"} px-6 text-center cursor-pointer transition-all duration-200 group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${dragging
+          ? "border-accent/60 bg-accent/5"
+          : "border-line/40 bg-surface hover:border-accent/40 hover:bg-accent/3"
           }`}
       >
         {isLoading ? (
-          <Loader2 className="w-7 h-7 text-primary animate-spin mb-3" strokeWidth={1.75} />
+          <Loader2 className="w-7 h-7 text-accent animate-spin mb-3" strokeWidth={1.75} />
         ) : (
-          <div className={`w-11 h-11 rounded-full flex items-center justify-center mb-3 transition-all duration-200 ${dragging ? "bg-primary/15 scale-110" : "bg-surface-container-low group-hover:bg-primary/10 group-hover:scale-110"}`}>
-            <Upload className={`w-5 h-5 transition-colors ${dragging ? "text-primary" : "text-outline-variant group-hover:text-primary"}`} strokeWidth={1.75} />
+          <div className={`w-11 h-11 rounded-full flex items-center justify-center mb-3 transition-all duration-200 ${dragging ? "bg-accent/15 scale-110" : "bg-surface-muted group-hover:bg-accent/10 group-hover:scale-110"}`}>
+            <Upload className={`w-5 h-5 transition-colors ${dragging ? "text-accent" : "text-line group-hover:text-accent"}`} strokeWidth={1.75} />
           </div>
         )}
-        <p className="text-sm font-semibold text-on-surface font-body">Click to upload or drag & drop</p>
-        <p className="text-xs text-on-surface-variant font-body mt-1">PDF, JPG or PNG · Max limit: 10 receipts.</p>
+        <p className="text-sm font-semibold text-ink font-body">Click to upload or drag & drop</p>
+        <p className="text-xs text-ink-muted font-body mt-1">PDF, JPG or PNG · Max limit: 10 receipts.</p>
       </div>
     </>
   );
@@ -1024,7 +1024,7 @@ function CaptureReceiptContent() {
       {/* Ambient gradient blob */}
       <div
         aria-hidden
-        className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 rounded-full bg-linear-to-br from-primary/15 to-tertiary/10 blur-3xl z-0"
+        className="pointer-events-none fixed -top-24 -left-24 w-96 h-96 rounded-full bg-linear-to-br from-accent/15 to-accent/10 blur-3xl z-0"
       />
 
       <div className="relative z-10 flex flex-col gap-6">
@@ -1033,12 +1033,12 @@ function CaptureReceiptContent() {
         {stage === "form" && (
           <div className="flex flex-col gap-1">
             <h2
-              className="font-headline font-extrabold text-3xl md:text-4xl text-on-surface tracking-tight"
+              className="font-display font-bold text-3xl md:text-4xl text-ink"
               style={{ letterSpacing: "-0.02em" }}
             >
               Capture Receipts
             </h2>
-            <p className="text-base text-on-surface-variant font-body leading-relaxed">
+            <p className="text-base text-ink-muted font-body leading-relaxed">
               Upload your receipts and Reclaim AI will extract the data for you.
             </p>
           </div>
@@ -1046,13 +1046,13 @@ function CaptureReceiptContent() {
 
         {/* ── Re-upload banner (shown when resuming a form-stage draft) ───────── */}
         {loadedDraftId && stage === "form" && restoredFileNames.length > 0 && files.length === 0 && (
-          <div className="rounded-2xl border border-amber-200/70 bg-amber-50/80 px-4 py-3.5 flex items-start gap-3">
-            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" strokeWidth={1.75} />
+          <div className="rounded-2xl border border-warning/70 bg-warning-soft/80 px-4 py-3.5 flex items-start gap-3">
+            <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" strokeWidth={1.75} />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-800 font-headline">
+              <p className="text-sm font-semibold text-warning font-display">
                 Receipt files need to be re-added
               </p>
-              <p className="text-xs text-amber-700 font-body mt-0.5 leading-relaxed">
+              <p className="text-xs text-warning font-body mt-0.5 leading-relaxed">
                 Draft restored — but uploaded files can’t be stored in a draft.
                 Please re-add: <span className="font-semibold">{restoredFileNames.join(", ")}</span>
               </p>
@@ -1094,16 +1094,16 @@ function CaptureReceiptContent() {
               isSubmitting={isSubmitting}
             />
             {submitError && (
-              <p className="text-sm text-error font-body mt-2 text-center">{submitError}</p>
+              <p className="text-sm text-danger font-body mt-2 text-center">{submitError}</p>
             )}
             {/* The backend only emits timeline events once the autonomy engine ships; until then the plain notice stays. */}
             {isSubmitting && compliance.steps.length > 0 ? (
-              <div className="mx-auto mt-4 w-full max-w-xl rounded-2xl border border-outline-variant/15 bg-surface-container-lowest p-4">
+              <div className="mx-auto mt-4 w-full max-w-xl rounded-2xl border border-line/15 bg-surface p-4">
                 <AgentTimeline steps={compliance.steps} />
               </div>
             ) : (
               isSubmitting && (
-                <p className="text-sm text-on-surface-variant font-body mt-2 text-center">Submitting claim…</p>
+                <p className="text-sm text-ink-muted font-body mt-2 text-center">Submitting claim…</p>
               )
             )}
           </>
@@ -1114,7 +1114,7 @@ function CaptureReceiptContent() {
           <div className="flex flex-col gap-6">
 
             {fileError && (
-              <div className="flex items-start gap-3 bg-error/10 border border-error/30 text-error rounded-xl px-4 py-3 text-sm font-body">
+              <div className="flex items-start gap-3 bg-danger/10 border border-danger/30 text-danger rounded-xl px-4 py-3 text-sm font-body">
                 <span className="shrink-0 font-bold">✕</span>
                 <span className="flex-1">{fileError}</span>
                 <button onClick={() => setFileError(null)} className="shrink-0 font-bold hover:opacity-70">✕</button>
@@ -1142,10 +1142,10 @@ function CaptureReceiptContent() {
                   {files.length > 0 && (
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between ml-1">
-                        <span className="text-xs font-semibold text-on-surface-variant font-label">
+                        <span className="text-xs font-semibold text-ink-muted font-body">
                           Uploaded Receipts
                         </span>
-                        <span className="text-xs text-on-surface-variant/60 font-body">
+                        <span className="text-xs text-ink-muted/60 font-body">
                           Max limit: 10 receipts.
                         </span>
                       </div>
@@ -1168,7 +1168,7 @@ function CaptureReceiptContent() {
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="hidden md:flex items-center justify-center gap-2 text-sm font-semibold text-primary font-body py-2 rounded-xl border border-dashed border-primary/30 hover:border-primary/60 hover:bg-primary/3 transition-all"
+                          className="hidden md:flex items-center justify-center gap-2 text-sm font-semibold text-accent font-body py-2 rounded-xl border border-dashed border-accent/30 hover:border-accent/60 hover:bg-accent/3 transition-all"
                         >
                           <Upload className="w-4 h-4" strokeWidth={1.75} />
                           Add more receipts
@@ -1211,16 +1211,16 @@ function CaptureReceiptContent() {
             />
 
             {/* Bottom Action Bar */}
-            <div className="flex flex-row items-center gap-3 pt-4 border-t border-outline-variant/15 w-full max-w-2xl lg:max-w-none">
+            <div className="flex flex-row items-center gap-3 pt-4 border-t border-line/15 w-full max-w-2xl lg:max-w-none">
               <button
                 id="save-draft-btn"
                 onClick={handleSaveDraftButton}
                 disabled={isSavingDraft || (files.length === 0 && ocrReceipts.length === 0)}
                 className={`flex-1 px-6 py-3 rounded-xl font-semibold text-sm font-body text-center transition-all duration-200 ${draftSaved
-                    ? "bg-green-100 text-green-700 border border-green-300"
+                    ? "bg-success-soft text-success border border-success/30"
                     : isSavingDraft
-                      ? "bg-surface-container text-on-surface-variant/50 cursor-wait"
-                      : "text-on-surface-variant bg-surface-container hover:bg-surface-container-high active:scale-[0.97]"
+                      ? "bg-surface-muted text-ink-muted/50 cursor-wait"
+                      : "text-ink-muted bg-surface-muted hover:bg-line active:scale-[0.97]"
                   }`}
               >
                 {isSavingDraft ? "Saving…" : draftSaved ? "✓ Draft Saved!" : "Save Draft"}
@@ -1231,8 +1231,8 @@ function CaptureReceiptContent() {
                 aria-describedby={canProcess ? undefined : "process-receipts-hint"}
                 onClick={handleProcessReceipts}
                 className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm font-body transition-all duration-200 ${canProcess
-                  ? "bg-linear-to-r from-primary to-primary-dim text-on-primary shadow-[0_4px_16px_rgba(70,71,211,0.35)] hover:shadow-[0_6px_24px_rgba(70,71,211,0.45)] hover:scale-[1.02] active:scale-[0.97]"
-                  : "bg-primary/30 text-on-primary/70 cursor-not-allowed"
+                  ? "bg-linear-to-r from-accent to-accent-hover text-on-accent hover:scale-[1.02] active:scale-[0.97]"
+                  : "bg-accent/30 text-on-accent/70 cursor-not-allowed"
                   }`}
               >
                 {files.length > 0
@@ -1241,7 +1241,7 @@ function CaptureReceiptContent() {
               </button>
             </div>
             {!canProcess && (
-              <p id="process-receipts-hint" className="-mt-3 text-xs text-on-surface-variant font-body text-right max-w-2xl lg:max-w-none">
+              <p id="process-receipts-hint" className="-mt-3 text-xs text-ink-muted font-body text-right max-w-2xl lg:max-w-none">
                 Add at least one receipt to continue.
               </p>
             )}
@@ -1266,26 +1266,26 @@ function CaptureReceiptContent() {
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           style={{ backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", background: "rgba(15,15,25,0.45)" }}
         >
-          <div className="w-full max-w-sm bg-surface-container-lowest rounded-3xl shadow-[0_32px_80px_-16px_rgba(0,0,0,0.35)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm bg-surface rounded-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
             {leaveModalStep === "confirm" ? (
               /* Step 1 — confirm save or discard */
               <div className="flex flex-col">
                 {/* Icon header */}
                 <div className="flex flex-col items-center pt-8 pb-5 px-6">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center mb-4">
-                    <AlertTriangle className="w-7 h-7 text-amber-500" strokeWidth={1.75} />
+                  <div className="w-14 h-14 rounded-2xl bg-warning-soft flex items-center justify-center mb-4">
+                    <AlertTriangle className="w-7 h-7 text-warning" strokeWidth={1.75} />
                   </div>
-                  <h3 className="text-lg font-bold text-on-surface font-headline text-center">
+                  <h3 className="text-lg font-bold text-ink font-display text-center">
                     You have unsaved changes
                   </h3>
-                  <p className="text-sm text-on-surface-variant font-body text-center mt-1.5 leading-relaxed">
+                  <p className="text-sm text-ink-muted font-body text-center mt-1.5 leading-relaxed">
                     Do you want to save this as a draft before leaving? You can resume it later from the Drafts tab.
                   </p>
                 </div>
 
                 {/* Divider */}
-                <div className="h-px bg-outline-variant/10 mx-6" />
+                <div className="h-px bg-line/10 mx-6" />
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2.5 p-5">
@@ -1301,21 +1301,21 @@ function CaptureReceiptContent() {
                         setLeaveModalStep("name");
                       }
                     }}
-                    className="w-full py-3.5 rounded-2xl bg-primary text-on-primary font-semibold text-sm font-body shadow-[0_4px_16px_rgba(70,71,211,0.3)] hover:shadow-[0_6px_24px_rgba(70,71,211,0.4)] hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
+                    className="w-full py-3.5 rounded-2xl bg-accent text-on-accent font-semibold text-sm font-body hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
                   >
                     Save Draft
                   </button>
                   <button
                     id="leave-modal-discard-btn"
                     onClick={handleDiscardAndLeave}
-                    className="w-full py-3 rounded-2xl text-error font-semibold text-sm font-body hover:bg-error/8 active:scale-[0.97] transition-all duration-200"
+                    className="w-full py-3 rounded-2xl text-danger font-semibold text-sm font-body hover:bg-danger/8 active:scale-[0.97] transition-all duration-200"
                   >
                     Discard & Leave
                   </button>
                   <button
                     id="leave-modal-cancel-btn"
                     onClick={() => setShowLeaveModal(false)}
-                    className="w-full py-2.5 rounded-2xl text-on-surface-variant font-medium text-sm font-body hover:bg-surface-container active:scale-[0.97] transition-all duration-200"
+                    className="w-full py-2.5 rounded-2xl text-ink-muted font-medium text-sm font-body hover:bg-surface-muted active:scale-[0.97] transition-all duration-200"
                   >
                     Stay on this page
                   </button>
@@ -1328,15 +1328,15 @@ function CaptureReceiptContent() {
                   {leaveModalMode === "leaving" && (
                     <button
                       onClick={() => setLeaveModalStep("confirm")}
-                      className="self-start text-xs font-semibold text-on-surface-variant hover:text-on-surface mb-4 flex items-center gap-1 active:scale-95 transition-all"
+                      className="self-start text-xs font-semibold text-ink-muted hover:text-ink mb-4 flex items-center gap-1 active:scale-95 transition-all"
                     >
                       ← Back
                     </button>
                   )}
-                  <h3 className="text-lg font-bold text-on-surface font-headline">
+                  <h3 className="text-lg font-bold text-ink font-display">
                     Name your draft
                   </h3>
-                  <p className="text-sm text-on-surface-variant font-body mt-1 mb-5 leading-relaxed">
+                  <p className="text-sm text-ink-muted font-body mt-1 mb-5 leading-relaxed">
                     Give it a meaningful name so you can find it easily later.
                   </p>
 
@@ -1348,16 +1348,16 @@ function CaptureReceiptContent() {
                     onChange={e => setPendingDraftTitle(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter" && pendingDraftTitle.trim()) handleSaveAndLeave(); }}
                     placeholder="e.g. Kuching Trip — April 2026"
-                    className="w-full bg-surface-container-low border border-outline-variant/30 rounded-2xl px-4 py-3 text-sm text-on-surface font-body focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-on-surface-variant/40"
+                    className="w-full bg-surface-muted border border-line/30 rounded-2xl px-4 py-3 text-sm text-ink font-body focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent/50 transition-all placeholder:text-ink-muted/40"
                   />
                 </div>
 
-                <div className="h-px bg-outline-variant/10 mx-6" />
+                <div className="h-px bg-line/10 mx-6" />
 
                 <div className="flex gap-2.5 p-5">
                   <button
                     onClick={() => setShowLeaveModal(false)}
-                    className="flex-1 py-3 rounded-2xl bg-surface-container text-on-surface-variant font-semibold text-sm font-body hover:bg-surface-container-high active:scale-[0.97] transition-all"
+                    className="flex-1 py-3 rounded-2xl bg-surface-muted text-ink-muted font-semibold text-sm font-body hover:bg-line active:scale-[0.97] transition-all"
                   >
                     Cancel
                   </button>
@@ -1366,8 +1366,8 @@ function CaptureReceiptContent() {
                     onClick={handleSaveAndLeave}
                     disabled={(!loadedDraftId && !pendingDraftTitle.trim()) || isSavingLeave}
                     className={`flex-1 py-3 rounded-2xl font-semibold text-sm font-body transition-all duration-200 ${(loadedDraftId || pendingDraftTitle.trim()) && !isSavingLeave
-                        ? "bg-primary text-on-primary shadow-[0_4px_16px_rgba(70,71,211,0.3)] hover:scale-[1.02] active:scale-[0.97]"
-                        : "bg-primary/30 text-on-primary/60 cursor-not-allowed"
+                        ? "bg-accent text-on-accent hover:scale-[1.02] active:scale-[0.97]"
+                        : "bg-accent/30 text-on-accent/60 cursor-not-allowed"
                       }`}
                   >
                     {isSavingLeave ? "Saving…" : leaveModalMode === "saving" ? "Save Draft" : "Save & Leave"}
@@ -1385,10 +1385,10 @@ function CaptureReceiptContent() {
 export default function CaptureReceiptPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-surface-container-lowest">
+      <div className="flex items-center justify-center min-h-screen bg-surface">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-          <p className="text-sm font-medium text-on-surface-variant font-body">Loading Capture Receipts...</p>
+          <Loader2 className="w-10 h-10 text-accent animate-spin" />
+          <p className="text-sm font-medium text-ink-muted font-body">Loading Capture Receipts...</p>
         </div>
       </div>
     }>

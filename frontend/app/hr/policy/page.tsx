@@ -16,53 +16,53 @@ const SAVE_STEPS = [
 export function HrProcessingScreen({ currentStep, onBack }: { currentStep: number, onBack: () => void }) {
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col justify-center my-12">
-      <div className="relative rounded-3xl overflow-hidden shadow-[0_24px_80px_-16px_rgba(44,47,49,0.18)] flex flex-col sm:flex-row min-h-[460px] w-full">
+      <div className="relative rounded-3xl overflow-hidden flex flex-col sm:flex-row min-h-[460px] w-full">
         <div
           className="sm:w-[42%] p-8 flex flex-col justify-between relative overflow-hidden"
           style={{ background: "linear-gradient(135deg, #4647d3 0%, #9396ff 50%, #9e00b4 100%)" }}
         >
           <div className="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-900/20 rounded-full blur-2xl translate-y-1/4 -translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-accent/20 rounded-full blur-2xl translate-y-1/4 -translate-x-1/4 pointer-events-none" />
 
           <div className="relative z-10">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
               <ScanLine className="w-6 h-6 text-white" strokeWidth={1.75} />
             </div>
-            <h2 className="font-headline text-2xl font-bold text-white tracking-tight leading-snug">
+            <h2 className="font-display text-2xl font-bold text-white leading-snug">
               Saving<br />Changes
             </h2>
           </div>
 
           <div className="relative z-10 rounded-xl p-4" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
-            <p className="text-[10px] text-white/70 font-label font-semibold uppercase tracking-widest mb-1">
+            <p className="text-[10px] text-white/70 font-body font-semibold uppercase tracking-widest mb-1">
               System Status
             </p>
             <p className="text-white text-sm font-semibold font-body">Reclaim AI Active</p>
           </div>
         </div>
 
-        <div className="flex-1 bg-surface-container-lowest p-8 sm:p-10 flex flex-col justify-center">
+        <div className="flex-1 bg-surface p-8 sm:p-10 flex flex-col justify-center">
           <div className="flex items-center gap-4 mb-10">
             <div
-              className="w-12 h-12 rounded-full bg-surface-container flex items-center justify-center shrink-0"
+              className="w-12 h-12 rounded-full bg-surface-muted flex items-center justify-center shrink-0"
               style={{ animation: "spin 3s linear infinite" }}
             >
-              <Settings className="w-5 h-5 text-primary" strokeWidth={2} />
+              <Settings className="w-5 h-5 text-accent" strokeWidth={2} />
             </div>
             <div>
-              <h3 className="font-headline text-lg font-semibold text-on-surface leading-tight">
+              <h3 className="font-display text-lg font-semibold text-ink leading-tight">
                 Processing Data
               </h3>
-              <p className="text-on-surface-variant text-sm font-body mt-0.5">
+              <p className="text-ink-muted text-sm font-body mt-0.5">
                 Please do not close this window.
               </p>
             </div>
           </div>
 
           <div className="relative ml-3">
-            <div className="absolute top-3 bottom-3 left-[11px] w-0.5 bg-surface-container-high rounded-full" />
+            <div className="absolute top-3 bottom-3 left-[11px] w-0.5 bg-line rounded-full" />
             <div
-              className="absolute top-3 left-[11px] w-0.5 bg-primary rounded-full transition-all duration-700 ease-in-out"
+              className="absolute top-3 left-[11px] w-0.5 bg-accent rounded-full transition-all duration-700 ease-in-out"
               style={{
                 height:
                   currentStep === 0 ? "0%" :
@@ -80,29 +80,29 @@ export function HrProcessingScreen({ currentStep, onBack }: { currentStep: numbe
                 return (
                   <div key={step.id} className="flex items-start gap-5 relative">
                     {isCompleted && (
-                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5 shadow-[0_4px_12px_rgba(70,71,211,0.35)] z-10">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-on-primary" strokeWidth={2.5} />
+                      <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center shrink-0 mt-0.5 z-10">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-on-accent" strokeWidth={2.5} />
                       </div>
                     )}
                     {isActive && (
-                      <div className="w-6 h-6 rounded-full bg-primary border-[3px] border-surface-container-lowest flex items-center justify-center shrink-0 mt-0.5 relative z-10 shadow-[0_0_0_2px_#4647d3]">
-                        <div className="absolute inset-[-4px] rounded-full border-2 border-primary/50 animate-ping" />
+                      <div className="w-6 h-6 rounded-full bg-accent border-[3px] border-surface flex items-center justify-center shrink-0 mt-0.5 relative z-10">
+                        <div className="absolute inset-[-4px] rounded-full border-2 border-accent/50 animate-ping" />
                         <div className="w-2 h-2 rounded-full bg-white" />
                       </div>
                     )}
                     {isPending && (
-                      <div className="w-6 h-6 rounded-full bg-surface-container border border-outline-variant/30 shrink-0 mt-0.5 z-10" />
+                      <div className="w-6 h-6 rounded-full bg-surface-muted border border-line/30 shrink-0 mt-0.5 z-10" />
                     )}
 
                     <div>
-                      <p className={`font-semibold text-sm leading-tight font-headline ${isActive ? "text-primary" :
-                        isCompleted ? "text-on-surface" :
-                          "text-on-surface-variant/40"
+                      <p className={`font-semibold text-sm leading-tight font-display ${isActive ? "text-accent" :
+                        isCompleted ? "text-ink" :
+                          "text-ink-muted/40"
                         }`}>
                         {step.label}
                       </p>
                       {(isCompleted || isActive) && (
-                        <p className="text-on-surface-variant text-xs mt-1 font-body leading-relaxed">
+                        <p className="text-ink-muted text-xs mt-1 font-body leading-relaxed">
                           {step.subtitle}
                         </p>
                       )}
@@ -116,7 +116,7 @@ export function HrProcessingScreen({ currentStep, onBack }: { currentStep: numbe
           <div className="mt-12 flex justify-center">
             <button
               onClick={onBack}
-              className="px-6 py-2 border border-outline-variant/30 text-on-surface-variant text-xs font-semibold uppercase tracking-widest rounded-xl hover:bg-surface-container-low transition-colors cursor-pointer"
+              className="px-6 py-2 border border-line/30 text-ink-muted text-xs font-semibold uppercase tracking-widest rounded-xl hover:bg-surface-muted transition-colors cursor-pointer"
             >
               Abort and Go Back
             </button>
@@ -373,18 +373,18 @@ export default function PolicyStudio() {
     <div className="relative">
       <button
         onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-        className={`flex items-center justify-between gap-2 rounded-full px-4 py-2 text-sm font-body font-medium transition-all w-[140px] cursor-pointer ${statusDropdownOpen ? 'bg-surface-container-low ring-2 ring-primary/20' : 'bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low'
+        className={`flex items-center justify-between gap-2 rounded-full px-4 py-2 text-sm font-body font-medium transition-all w-[140px] cursor-pointer ${statusDropdownOpen ? 'bg-surface-muted ring-2 ring-accent/20' : 'bg-surface border border-line hover:bg-surface-muted'
           }`}
       >
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full ${editStatus === 'Active' ? 'bg-[#137333]' : editStatus === 'Impending' ? 'bg-[#b06000]' : 'bg-outline-variant'}`} />
-          <span className="text-on-surface">{editStatus}</span>
+          <span className={`w-2 h-2 rounded-full ${editStatus === 'Active' ? 'bg-[#137333]' : editStatus === 'Impending' ? 'bg-[#b06000]' : 'bg-line'}`} />
+          <span className="text-ink">{editStatus}</span>
         </div>
-        <ChevronDown className={`text-on-surface-variant transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} size={16} />
+        <ChevronDown className={`text-ink-muted transition-transform ${statusDropdownOpen ? 'rotate-180' : ''}`} size={16} />
       </button>
 
       {statusDropdownOpen && (
-        <div className="absolute bottom-full mb-2 left-0 w-full bg-surface-container-lowest border border-outline-variant/50 rounded-xl shadow-[0_8px_30px_rgba(44,47,49,0.1)] py-1 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+        <div className="absolute bottom-full mb-2 left-0 w-full bg-surface border border-line/50 rounded-xl shadow-overlay py-1 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
           {(["Active", "Impending", "Expired"] as PolicyStatus[]).map((s) => (
             <button
               key={s}
@@ -392,9 +392,9 @@ export default function PolicyStudio() {
                 setEditStatus(s);
                 setStatusDropdownOpen(false);
               }}
-              className="w-full text-left px-4 py-2.5 text-sm font-body text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-2 cursor-pointer"
+              className="w-full text-left px-4 py-2.5 text-sm font-body text-ink hover:bg-surface-muted transition-colors flex items-center gap-2 cursor-pointer"
             >
-              <span className={`w-2 h-2 rounded-full ${s === 'Active' ? 'bg-[#137333]' : s === 'Impending' ? 'bg-[#b06000]' : 'bg-outline-variant'}`} />
+              <span className={`w-2 h-2 rounded-full ${s === 'Active' ? 'bg-[#137333]' : s === 'Impending' ? 'bg-[#b06000]' : 'bg-line'}`} />
               {s}
             </button>
           ))}
@@ -555,7 +555,7 @@ export default function PolicyStudio() {
 
     if (isSaving) {
       return (
-        <div className="flex-1 flex flex-col relative w-full h-full bg-surface text-on-surface overflow-hidden p-6 animate-in fade-in duration-500">
+        <div className="flex-1 flex flex-col relative w-full h-full bg-paper text-ink overflow-hidden p-6 animate-in fade-in duration-500">
           <style>{`
              @keyframes pulse-scan {
                0% { transform: translateY(-100%); opacity: 0; }
@@ -573,18 +573,18 @@ export default function PolicyStudio() {
 
     if (isLoadingDetails) {
       return (
-        <div className="flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full h-full bg-surface">
+        <div className="flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full h-full bg-paper">
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-8 w-48 bg-surface-container animate-pulse rounded-lg" />
+            <div className="h-8 w-48 bg-surface-muted animate-pulse rounded-lg" />
           </div>
           <div className="grid grid-cols-12 gap-8 h-full">
             <div className="col-span-7 flex flex-col gap-8">
-              <div className="h-64 bg-surface-container animate-pulse rounded-2xl" />
-              <div className="h-96 bg-surface-container animate-pulse rounded-2xl" />
+              <div className="h-64 bg-surface-muted animate-pulse rounded-2xl" />
+              <div className="h-96 bg-surface-muted animate-pulse rounded-2xl" />
             </div>
             <div className="col-span-5 flex flex-col gap-8">
-              <div className="h-48 bg-surface-container animate-pulse rounded-2xl" />
-              <div className="h-64 bg-surface-container animate-pulse rounded-2xl" />
+              <div className="h-48 bg-surface-muted animate-pulse rounded-2xl" />
+              <div className="h-64 bg-surface-muted animate-pulse rounded-2xl" />
             </div>
           </div>
         </div>
@@ -592,20 +592,20 @@ export default function PolicyStudio() {
     }
 
     return (
-      <div className="flex-1 flex flex-col relative overflow-hidden w-full h-full bg-surface text-on-surface">
+      <div className="flex-1 flex flex-col relative overflow-hidden w-full h-full bg-paper text-ink">
         <div
           ref={editContainerRef}
           className="flex-1 flex flex-col p-6 max-w-7xl mx-auto w-full min-h-0 overflow-y-auto scroll-smooth"
         >
           <div className="mb-6 flex flex-wrap items-center gap-4 shrink-0">
-            <button onClick={() => setEditingPolicy(null)} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer group" aria-label="Back to Policy Studio">
+            <button onClick={() => setEditingPolicy(null)} className="flex items-center gap-2 text-ink-muted hover:text-accent transition-colors cursor-pointer group" aria-label="Back to Policy Studio">
               <ArrowLeft size={20} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" />
               <span className="font-semibold font-body text-sm">Back to Policy Studio</span>
             </button>
           </div>
 
           <div className="flex items-center gap-4 mb-6">
-            <h2 className="font-headline text-[2rem] leading-tight font-bold text-on-surface tracking-[-0.02em]">
+            <h2 className="font-display text-[2rem] leading-tight font-bold text-ink tracking-[-0.02em]">
               {isNew ? "Create New Policy" : `${editName || "Edit Policy"}`}
             </h2>
           </div>
@@ -620,46 +620,46 @@ export default function PolicyStudio() {
 
               {/* Form Details (Only shown here in Edit View) */}
               {!isNew && (
-                <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_8px_40px_rgba(44,47,49,0.06)] border border-outline-variant/10 shrink-0">
-                  <h3 className="font-headline text-lg font-bold text-on-surface mb-5">Policy Details</h3>
+                <div className="bg-surface rounded-2xl p-6 border border-line/10 shrink-0">
+                  <h3 className="font-display text-lg font-bold text-ink mb-5">Policy Details</h3>
                   <div className="flex flex-col gap-5">
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Policy Name</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Policy Name</label>
                       <input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         placeholder="e.g. Remote Work Policy"
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Department</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Department</label>
                       <input
                         type="text"
                         value={editDepartment}
                         onChange={(e) => setEditDepartment(e.target.value)}
                         placeholder="e.g. Human Resources"
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Version</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Version</label>
                       <input
                         type="text"
                         value={editVersion}
                         onChange={(e) => setEditVersion(e.target.value)}
                         placeholder="e.g. v1.0"
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Effective Date</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Effective Date</label>
                       <input
                         type="date"
                         value={editDate}
                         onChange={(e) => setEditDate(e.target.value)}
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -667,7 +667,7 @@ export default function PolicyStudio() {
               )}
 
               {policyFileError && (
-                <div className="flex items-start gap-3 bg-error/10 border border-error/30 text-error rounded-xl px-4 py-3 text-sm font-body">
+                <div className="flex items-start gap-3 bg-danger/10 border border-danger/30 text-danger rounded-xl px-4 py-3 text-sm font-body">
                   <span className="shrink-0 font-bold">✕</span>
                   <span className="flex-1">{policyFileError}</span>
                   <button onClick={() => setPolicyFileError(null)} className="shrink-0 font-bold hover:opacity-70">✕</button>
@@ -676,7 +676,7 @@ export default function PolicyStudio() {
 
               {/* Main Policy */}
               <div className="flex flex-col gap-4">
-                <h3 className="font-headline text-xl font-semibold text-on-surface shrink-0">Main Policy</h3>
+                <h3 className="font-display text-xl font-semibold text-ink shrink-0">Main Policy</h3>
                 <input
                   ref={mainPolicyInputRef}
                   type="file"
@@ -703,53 +703,53 @@ export default function PolicyStudio() {
                 />
 
                 {mainPolicyFile ? (
-                  <div className="flex flex-col gap-4 border border-outline-variant/30 rounded-2xl overflow-hidden bg-surface-container-lowest">
+                  <div className="flex flex-col gap-4 border border-line/30 rounded-2xl overflow-hidden bg-surface">
                     {mainPolicyFile.type === "application/pdf" && previewUrl ? (
                       <iframe
                         src={previewUrl}
-                        className="w-full h-[400px] border-b border-outline-variant/20"
+                        className="w-full h-[400px] border-b border-line/20"
                       />
                     ) : (
-                      <div className="w-full h-[400px] border-b border-outline-variant/20 bg-surface-container-low flex flex-col items-center justify-center">
-                        <FileText className="text-primary mb-3" size={48} />
-                        <p className="font-body text-base font-medium text-on-surface">{mainPolicyFile.name}</p>
-                        <p className="font-body text-xs text-on-surface-variant">Preview not available</p>
+                      <div className="w-full h-[400px] border-b border-line/20 bg-surface-muted flex flex-col items-center justify-center">
+                        <FileText className="text-accent mb-3" size={48} />
+                        <p className="font-body text-base font-medium text-ink">{mainPolicyFile.name}</p>
+                        <p className="font-body text-xs text-ink-muted">Preview not available</p>
                       </div>
                     )}
                     <div className="p-4 flex items-center justify-between">
                       <div className="flex flex-col">
-                        <p className="font-body text-sm font-medium text-on-surface truncate">{mainPolicyFile.name}</p>
-                        <p className="font-body text-xs text-on-surface-variant">{formatFileSize(mainPolicyFile.size)}</p>
+                        <p className="font-body text-sm font-medium text-ink truncate">{mainPolicyFile.name}</p>
+                        <p className="font-body text-xs text-ink-muted">{formatFileSize(mainPolicyFile.size)}</p>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => mainPolicyInputRef.current?.click()} className="px-4 py-1.5 border border-outline text-on-surface rounded-full font-body text-xs font-medium hover:bg-surface-container-low transition-colors cursor-pointer">
+                        <button onClick={() => mainPolicyInputRef.current?.click()} className="px-4 py-1.5 border border-line-strong text-ink rounded-full font-body text-xs font-medium hover:bg-surface-muted transition-colors cursor-pointer">
                           Replace
                         </button>
-                        <button onClick={() => setMainPolicyFile(null)} className="px-4 py-1.5 text-error font-body text-xs font-medium hover:bg-error-container/10 rounded-full transition-colors cursor-pointer">
+                        <button onClick={() => setMainPolicyFile(null)} className="px-4 py-1.5 text-danger font-body text-xs font-medium hover:bg-danger-soft/10 rounded-full transition-colors cursor-pointer">
                           Remove
                         </button>
                       </div>
                     </div>
                   </div>
                 ) : !isNew && !existingMainPolicyDeleted ? (
-                  <div className="flex flex-col gap-4 border border-outline-variant/30 rounded-2xl overflow-hidden bg-surface-container-lowest">
+                  <div className="flex flex-col gap-4 border border-line/30 rounded-2xl overflow-hidden bg-surface">
                     {/* PDF Viewer for existing file */}
-                    <div className="w-full h-[400px] border-b border-outline-variant/20 bg-surface-container-lowest flex flex-col items-center justify-center p-8 text-center relative overflow-hidden group">
-                      <div className="absolute inset-0 bg-primary/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <FileText className="text-primary/60 mb-4" size={56} strokeWidth={1} />
-                      <p className="font-headline text-lg font-medium text-on-surface mb-2">{existingMainPolicyFilename || "Policy Document"}</p>
-                      <p className="font-body text-sm text-on-surface-variant mb-6">Existing Document</p>
+                    <div className="w-full h-[400px] border-b border-line/20 bg-surface flex flex-col items-center justify-center p-8 text-center relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-accent/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <FileText className="text-accent/60 mb-4" size={56} strokeWidth={1} />
+                      <p className="font-display text-lg font-medium text-ink mb-2">{existingMainPolicyFilename || "Policy Document"}</p>
+                      <p className="font-body text-sm text-ink-muted mb-6">Existing Document</p>
                     </div>
                     <div className="p-4 flex items-center justify-between">
                       <div className="flex flex-col">
-                        <p className="font-body text-sm font-medium text-on-surface truncate">{existingMainPolicyFilename || "Policy Document"}</p>
-                        <p className="font-body text-xs text-on-surface-variant">Saved on server</p>
+                        <p className="font-body text-sm font-medium text-ink truncate">{existingMainPolicyFilename || "Policy Document"}</p>
+                        <p className="font-body text-xs text-ink-muted">Saved on server</p>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => mainPolicyInputRef.current?.click()} className="px-4 py-1.5 border border-outline text-on-surface rounded-full font-body text-xs font-medium hover:bg-surface-container-low transition-colors cursor-pointer">
+                        <button onClick={() => mainPolicyInputRef.current?.click()} className="px-4 py-1.5 border border-line-strong text-ink rounded-full font-body text-xs font-medium hover:bg-surface-muted transition-colors cursor-pointer">
                           Replace
                         </button>
-                        <button onClick={() => setExistingMainPolicyDeleted(true)} className="px-4 py-1.5 text-error font-body text-xs font-medium hover:bg-error-container/10 rounded-full transition-colors cursor-pointer">
+                        <button onClick={() => setExistingMainPolicyDeleted(true)} className="px-4 py-1.5 text-danger font-body text-xs font-medium hover:bg-danger-soft/10 rounded-full transition-colors cursor-pointer">
                           Delete
                         </button>
                       </div>
@@ -758,21 +758,21 @@ export default function PolicyStudio() {
                 ) : (
                   <div
                     onClick={() => mainPolicyInputRef.current?.click()}
-                    className="bg-surface-container-lowest rounded-2xl p-8 shadow-[0_8px_40px_rgba(44,47,49,0.06)] flex flex-col items-center justify-center border-2 border-dashed border-outline-variant hover:border-primary/40 hover:bg-primary/[0.02] transition-all cursor-pointer group min-h-[240px]"
+                    className="bg-surface rounded-2xl p-8 flex flex-col items-center justify-center border-2 border-dashed border-line hover:border-accent/40 hover:bg-accent/[0.02] transition-all cursor-pointer group min-h-[240px]"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-primary-container/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                      <Upload className="text-primary" size={28} />
+                    <div className="w-16 h-16 rounded-2xl bg-accent-soft/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Upload className="text-accent" size={28} />
                     </div>
-                    <p className="font-body text-base font-medium text-on-surface mb-1">Upload Policy Document</p>
-                    <p className="font-body text-xs text-on-surface-variant mb-4">Drag and drop or click to browse</p>
-                    <p className="font-body text-[11px] text-outline-variant">Supports PDF • Max 10 MB</p>
+                    <p className="font-body text-base font-medium text-ink mb-1">Upload Policy Document</p>
+                    <p className="font-body text-xs text-ink-muted mb-4">Drag and drop or click to browse</p>
+                    <p className="font-body text-[11px] text-line">Supports PDF • Max 10 MB</p>
                   </div>
                 )}
               </div>
 
               {/* Appendix */}
               <div className="flex flex-col gap-4">
-                <h3 className="font-headline text-xl font-semibold text-on-surface shrink-0">Appendix (Optional)</h3>
+                <h3 className="font-display text-xl font-semibold text-ink shrink-0">Appendix (Optional)</h3>
                 <input
                   ref={appendixInputRef}
                   type="file"
@@ -802,28 +802,28 @@ export default function PolicyStudio() {
                   {/* Upload button for Appendix */}
                   <button
                     onClick={() => appendixInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-outline-variant bg-surface-container-low/50 hover:bg-surface-container-low rounded-xl p-4 flex flex-col items-center justify-center transition-all group shrink-0 cursor-pointer"
+                    className="w-full border-2 border-dashed border-line bg-surface-muted/50 hover:bg-surface-muted rounded-xl p-4 flex flex-col items-center justify-center transition-all group shrink-0 cursor-pointer"
                   >
-                    <div className="w-10 h-10 rounded-full bg-surface-container-lowest shadow-sm flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                      <Plus className="text-primary" size={20} />
+                    <div className="w-10 h-10 rounded-full bg-surface flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                      <Plus className="text-accent" size={20} />
                     </div>
-                    <p className="font-body font-medium text-on-surface text-sm">Add Source</p>
-                    <p className="font-body text-xs text-on-surface-variant mt-1">Drag and drop or click to upload</p>
+                    <p className="font-body font-medium text-ink text-sm">Add Source</p>
+                    <p className="font-body text-xs text-ink-muted mt-1">Drag and drop or click to upload</p>
                   </button>
 
                   {/* Existing Appendix Items */}
                   {!isNew && existingAppendix.map((item, idx) => (
-                    <div key={`existing-${idx}`} className="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant/20 shadow-sm flex items-center justify-between group hover:bg-surface-container-highest transition-colors">
+                    <div key={`existing-${idx}`} className="bg-surface rounded-xl p-3 border border-line/20 flex items-center justify-between group hover:bg-line transition-colors">
                       <div className="flex items-center gap-3 min-w-0">
-                        <FileText className="text-on-surface-variant shrink-0" size={18} />
+                        <FileText className="text-ink-muted shrink-0" size={18} />
                         <div className="min-w-0">
-                          <span className="font-body text-sm font-medium text-on-surface truncate block">{item.name}</span>
-                          <span className="font-body text-[11px] text-on-surface-variant">{item.size}</span>
+                          <span className="font-body text-sm font-medium text-ink truncate block">{item.name}</span>
+                          <span className="font-body text-[11px] text-ink-muted">{item.size}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => setExistingAppendix(prev => prev.filter((_, i) => i !== idx))}
-                        className="text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
+                        className="text-ink-muted hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -832,17 +832,17 @@ export default function PolicyStudio() {
 
                   {/* Newly uploaded appendix files */}
                   {appendixFiles.map((file, idx) => (
-                    <div key={`edit-${file.name}-${idx}`} className="bg-surface-container-lowest rounded-xl p-3 border border-outline-variant/20 shadow-sm flex items-center justify-between group hover:bg-surface-container-highest transition-colors">
+                    <div key={`edit-${file.name}-${idx}`} className="bg-surface rounded-xl p-3 border border-line/20 flex items-center justify-between group hover:bg-line transition-colors">
                       <div className="flex items-center gap-3 min-w-0">
-                        <FileText className="text-primary shrink-0" size={18} />
+                        <FileText className="text-accent shrink-0" size={18} />
                         <div className="min-w-0">
-                          <span className="font-body text-sm font-medium text-on-surface truncate block">{file.name}</span>
-                          <span className="font-body text-[11px] text-on-surface-variant">{formatFileSize(file.size)}</span>
+                          <span className="font-body text-sm font-medium text-ink truncate block">{file.name}</span>
+                          <span className="font-body text-[11px] text-ink-muted">{formatFileSize(file.size)}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => setAppendixFiles(prev => prev.filter((_, i) => i !== idx))}
-                        className="text-on-surface-variant hover:text-error opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
+                        className="text-ink-muted hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity p-1 cursor-pointer"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -860,12 +860,12 @@ export default function PolicyStudio() {
                     <div className="w-7 h-7 rounded-lg bg-[#dc2626]/10 flex items-center justify-center">
                       <Trash2 size={15} className="text-[#dc2626]" />
                     </div>
-                    <h3 className="font-headline text-sm font-bold text-[#dc2626] uppercase tracking-wider">Danger Zone</h3>
+                    <h3 className="font-display text-sm font-bold text-[#dc2626] uppercase tracking-wider">Danger Zone</h3>
                   </div>
                   <div className="px-6 py-5 flex items-center justify-between gap-6">
                     <div>
-                      <p className="font-body text-sm font-semibold text-on-surface">Delete this policy</p>
-                      <p className="font-body text-xs text-on-surface-variant mt-0.5">This action is permanent and cannot be undone.</p>
+                      <p className="font-body text-sm font-semibold text-ink">Delete this policy</p>
+                      <p className="font-body text-xs text-ink-muted mt-0.5">This action is permanent and cannot be undone.</p>
                     </div>
                     <button
                       onClick={() => { setDeleteError(null); setDeletingPolicyId(editingPolicy); setDeletingPolicyName(editName); setDeleteModalOpen(true); }}
@@ -889,46 +889,46 @@ export default function PolicyStudio() {
 
               {/* Form Details (Only shown here in New/Upload View) */}
               {isNew && (
-                <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-[0_8px_40px_rgba(44,47,49,0.06)] border border-outline-variant/10 shrink-0">
-                  <h3 className="font-headline text-lg font-bold text-on-surface mb-5">Policy Details</h3>
+                <div className="bg-surface rounded-2xl p-6 border border-line/10 shrink-0">
+                  <h3 className="font-display text-lg font-bold text-ink mb-5">Policy Details</h3>
                   <div className="flex flex-col gap-5">
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Policy Name</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Policy Name</label>
                       <input
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         placeholder="e.g. Remote Work Policy"
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Department</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Department</label>
                       <input
                         type="text"
                         value={editDepartment}
                         onChange={(e) => setEditDepartment(e.target.value)}
                         placeholder="e.g. Human Resources"
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Version</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Version</label>
                       <input
                         type="text"
                         value={editVersion}
                         onChange={(e) => setEditVersion(e.target.value)}
                         placeholder="e.g. v1.0"
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-outline-variant focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
-                      <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">Effective Date</label>
+                      <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">Effective Date</label>
                       <input
                         type="date"
                         value={editDate}
                         onChange={(e) => setEditDate(e.target.value)}
-                        className="bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 py-3 text-sm font-body text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="bg-surface-muted border border-line/30 rounded-xl px-4 py-3 text-sm font-body text-ink focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -937,15 +937,15 @@ export default function PolicyStudio() {
 
               {/* AI Overview Summary (Beautified) */}
               {!isNew && (
-                <div className="bg-surface-container-lowest rounded-3xl shadow-[0_20px_50px_rgba(44,47,49,0.08)] border border-primary/20 overflow-hidden flex flex-col shrink-0 animate-in fade-in slide-in-from-right-4 duration-700">
-                  <div className="p-5 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent border-b border-primary/10 flex items-center justify-between">
+                <div className="bg-surface rounded-3xl border border-accent/20 overflow-hidden flex flex-col shrink-0 animate-in fade-in slide-in-from-right-4 duration-700">
+                  <div className="p-5 bg-gradient-to-r from-accent/15 via-accent/5 to-transparent border-b border-accent/10 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center">
-                        <Sparkles className="text-primary w-5 h-5 animate-pulse" />
+                      <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center">
+                        <Sparkles className="text-accent w-5 h-5 animate-pulse" />
                       </div>
                       <div>
-                        <h3 className="font-headline font-bold text-primary tracking-tight">AI Policy Insights</h3>
-                        <p className="text-[10px] text-primary/60 font-bold uppercase tracking-widest">Auto-generated Analysis</p>
+                        <h3 className="font-display font-bold text-accent">AI Policy Insights</h3>
+                        <p className="text-[10px] text-accent/60 font-bold uppercase tracking-widest">Auto-generated Analysis</p>
                       </div>
                     </div>
                   </div>
@@ -956,13 +956,13 @@ export default function PolicyStudio() {
                       return (
                         <div className="flex flex-col gap-6">
                           {intro && (
-                            <p className="font-body text-[15px] text-on-surface leading-relaxed text-pretty">
+                            <p className="font-body text-[15px] text-ink leading-relaxed text-pretty">
                               {intro}
                             </p>
                           )}
                           {bullets.length > 0 && (
-                            <div className="bg-primary/[0.03] rounded-2xl p-5 border border-primary/5">
-                              <h4 className="text-[11px] font-bold text-primary uppercase tracking-[0.1em] mb-4">Key Takeaways</h4>
+                            <div className="bg-accent/[0.03] rounded-2xl p-5 border border-accent/5">
+                              <h4 className="text-[11px] font-bold text-accent uppercase tracking-[0.1em] mb-4">Key Takeaways</h4>
                               <PremiumBulletList items={bullets} />
                             </div>
                           )}
@@ -971,12 +971,12 @@ export default function PolicyStudio() {
                     })()}
 
                     <>
-                      <div className="h-px bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent w-full" />
+                      <div className="h-px bg-gradient-to-r from-transparent via-line/20 to-transparent w-full" />
 
                       <div>
                         <div className="flex items-center justify-between mb-5">
-                          <h4 className="font-headline text-sm font-bold text-on-surface uppercase tracking-wider">Mandatory Conditions</h4>
-                          <div className="px-2 py-0.5 bg-surface-container-high rounded-full text-[10px] font-bold text-on-surface-variant uppercase">
+                          <h4 className="font-display text-sm font-bold text-ink uppercase tracking-wider">Mandatory Conditions</h4>
+                          <div className="px-2 py-0.5 bg-line rounded-full text-[10px] font-bold text-ink-muted uppercase">
                             Review Required
                           </div>
                         </div>
@@ -985,9 +985,9 @@ export default function PolicyStudio() {
                           {editConditions && Object.entries(editConditions).length > 0 ? (
                             <>
                               {Object.entries(editConditions).slice(0, 3).map(([category, details]: [string, any]) => (
-                                <div key={category} className="bg-surface-container-low/40 rounded-2xl p-5 border border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
-                                  <h1 className="font-headline font-bold text-sm text-on-surface mb-3 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />
+                                <div key={category} className="bg-surface-muted/40 rounded-2xl p-5 border border-line/10 hover:bg-surface-muted transition-colors group">
+                                  <h1 className="font-display font-bold text-sm text-ink mb-3 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-accent/40 group-hover:bg-accent transition-colors" />
                                     {category}
                                   </h1>
                                   <PremiumBulletList items={details.condition ?? []} />
@@ -996,7 +996,7 @@ export default function PolicyStudio() {
                               {Object.entries(editConditions).length > 3 && (
                                 <button
                                   onClick={() => setConditionsModalOpen(true)}
-                                  className="w-full mt-2 py-4 rounded-2xl text-sm text-primary font-bold bg-primary/[0.04] hover:bg-primary/[0.08] border border-primary/10 transition-all flex items-center justify-center gap-3 cursor-pointer group"
+                                  className="w-full mt-2 py-4 rounded-2xl text-sm text-accent font-bold bg-accent/[0.04] hover:bg-accent/[0.08] border border-accent/10 transition-all flex items-center justify-center gap-3 cursor-pointer group"
                                 >
                                   <span>View & Edit All {Object.entries(editConditions).length} Categories</span>
                                   <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -1004,7 +1004,7 @@ export default function PolicyStudio() {
                               )}
                             </>
                           ) : (
-                            <p className="text-sm text-on-surface-variant/60 italic font-body">
+                            <p className="text-sm text-ink-muted/60 italic font-body">
                               No mandatory conditions have been extracted for this policy.
                             </p>
                           )}
@@ -1017,23 +1017,23 @@ export default function PolicyStudio() {
 
               {/* Auto-Approval Budgets Card */}
               {!isNew && Object.keys(categoryBudgets).length > 0 && (
-                <div className="bg-surface-container-lowest rounded-3xl shadow-[0_20px_50px_rgba(44,47,49,0.08)] border border-outline-variant/10 overflow-hidden flex flex-col shrink-0">
-                  <div className="p-5 border-b border-outline-variant/10 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-                      <Banknote className="w-5 h-5 text-primary" />
+                <div className="bg-surface rounded-3xl border border-line/10 overflow-hidden flex flex-col shrink-0">
+                  <div className="p-5 border-b border-line/10 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center">
+                      <Banknote className="w-5 h-5 text-accent" />
                     </div>
                     <div>
-                      <h3 className="font-headline font-bold text-base text-on-surface">Auto-Approval Budgets</h3>
-                      <p className="text-xs text-on-surface-variant">Max per category for auto-approval. Blank = unlimited.</p>
+                      <h3 className="font-display font-bold text-base text-ink">Auto-Approval Budgets</h3>
+                      <p className="text-xs text-ink-muted">Max per category for auto-approval. Blank = unlimited.</p>
                     </div>
                   </div>
                   <div className="p-5 flex flex-col gap-3">
                     {Object.keys(categoryBudgets).map((cat) => (
                       <div key={cat} className="flex items-center gap-3">
                         <div className="flex-1">
-                          <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-1 block truncate">{cat}</label>
+                          <label className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1 block truncate">{cat}</label>
                           <div className="relative group">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-xs font-medium group-focus-within:text-primary transition-colors">MYR</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted/60 text-xs font-medium group-focus-within:text-accent transition-colors">MYR</span>
                             <input
                               type="number"
                               min="0"
@@ -1041,7 +1041,7 @@ export default function PolicyStudio() {
                               value={categoryBudgets[cat]}
                               onChange={(e) => setCategoryBudgets(prev => ({ ...prev, [cat]: e.target.value }))}
                               placeholder="Unlimited"
-                              className="w-full pl-10 pr-3 py-2 bg-surface-container-low border border-outline-variant/20 rounded-xl text-sm text-on-surface font-mono tabular-nums focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40"
+                              className="w-full pl-10 pr-3 py-2 bg-surface-muted border border-line/20 rounded-xl text-sm text-ink font-mono tabular-nums focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all placeholder:text-ink-muted/40"
                             />
                           </div>
                         </div>
@@ -1088,20 +1088,20 @@ export default function PolicyStudio() {
         />
         
         {/* Bottom Action Bar */}
-        <div className="shrink-0 bg-surface-bright/80 backdrop-blur-xl border-t border-surface-container-low p-4 z-40">
+        <div className="shrink-0 bg-paper/80 border-t border-surface-muted p-4 z-40">
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-6 px-4 sm:px-8">
-            <button onClick={() => setEditingPolicy(null)} className="px-6 py-3 border border-outline-variant text-on-surface rounded-xl font-body font-medium hover:bg-surface-container-low transition-colors active:scale-95 cursor-pointer">
+            <button onClick={() => setEditingPolicy(null)} className="px-6 py-3 border border-line text-ink rounded-xl font-body font-medium hover:bg-surface-muted transition-colors active:scale-95 cursor-pointer">
               Cancel
             </button>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-6">
               {saveError && (
-                <p className="text-xs text-error font-body max-w-xs text-center sm:text-right">{saveError}</p>
+                <p className="text-xs text-danger font-body max-w-xs text-center sm:text-right">{saveError}</p>
               )}
               <div className="flex items-center justify-center sm:justify-start gap-3">
-                <span className="font-body text-sm text-on-surface-variant hidden sm:block">Policy Status:</span>
+                <span className="font-body text-sm text-ink-muted hidden sm:block">Policy Status:</span>
                 <StatusDropdown />
               </div>
-              <button onClick={handleSave} className="bg-gradient-to-r from-primary to-primary-dim text-white rounded-xl px-6 sm:px-8 py-3 font-body font-medium shadow-[0_0_20px_rgba(70,71,211,0.25)] hover:shadow-[0_0_30px_rgba(147,150,255,0.4)] active:scale-95 transition-all cursor-pointer">
+              <button onClick={handleSave} className="bg-gradient-to-r from-accent to-accent-hover text-white rounded-xl px-6 sm:px-8 py-3 font-body font-medium active:scale-95 transition-all cursor-pointer">
                 {isNew ? "Create Policy" : "Save Changes"}
               </button>
             </div>
@@ -1119,12 +1119,12 @@ export default function PolicyStudio() {
   });
 
   return (
-    <div className="relative min-h-full p-6 md:p-10 lg:p-12 font-body antialiased selection:bg-primary-container selection:text-on-primary-container">
+    <div className="relative min-h-full p-6 md:p-10 lg:p-12 font-body antialiased selection:bg-accent-soft selection:text-accent-hover">
       {/* ── Multi-orb gradient anchor ────────────────────────────────────── */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full bg-primary opacity-[0.07] blur-[80px]" />
-        <div className="absolute top-32 right-40 w-[320px] h-[320px] rounded-full bg-tertiary opacity-[0.06] blur-[64px]" />
-        <div className="absolute -top-8 right-[15%] w-[200px] h-[200px] rounded-full bg-primary-container opacity-[0.12] blur-[48px]" />
+        <div className="absolute -top-20 -right-20 w-[480px] h-[480px] rounded-full bg-accent opacity-[0.07] blur-[80px]" />
+        <div className="absolute top-32 right-40 w-[320px] h-[320px] rounded-full bg-accent opacity-[0.06] blur-[64px]" />
+        <div className="absolute -top-8 right-[15%] w-[200px] h-[200px] rounded-full bg-accent-soft opacity-[0.12] blur-[48px]" />
       </div>
 
       <div className="layout-container flex h-full grow flex-col relative z-10">
@@ -1135,18 +1135,18 @@ export default function PolicyStudio() {
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2">
                 <div className="max-w-2xl">
                   <h2
-                    className="font-headline font-extrabold text-on-background mb-2 tracking-tight"
+                    className="font-display font-bold text-ink mb-2"
                     style={{ fontSize: "2.5rem", letterSpacing: "-0.02em" }}
                   >
                     Policy Studio
                   </h2>
-                  <p className="text-on-surface-variant text-lg font-body">
+                  <p className="text-ink-muted text-lg font-body">
                     Manage, review, and distribute company guidelines.
                   </p>
                 </div>
                 <button
                   onClick={() => setEditingPolicy("new")}
-                  className="flex items-center justify-center gap-2 rounded-xl h-12 px-6 bg-gradient-to-r from-primary to-primary-dim text-on-primary font-body text-base font-semibold transition-all hover:shadow-[0_8px_30px_rgba(70,71,211,0.4)] hover:scale-[0.98] active:scale-95 cursor-pointer"
+                  className="flex items-center justify-center gap-2 rounded-xl h-12 px-6 bg-gradient-to-r from-accent to-accent-hover text-on-accent font-body text-base font-semibold transition-all hover:scale-[0.98] active:scale-95 cursor-pointer"
                 >
                   <Plus size={20} />
                   <span>Create New Policy</span>
@@ -1154,14 +1154,14 @@ export default function PolicyStudio() {
               </div>
 
               {/* Main Content Canvas (Glassmorphic Container) */}
-              <div className="bg-surface-container-lowest/60 backdrop-blur-xl rounded-[2rem] p-8 flex flex-col gap-8 shadow-[0_12px_60px_rgba(44,47,49,0.06)] overflow-hidden">
+              <div className="bg-surface/60 rounded-[2rem] p-8 flex flex-col gap-8 overflow-hidden">
                 {/* Toolbar Section */}
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                   {/* Search */}
-                  <div className="flex items-center w-full lg:w-96 group bg-surface-container-low rounded-xl px-4 transition-colors focus-within:shadow-[0_0_0_4px_rgba(70,71,211,0.1)] focus-within:bg-surface-container-lowest">
-                    <Search size={20} className="text-outline group-focus-within:text-primary transition-colors" />
+                  <div className="flex items-center w-full lg:w-96 group bg-surface-muted rounded-xl px-4 transition-colors focus-within:bg-surface">
+                    <Search size={20} className="text-line-strong group-focus-within:text-accent transition-colors" />
                     <input
-                      className="block w-full px-3 py-3 bg-transparent border-none focus:ring-0 focus:outline-none text-on-surface placeholder:text-outline-variant font-body transition-all"
+                      className="block w-full px-3 py-3 bg-transparent border-none focus:ring-0 focus:outline-none text-ink placeholder:text-line font-body transition-all"
                       placeholder="Search policies..."
                       type="text"
                       value={searchQuery}
@@ -1169,14 +1169,14 @@ export default function PolicyStudio() {
                     />
                   </div>
 
-                  <div className="flex items-center bg-surface-container-low rounded-xl p-1 gap-1 w-full lg:w-auto overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x scroll-pl-1">
+                  <div className="flex items-center bg-surface-muted rounded-xl p-1 gap-1 w-full lg:w-auto overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x scroll-pl-1">
                     {(["Active", "Impending", "Expired"] as PolicyStatus[]).map((status) => (
                       <button
                         key={status}
                         onClick={() => setActiveFilter(status)}
                         className={`px-6 py-2 rounded-lg transition-all font-medium text-sm cursor-pointer shrink-0 ${activeFilter === status
-                          ? "bg-surface-container-lowest shadow-[0_4px_20px_rgba(44,47,49,0.04)] text-primary"
-                          : "text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest/50"
+                          ? "bg-surface text-accent"
+                          : "text-ink-muted hover:text-ink hover:bg-line/50"
                           }`}
                       >
                         {status}
@@ -1189,37 +1189,37 @@ export default function PolicyStudio() {
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-surface-container-highest">
-                        <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider">Name</th>
-                        <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider cursor-pointer group">
+                      <tr className="border-b border-line">
+                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Name</th>
+                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider cursor-pointer group">
                           <div className="flex items-center gap-1">
                             Last Modified
                             <div className="flex flex-col -space-y-2 opacity-50 group-hover:opacity-100 transition-opacity">
                               <ChevronUp size={14} className="mb-[-2px]" />
-                              <ChevronDown size={14} className="text-primary" />
+                              <ChevronDown size={14} className="text-accent" />
                             </div>
                           </div>
                         </th>
-                        <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider">Status</th>
-                        <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Status</th>
+                        <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="font-body text-on-surface">
+                    <tbody className="font-body text-ink">
                       {filteredPolicies.length > 0 ? (
                         filteredPolicies.slice(0, 3).map((policy) => (
                           <tr
                             key={policy.policy_id}
                             onClick={() => setEditingPolicy(policy.policy_id)}
-                            className="group transition-all duration-200 hover:bg-primary/[0.04] hover:shadow-[inset_4px_0_0_0_#4647d3] cursor-pointer border-b border-surface-container-highest/50 last:border-0"
+                            className="group transition-all duration-200 hover:bg-accent/[0.04] cursor-pointer border-b border-line/50 last:border-0"
                           >
                             <td className="py-5 px-6">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary">
+                                <div className="w-10 h-10 rounded-lg bg-accent-soft/20 flex items-center justify-center text-accent">
                                   <policy.icon size={20} />
                                 </div>
                                 <div>
                                   <p className="font-semibold text-base">{policy.alias}</p>
-                                  <p className="text-sm text-on-surface-variant mt-0.5">{policy.version} • {policy.department}</p>
+                                  <p className="text-sm text-ink-muted mt-0.5">{policy.version} • {policy.department}</p>
                                 </div>
                               </div>
                             </td>
@@ -1232,7 +1232,7 @@ export default function PolicyStudio() {
                             <td className="py-5 px-6 text-right">
                               <button
                                 onClick={(e) => { e.stopPropagation(); setEditingPolicy(policy.policy_id); }}
-                                className="text-primary font-semibold text-sm group-hover:underline group-hover:translate-x-0.5 transition-all duration-150 active:scale-95 cursor-pointer"
+                                className="text-accent font-semibold text-sm group-hover:underline group-hover:translate-x-0.5 transition-all duration-150 active:scale-95 cursor-pointer"
                               >
                                 Edit
                               </button>
@@ -1241,7 +1241,7 @@ export default function PolicyStudio() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={4} className="py-12 text-center text-on-surface-variant font-medium">
+                          <td colSpan={4} className="py-12 text-center text-ink-muted font-medium">
                             {listMessage}
                           </td>
                         </tr>
@@ -1257,39 +1257,39 @@ export default function PolicyStudio() {
                       <button
                         key={policy.policy_id}
                         onClick={() => setEditingPolicy(policy.policy_id)}
-                        className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/10 text-left active:scale-[0.98] transition-all flex items-center gap-3"
+                        className="bg-surface rounded-xl p-4 border border-line/10 text-left active:scale-[0.98] transition-all flex items-center gap-3"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-accent-soft/20 flex items-center justify-center text-accent shrink-0">
                           <policy.icon size={20} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-on-surface truncate">{policy.alias}</p>
-                          <p className="text-xs text-on-surface-variant mt-0.5">{policy.version} · {policy.department}</p>
-                          <p className="text-xs text-on-surface-variant/70 mt-0.5">{policy.lastModified}</p>
+                          <p className="font-semibold text-sm text-ink truncate">{policy.alias}</p>
+                          <p className="text-xs text-ink-muted mt-0.5">{policy.version} · {policy.department}</p>
+                          <p className="text-xs text-ink-muted/70 mt-0.5">{policy.lastModified}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1.5 shrink-0">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${POLICY_STATUS_STYLE[policy.status]}`}>
                             {policy.status}
                           </span>
-                          <span className="text-primary font-semibold text-xs">Edit</span>
+                          <span className="text-accent font-semibold text-xs">Edit</span>
                         </div>
                       </button>
                     ))
                   ) : (
-                    <div className="py-12 text-center text-on-surface-variant font-medium text-sm">
+                    <div className="py-12 text-center text-ink-muted font-medium text-sm">
                       {listMessage}
                     </div>
                   )}
                 </div>
 
                 {/* View All Button */}
-                <div className="p-5 text-center border-t border-outline-variant/15">
+                <div className="p-5 text-center border-t border-line/15">
                   <button
                     onClick={() => setModalOpen(true)}
-                    className="inline-flex items-center gap-2 text-sm font-semibold font-headline
-                               text-primary hover:text-primary-dim transition-all duration-200
+                    className="inline-flex items-center gap-2 text-sm font-semibold font-display
+                               text-accent hover:text-accent-hover transition-all duration-200
                                active:scale-95 group/cta px-4 py-2 rounded-xl
-                               hover:bg-primary/5 cursor-pointer"
+                               hover:bg-accent/5 cursor-pointer"
                   >
                     View All {activeFilter} Policies
                     <ChevronRight
@@ -1351,23 +1351,23 @@ function DeleteConfirmModal({
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
       <div
-        className="absolute inset-0 bg-inverse-surface/50 backdrop-blur-sm cursor-pointer"
+        className="absolute inset-0 bg-ink/50 cursor-pointer"
         onClick={!isDeleting ? onClose : undefined}
       />
-      <div className="relative w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="relative w-full max-w-md bg-surface rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="px-6 pt-6 pb-5 border-b border-[#dc2626]/15 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-[#dc2626]/10 flex items-center justify-center shrink-0 mt-0.5">
             <Trash2 size={18} className="text-[#dc2626]" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-headline font-bold text-lg text-on-surface">Delete Policy</h3>
-            <p className="font-body text-sm text-on-surface-variant mt-0.5 leading-relaxed">
-              This will permanently remove <span className="font-semibold text-on-surface">&ldquo;{policyName}&rdquo;</span> and all its associated data. This action cannot be undone.
+            <h3 className="font-display font-bold text-lg text-ink">Delete Policy</h3>
+            <p className="font-body text-sm text-ink-muted mt-0.5 leading-relaxed">
+              This will permanently remove <span className="font-semibold text-ink">&ldquo;{policyName}&rdquo;</span> and all its associated data. This action cannot be undone.
             </p>
           </div>
           {!isDeleting && (
-            <button onClick={onClose} className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer shrink-0">
+            <button onClick={onClose} className="p-1.5 rounded-lg text-ink-muted hover:bg-surface-muted transition-colors cursor-pointer shrink-0">
               <X size={18} />
             </button>
           )}
@@ -1376,7 +1376,7 @@ function DeleteConfirmModal({
         {/* Body */}
         <div className="px-6 py-5 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-body text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+            <label className="font-body text-xs font-bold text-ink-muted uppercase tracking-wider">
               Type the policy name to confirm
             </label>
             <input
@@ -1386,11 +1386,11 @@ function DeleteConfirmModal({
               onKeyDown={(e) => { if (e.key === 'Enter' && confirmed && !isDeleting) onConfirm(); }}
               placeholder={policyName}
               disabled={isDeleting}
-              className={`bg-surface-container-low border rounded-xl px-4 py-3 text-sm font-body text-on-surface placeholder:text-outline-variant outline-none transition-all disabled:opacity-50 ${typedName.length > 0
+              className={`bg-surface-muted border rounded-xl px-4 py-3 text-sm font-body text-ink placeholder:text-line outline-none transition-all disabled:opacity-50 ${typedName.length > 0
                 ? confirmed
                   ? "border-[#dc2626]/50 ring-2 ring-[#dc2626]/10"
-                  : "border-outline-variant/40 ring-2 ring-[#dc2626]/5"
-                : "border-outline-variant/30 focus:border-outline-variant"
+                  : "border-line/40 ring-2 ring-[#dc2626]/5"
+                : "border-line/30 focus:border-line"
                 }`}
             />
             {typedName.length > 0 && !confirmed && (
@@ -1411,14 +1411,14 @@ function DeleteConfirmModal({
           <button
             onClick={onClose}
             disabled={isDeleting}
-            className="px-5 py-2.5 rounded-xl border border-outline-variant text-on-surface-variant font-body text-sm font-medium hover:bg-surface-container-low transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 rounded-xl border border-line text-ink-muted font-body text-sm font-medium hover:bg-surface-muted transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={!confirmed || isDeleting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#dc2626] text-white font-body text-sm font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer hover:bg-[#b91c1c] shadow-[0_4px_14px_rgba(220,38,38,0.25)] disabled:shadow-none"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#dc2626] text-white font-body text-sm font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer hover:bg-[#b91c1c] disabled:shadow-none"
           >
             {isDeleting ? (
               <>
@@ -1553,22 +1553,22 @@ function ConditionsModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-inverse-surface/40 backdrop-blur-sm cursor-pointer" onClick={onClose} />
+      <div className="absolute inset-0 bg-ink/40 cursor-pointer" onClick={onClose} />
 
-      <div className="relative w-full max-w-2xl max-h-[85vh] bg-surface-container-lowest rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="p-8 border-b border-outline-variant/10 flex items-center justify-between bg-gradient-to-r from-primary/10 via-primary/5 to-transparent shrink-0">
+      <div className="relative w-full max-w-2xl max-h-[85vh] bg-surface rounded-[2rem] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="p-8 border-b border-line/10 flex items-center justify-between bg-gradient-to-r from-accent/10 via-accent/5 to-transparent shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center">
-              <Sparkles className="text-primary w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-accent/20 flex items-center justify-center">
+              <Sparkles className="text-accent w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-headline font-bold text-2xl text-on-surface">Mandatory Conditions</h3>
-              <p className="text-sm text-on-surface-variant font-body">Review and edit AI extracted rules</p>
+              <h3 className="font-display font-bold text-2xl text-ink">Mandatory Conditions</h3>
+              <p className="text-sm text-ink-muted font-body">Review and edit AI extracted rules</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"
+            className="w-10 h-10 rounded-full bg-surface-muted flex items-center justify-center text-ink-muted hover:bg-line transition-colors cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -1576,16 +1576,16 @@ function ConditionsModal({
 
         <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
           {Object.entries(localConditions).map(([category, details]) => (
-            <div key={category} className="bg-surface-container-low/50 rounded-2xl p-6 border border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+            <div key={category} className="bg-surface-muted/50 rounded-2xl p-6 border border-line/10 hover:bg-surface-muted transition-colors group">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="font-headline font-bold text-lg text-on-surface flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(70,71,211,0.5)]" />
+                <h4 className="font-display font-bold text-lg text-ink flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-accent" />
                   {category}
                 </h4>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleAddCondition(category)}
-                    className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 text-accent hover:bg-accent/10 rounded-lg transition-colors cursor-pointer"
                     title="Add condition"
                   >
                     <Plus size={18} />
@@ -1600,7 +1600,7 @@ function ConditionsModal({
                         });
                       }
                     }}
-                    className="p-2 text-on-surface-variant hover:text-error hover:bg-error/5 rounded-lg transition-colors cursor-pointer"
+                    className="p-2 text-ink-muted hover:text-danger hover:bg-danger/5 rounded-lg transition-colors cursor-pointer"
                     title="Delete category"
                   >
                     <Trash2 size={16} />
@@ -1615,13 +1615,13 @@ function ConditionsModal({
                         type="text"
                         value={cond}
                         onChange={(e) => handleUpdateCondition(category, i, e.target.value)}
-                        className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm text-on-surface font-body focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                        className="w-full bg-surface border border-line/20 rounded-xl px-4 py-2.5 text-sm text-ink font-body focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                         placeholder="Enter condition..."
                       />
                     </div>
                     <button
                       onClick={() => handleRemoveCondition(category, i)}
-                      className="p-2.5 text-on-surface-variant hover:text-error hover:bg-error/5 rounded-xl transition-all cursor-pointer shrink-0"
+                      className="p-2.5 text-ink-muted hover:text-danger hover:bg-danger/5 rounded-xl transition-all cursor-pointer shrink-0"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -1632,14 +1632,14 @@ function ConditionsModal({
           ))}
 
           {/* Auto-Approval Budgets Section */}
-          <div className="bg-gradient-to-br from-primary/5 to-tertiary/5 rounded-2xl p-6 border border-primary/10">
+          <div className="bg-gradient-to-br from-accent/5 to-accent/5 rounded-2xl p-6 border border-accent/10">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                <Banknote className="w-5 h-5 text-primary" strokeWidth={2} />
+              <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                <Banknote className="w-5 h-5 text-accent" strokeWidth={2} />
               </div>
               <div>
-                <h4 className="font-headline font-bold text-base text-on-surface">Auto-Approval Budgets</h4>
-                <p className="text-xs text-on-surface-variant">
+                <h4 className="font-display font-bold text-base text-ink">Auto-Approval Budgets</h4>
+                <p className="text-xs text-ink-muted">
                   Set the maximum amount per category for auto-approval. Leave blank for unlimited.
                 </p>
               </div>
@@ -1652,11 +1652,11 @@ function ConditionsModal({
                 return (
                   <div key={category} className="flex items-center gap-3">
                     <div className="flex-1">
-                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1 block">
+                      <label className="text-xs font-bold text-ink-muted uppercase tracking-wider mb-1 block">
                         {category}
                       </label>
                       <div className="relative group">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-sm font-medium group-focus-within:text-primary transition-colors">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted/60 text-sm font-medium group-focus-within:text-accent transition-colors">
                           MYR
                         </span>
                         <input
@@ -1666,7 +1666,7 @@ function ConditionsModal({
                           value={currentBudget}
                           onChange={(e) => handleUpdateBudget(category, e.target.value)}
                           placeholder="Unlimited"
-                          className="w-full pl-12 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-xl text-sm text-on-surface font-mono tabular-nums focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-on-surface-variant/40"
+                          className="w-full pl-12 pr-4 py-2.5 bg-surface border border-line/20 rounded-xl text-sm text-ink font-mono tabular-nums focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all placeholder:text-ink-muted/40"
                         />
                       </div>
                     </div>
@@ -1678,8 +1678,8 @@ function ConditionsModal({
 
           {/* Add New Category UI */}
           {isAddingCategory ? (
-            <div className="bg-primary/5 rounded-2xl p-6 border-2 border-dashed border-primary/20 animate-in slide-in-from-bottom-2 duration-300">
-              <h4 className="text-sm font-bold text-primary mb-4 uppercase tracking-wider">New Mandatory Category</h4>
+            <div className="bg-accent/5 rounded-2xl p-6 border-2 border-dashed border-accent/20 animate-in slide-in-from-bottom-2 duration-300">
+              <h4 className="text-sm font-bold text-accent mb-4 uppercase tracking-wider">New Mandatory Category</h4>
               <div className="flex gap-3">
                 <input
                   autoFocus
@@ -1688,17 +1688,17 @@ function ConditionsModal({
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddNewCategory()}
                   placeholder="e.g. Travel Limits, Eligibility..."
-                  className="flex-1 bg-surface-container-lowest border border-primary/30 rounded-xl px-4 py-3 text-sm text-on-surface font-body focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                  className="flex-1 bg-surface border border-accent/30 rounded-xl px-4 py-3 text-sm text-ink font-body focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all"
                 />
                 <button
                   onClick={handleAddNewCategory}
-                  className="px-6 bg-primary text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all active:scale-95 cursor-pointer"
+                  className="px-6 bg-accent text-white text-sm font-bold rounded-xl hover:opacity-90 transition-all active:scale-95 cursor-pointer"
                 >
                   Add
                 </button>
                 <button
                   onClick={() => { setIsAddingCategory(false); setNewCategoryName(""); }}
-                  className="p-3 text-on-surface-variant hover:bg-surface-container-low rounded-xl transition-all cursor-pointer"
+                  className="p-3 text-ink-muted hover:bg-surface-muted rounded-xl transition-all cursor-pointer"
                 >
                   <X size={20} />
                 </button>
@@ -1707,28 +1707,28 @@ function ConditionsModal({
           ) : (
             <button
               onClick={() => setIsAddingCategory(true)}
-              className="w-full py-6 border-2 border-dashed border-outline-variant/20 rounded-2xl flex flex-col items-center justify-center gap-2 text-on-surface-variant hover:border-primary/30 hover:bg-primary/5 hover:text-primary transition-all group cursor-pointer"
+              className="w-full py-6 border-2 border-dashed border-line/20 rounded-2xl flex flex-col items-center justify-center gap-2 text-ink-muted hover:border-accent/30 hover:bg-accent/5 hover:text-accent transition-all group cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+              <div className="w-10 h-10 rounded-full bg-surface-muted flex items-center justify-center group-hover:bg-accent/10 transition-colors">
                 <PlusCircle size={20} />
               </div>
-              <span className="text-sm font-bold font-headline">Add New Mandatory Category</span>
+              <span className="text-sm font-bold font-display">Add New Mandatory Category</span>
             </button>
           )}
         </div>
 
-        <div className="p-6 border-t border-outline-variant/10 bg-surface-container-low/30 flex justify-between items-center shrink-0">
+        <div className="p-6 border-t border-line/10 bg-surface-muted/30 flex justify-between items-center shrink-0">
           <button
             onClick={onClose}
             disabled={isSaving}
-            className="px-6 py-3 text-on-surface-variant font-body font-bold hover:bg-surface-container-high rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 text-ink-muted font-body font-bold hover:bg-line rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
           <button
             onClick={handleSaveBudgets}
             disabled={isSaving}
-            className="px-8 py-3 bg-primary text-white rounded-xl font-body font-bold hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-8 py-3 bg-accent text-white rounded-xl font-body font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSaving ? (
               <>
@@ -1771,28 +1771,28 @@ function ViewAllModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-inverse-surface/30 backdrop-blur-sm cursor-pointer" onClick={onClose} />
+      <div className="absolute inset-0 bg-ink/30 cursor-pointer" onClick={onClose} />
 
-      <div className="relative w-full max-w-4xl max-h-[85dvh] flex flex-col bg-surface-container-lowest rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-outline-variant/15 shrink-0">
+      <div className="relative w-full max-w-4xl max-h-[85dvh] flex flex-col bg-surface rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-line/15 shrink-0">
           <div>
-            <h3 className="font-headline font-bold text-lg text-on-surface">{title}</h3>
-            <p className="text-xs text-on-surface-variant mt-0.5">{filtered.length} total records</p>
+            <h3 className="font-display font-bold text-lg text-ink">{title}</h3>
+            <p className="text-xs text-ink-muted mt-0.5">{filtered.length} total records</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl text-on-surface hover:bg-surface-container-low transition-all cursor-pointer">
+          <button onClick={onClose} className="p-2 rounded-xl text-ink hover:bg-surface-muted transition-all cursor-pointer">
             <X className="w-5 h-5" strokeWidth={2} />
           </button>
         </div>
 
-        <div className="px-6 py-4 bg-surface border-b border-outline-variant/10 shrink-0">
-          <div className="flex items-center gap-2.5 bg-surface-container-low rounded-xl px-4 py-2.5 ring-1 ring-outline-variant/20 focus-within:ring-primary/40 focus-within:bg-surface-container-lowest transition-all">
-            <Search className="w-4 h-4 text-on-surface-variant shrink-0" strokeWidth={2} />
+        <div className="px-6 py-4 bg-paper border-b border-line/10 shrink-0">
+          <div className="flex items-center gap-2.5 bg-surface-muted rounded-xl px-4 py-2.5 ring-1 ring-line/20 focus-within:ring-accent/40 focus-within:bg-surface transition-all">
+            <Search className="w-4 h-4 text-ink-muted shrink-0" strokeWidth={2} />
             <input
               type="text"
               placeholder="Search by name or department..."
               value={modalQuery}
               onChange={(e) => setModalQuery(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none font-body"
+              className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink-muted/60 outline-none font-body"
             />
           </div>
         </div>
@@ -1800,28 +1800,28 @@ function ViewAllModal({
         <div className="flex-1 overflow-y-auto min-h-0">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10">
-              <tr className="bg-surface-container-low/80 backdrop-blur-sm">
-                <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider">Name</th>
-                <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider">Modified</th>
-                <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider">Status</th>
-                <th className="py-3.5 px-6 text-xs font-semibold font-headline text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+              <tr className="bg-surface-muted/80">
+                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Name</th>
+                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Modified</th>
+                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider">Status</th>
+                <th className="py-3.5 px-6 text-xs font-semibold font-display text-ink-muted uppercase tracking-wider text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-outline-variant/10">
+            <tbody className="divide-y divide-line/10">
               {filtered.map((policy) => (
-                <tr key={policy.policy_id} className="hover:bg-primary/[0.04] transition-all cursor-default">
+                <tr key={policy.policy_id} className="hover:bg-accent/[0.04] transition-all cursor-default">
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-primary-container/20 flex items-center justify-center text-primary">
+                      <div className="w-9 h-9 rounded-lg bg-accent-soft/20 flex items-center justify-center text-accent">
                         <policy.icon size={18} />
                       </div>
                       <div>
-                        <p className="font-semibold text-on-surface text-sm">{policy.alias}</p>
-                        <p className="text-[11px] text-on-surface-variant mt-0.5">{policy.version} • {policy.department}</p>
+                        <p className="font-semibold text-ink text-sm">{policy.alias}</p>
+                        <p className="text-[11px] text-ink-muted mt-0.5">{policy.version} • {policy.department}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-6 text-sm text-on-surface-variant">{policy.lastModified}</td>
+                  <td className="py-4 px-6 text-sm text-ink-muted">{policy.lastModified}</td>
                   <td className="py-4 px-6">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${POLICY_STATUS_STYLE[policy.status]}`}>
                       {policy.status}
@@ -1830,7 +1830,7 @@ function ViewAllModal({
                   <td className="py-4 px-6 text-right">
                     <button
                       onClick={() => onEdit(policy.policy_id)}
-                      className="text-primary font-bold text-xs hover:underline transition-all cursor-pointer"
+                      className="text-accent font-bold text-xs hover:underline transition-all cursor-pointer"
                     >
                       Edit
                     </button>
@@ -1841,8 +1841,8 @@ function ViewAllModal({
           </table>
         </div>
 
-        <div className="px-6 py-4 border-t border-outline-variant/10 shrink-0 flex items-center justify-end bg-surface">
-          <button onClick={onClose} className="px-6 py-2 rounded-xl bg-primary text-on-primary text-sm font-semibold hover:bg-primary-dim transition-all shadow-md cursor-pointer">
+        <div className="px-6 py-4 border-t border-line/10 shrink-0 flex items-center justify-end bg-paper">
+          <button onClick={onClose} className="px-6 py-2 rounded-xl bg-accent text-on-accent text-sm font-semibold hover:bg-accent-hover transition-all cursor-pointer">
             Done
           </button>
         </div>
@@ -1880,10 +1880,10 @@ function PremiumBulletList({ items }: { items: string[] }) {
     <div className="flex flex-col gap-3.5">
       {items.map((item, i) => (
         <div key={i} className="flex gap-4 items-start group/item">
-          <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center group-hover/item:bg-primary/20 transition-all group-hover/item:scale-110 duration-300">
-            <CheckCircle2 className="w-3 h-3 text-primary" strokeWidth={3} />
+          <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center group-hover/item:bg-accent/20 transition-all group-hover/item:scale-110 duration-300">
+            <CheckCircle2 className="w-3 h-3 text-accent" strokeWidth={3} />
           </div>
-          <p className="text-[13px] text-on-surface-variant font-body leading-relaxed group-hover/item:text-on-surface transition-colors">
+          <p className="text-[13px] text-ink-muted font-body leading-relaxed group-hover/item:text-ink transition-colors">
             {item}
           </p>
         </div>

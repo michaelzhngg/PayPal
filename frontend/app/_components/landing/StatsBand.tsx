@@ -46,16 +46,16 @@ export default function StatsBand() {
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12 py-14 lg:py-20">
         <motion.div
-          className="max-w-2xl text-on-primary mb-10"
+          className="max-w-2xl text-on-accent mb-10"
           variants={revealItem}
           initial="hidden"
           whileInView="visible"
           viewport={revealViewport}
         >
-          <span className="inline-flex items-center rounded-full border border-white/35 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] backdrop-blur-sm">
+          <span className="inline-flex items-center rounded-full border border-white/35 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em]">
             Safety controls
           </span>
-          <h2 className="mt-4 font-headline text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+          <h2 className="mt-4 font-display text-3xl sm:text-4xl lg:text-5xl font-bold">
             Bounded by design.
           </h2>
           <p className="mt-4 text-base lg:text-lg opacity-90 leading-relaxed">
@@ -65,7 +65,7 @@ export default function StatsBand() {
         </motion.div>
 
         <motion.ul
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 text-on-primary"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 text-on-accent"
           variants={revealGroup}
           initial="hidden"
           whileInView="visible"
@@ -73,7 +73,7 @@ export default function StatsBand() {
         >
           {CONTROLS.map((c) => (
             <motion.li key={c.title} variants={revealItem} className="border-l-2 border-white/30 pl-5">
-              <h3 className="font-headline text-lg lg:text-xl font-bold tracking-tight">
+              <h3 className="font-display text-lg lg:text-xl font-bold">
                 {c.title}
               </h3>
               <p className="mt-2 text-sm leading-relaxed opacity-90">{c.body}</p>

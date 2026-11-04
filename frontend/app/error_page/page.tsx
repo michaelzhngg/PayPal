@@ -34,7 +34,7 @@ function RollingDigit({ target, delay }: { target: number; delay: number }) {
   return (
     <span
       className={`inline-block tabular-nums transition-colors duration-500 ${
-        settled ? "text-on-surface" : "text-primary/50"
+        settled ? "text-ink" : "text-accent/50"
       }`}
       style={{ textShadow: settled ? "none" : "0 0 20px rgba(70,71,211,0.4)" }}
     >
@@ -161,7 +161,7 @@ export default function ErrorPage() {
   const router = useRouter();
 
   return (
-    <main className="min-h-dvh bg-surface flex flex-col items-center justify-center px-6 text-center relative overflow-hidden">
+    <main className="min-h-dvh bg-paper flex flex-col items-center justify-center px-6 text-center relative overflow-hidden">
       {/* Subtle background grid */}
       <div
         aria-hidden="true"
@@ -175,14 +175,14 @@ export default function ErrorPage() {
 
       {/* Faint radial glow */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-accent/5 blur-[100px]" />
       </div>
 
       <div className="relative z-10 flex flex-col items-center max-w-lg">
         {/* Brand */}
         <div className="flex items-center gap-2 mb-10 opacity-60">
           <Image src="/images/logo.svg" alt="Reclaim Logo" width={24} height={24} className="w-6 h-6 object-contain" />
-          <span className="font-headline font-black text-lg text-primary tracking-tight">Reclaim Pay</span>
+          <span className="font-display font-bold text-lg text-accent">Reclaim Pay</span>
         </div>
 
         {/* Astronaut */}
@@ -190,7 +190,7 @@ export default function ErrorPage() {
 
         {/* Rolling 404 */}
         <div
-          className="font-headline font-black leading-none tracking-tighter mb-4 select-none"
+          className="font-display font-bold leading-none mb-4 select-none"
           style={{ fontSize: "clamp(6rem, 20vw, 9rem)" }}
         >
           <RollingDigit target={4} delay={0} />
@@ -199,10 +199,10 @@ export default function ErrorPage() {
         </div>
 
         {/* Message */}
-        <h1 className="font-headline text-2xl font-bold text-on-surface mb-3">
+        <h1 className="font-display text-2xl font-bold text-ink mb-3">
           Lost in space
         </h1>
-        <p className="text-on-surface-variant text-sm leading-relaxed max-w-xs mb-10">
+        <p className="text-ink-muted text-sm leading-relaxed max-w-xs mb-10">
           The page you're looking for drifted off into the void. Let's get you
           back to familiar ground.
         </p>
@@ -211,14 +211,14 @@ export default function ErrorPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-outline-variant/30 text-sm font-semibold text-on-surface-variant hover:bg-surface-container-low transition-all cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-line/30 text-sm font-semibold text-ink-muted hover:bg-surface-muted transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             Go Back
           </button>
           <button
             onClick={() => router.push("/")}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-primary/20 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold hover:opacity-90 transition-all cursor-pointer"
           >
             <Home className="w-4 h-4" />
             Home

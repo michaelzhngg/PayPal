@@ -10,9 +10,9 @@ type ToastFn = (input: ToastInput) => void;
 const ToastContext = createContext<ToastFn | null>(null);
 
 const TONE_ICON: Record<ToastTone, { Icon: typeof Info; className: string }> = {
-  success: { Icon: CheckCircle2, className: "text-emerald-400" },
-  error: { Icon: AlertCircle, className: "text-error-container" },
-  info: { Icon: Info, className: "text-primary-fixed-dim" },
+  success: { Icon: CheckCircle2, className: "text-success" },
+  error: { Icon: AlertCircle, className: "text-danger-soft" },
+  info: { Icon: Info, className: "text-accent" },
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
@@ -87,20 +87,20 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
       onMouseLeave={start}
       onFocus={pause}
       onBlur={start}
-      className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-inverse-surface py-3 pl-4 pr-2 shadow-[0_8px_32px_rgba(0,0,0,0.18)]"
+      className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-ink py-3 pl-4 pr-2"
     >
       <Icon aria-hidden className={`mt-0.5 h-5 w-5 shrink-0 ${className}`} />
       <div className="min-w-0 flex-1">
-        <p className="font-body text-sm font-semibold text-on-primary">{toast.title}</p>
+        <p className="font-body text-sm font-semibold text-on-accent">{toast.title}</p>
         {toast.description && (
-          <p className="mt-0.5 font-body text-sm text-inverse-on-surface">{toast.description}</p>
+          <p className="mt-0.5 font-body text-sm text-paper">{toast.description}</p>
         )}
       </div>
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
         aria-label="Dismiss notification"
-        className="-my-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-inverse-on-surface transition-colors hover:bg-white/10 hover:text-on-primary focus-visible:outline-2 focus-visible:outline-primary-fixed-dim"
+        className="-my-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-paper transition-colors hover:bg-white/10 hover:text-on-accent focus-visible:outline-2 focus-visible:outline-accent"
       >
         <X className="h-4 w-4" />
       </button>

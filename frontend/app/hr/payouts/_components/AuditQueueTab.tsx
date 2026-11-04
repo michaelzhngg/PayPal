@@ -39,7 +39,7 @@ export default function AuditQueueTab() {
 
   return (
     <>
-      <p className="text-sm text-on-surface-variant mb-4">
+      <p className="text-sm text-ink-muted mb-4">
         Auto-paid claims picked for a second look. Open a claim to check it, and record an overpayment if it was paid too much.
       </p>
 

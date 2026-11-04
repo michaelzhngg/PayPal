@@ -12,12 +12,12 @@ export const STATUS_ICON: Record<AiStatus, JSX.Element> = {
 };
 
 export const STATUS_STYLE: Record<AiStatus, string> = {
-  "Policy Flagged": "bg-error/10 text-error-dim",
-  "Awaiting Review": "bg-amber-100 text-amber-800",
-  "Passed AI Review": "bg-emerald-50 text-emerald-700",
-  "Low Confidence": "bg-tertiary/10 text-tertiary-dim",
-  "Auto-Approved": "bg-emerald-100 text-emerald-800",
-  "Auto-Rejected": "bg-red-100 text-red-700",
+  "Policy Flagged": "bg-danger/10 text-danger",
+  "Awaiting Review": "bg-warning-soft text-warning",
+  "Passed AI Review": "bg-success-soft text-success",
+  "Low Confidence": "bg-accent/10 text-accent",
+  "Auto-Approved": "bg-success-soft text-success",
+  "Auto-Rejected": "bg-danger-soft text-danger",
 };
 
 export function StatusBadge({ status }: { status: AiStatus }) {

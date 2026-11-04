@@ -93,19 +93,19 @@ export function categoryIcon(...labels: Array<string | null | undefined>): Lucid
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
 export const STATUS_BADGE: Record<ClaimStatus, string> = {
-  Pending:              "bg-secondary-container/50 text-on-secondary-container",
-  Approved:             "bg-primary/10 text-primary",
-  "Partially Approved": "bg-amber-500/10 text-amber-600",
-  Paid:                 "bg-tertiary/10 text-tertiary",
-  Rejected:             "bg-error/10 text-error",
+  Pending:              "bg-accent-soft/50 text-accent-hover",
+  Approved:             "bg-accent/10 text-accent",
+  "Partially Approved": "bg-warning/10 text-warning",
+  Paid:                 "bg-accent/10 text-accent",
+  Rejected:             "bg-danger/10 text-danger",
 };
 
 export const STATUS_DOT: Record<ClaimStatus, string> = {
-  Pending:              "bg-secondary",
-  Approved:             "bg-primary",
-  "Partially Approved": "bg-amber-500",
-  Paid:                 "bg-tertiary",
-  Rejected:             "bg-error",
+  Pending:              "bg-accent",
+  Approved:             "bg-accent",
+  "Partially Approved": "bg-warning",
+  Paid:                 "bg-accent",
+  Rejected:             "bg-danger",
 };
 
 // ─── Shared employee ──────────────────────────────────────────────────────────

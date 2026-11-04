@@ -11,10 +11,10 @@ let _notifCache: { data: Notification[]; ts: number } | null = null;
 const NOTIF_TTL_MS = 15_000;
 
 const NOTIF_ICON_MAP: Record<Notification["type"], { icon: typeof CheckCircle2; bg: string; text: string }> = {
-  success: { icon: CheckCircle2, bg: "bg-primary/10",       text: "text-primary" },
-  warning: { icon: AlertCircle,  bg: "bg-tertiary/20",      text: "text-tertiary" },
-  error:   { icon: AlertCircle,  bg: "bg-error/10",         text: "text-error" },
-  info:    { icon: Info,         bg: "bg-surface-variant",  text: "text-on-surface-variant" },
+  success: { icon: CheckCircle2, bg: "bg-accent/10",       text: "text-accent" },
+  warning: { icon: AlertCircle,  bg: "bg-accent/20",      text: "text-accent" },
+  error:   { icon: AlertCircle,  bg: "bg-danger/10",         text: "text-danger" },
+  info:    { icon: Info,         bg: "bg-line",  text: "text-ink-muted" },
 };
 
 export default function TopNav() {
@@ -61,14 +61,14 @@ export default function TopNav() {
   return (
     <header
       aria-label="Top navigation"
-      className="sticky top-0 z-50 bg-surface/80 backdrop-blur-3xl border-b border-outline-variant/10 shadow-[0_4px_24px_-4px_rgba(44,47,49,0.06)] pt-safe-top"
+      className="sticky top-0 z-50 bg-paper border-b border-line/10 pt-safe-top"
     >
       <div className="flex items-center justify-between px-4 md:px-6 py-3 md:py-4 w-full max-w-screen-2xl mx-auto gap-3">
 
         {/* ── Left: Brand (mobile) ─────────────────── */}
         <div className="lg:hidden flex items-center gap-2">
           <Image src="/images/logo.svg" alt="Reclaim Logo" width={24} height={24} className="w-6 h-6 object-contain" />
-          <span className="text-xl font-extrabold bg-linear-to-r from-primary to-tertiary bg-clip-text text-transparent font-headline tracking-tight">
+          <span className="text-xl font-bold bg-linear-to-r from-accent to-accent bg-clip-text text-transparent font-display">
             Reclaim Pay
           </span>
         </div>
@@ -86,21 +86,21 @@ export default function TopNav() {
               aria-label="Notifications"
               onClick={() => setShowNotifications(!showNotifications)}
               className={`relative p-2.5 rounded-xl transition-all active:scale-95 cursor-pointer ${
-                showNotifications ? "bg-surface-container-high text-primary" : "text-on-surface hover:bg-surface-container-low"
+                showNotifications ? "bg-line text-accent" : "text-ink hover:bg-surface-muted"
               }`}
             >
               <Bell className="w-5 h-5" strokeWidth={1.75} />
               {unreadCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error border-2 border-surface pointer-events-none" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-danger border-2 border-paper pointer-events-none" />
               )}
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-surface border border-outline-variant/20 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 z-70">
-                <div className="flex items-center justify-between p-4 border-b border-outline-variant/10 bg-surface-container-lowest">
-                  <h3 className="font-headline font-bold text-sm text-on-surface">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-80 bg-paper border border-line/20 rounded-2xl shadow-overlay overflow-hidden animate-in fade-in slide-in-from-top-2 z-70">
+                <div className="flex items-center justify-between p-4 border-b border-line/10 bg-surface">
+                  <h3 className="font-display font-bold text-sm text-ink">Notifications</h3>
                   <button
-                    className="text-[10px] font-bold text-primary hover:underline uppercase tracking-wider"
+                    className="text-[10px] font-bold text-accent hover:underline uppercase tracking-wider"
                     onClick={handleMarkAllRead}
                   >
                     Mark all read
@@ -109,7 +109,7 @@ export default function TopNav() {
 
                 <div className="max-h-72 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <p className="text-xs text-on-surface-variant text-center py-8 px-4">
+                    <p className="text-xs text-ink-muted text-center py-8 px-4">
                       No notifications
                     </p>
                   ) : (
@@ -120,8 +120,8 @@ export default function TopNav() {
                         <div
                           key={notif.id}
                           role="listitem"
-                          className={`w-full text-left flex gap-3 p-4 border-b border-outline-variant/5 ${
-                            !notif.isRead ? "bg-tertiary/5" : ""
+                          className={`w-full text-left flex gap-3 p-4 border-b border-line/5 ${
+                            !notif.isRead ? "bg-accent/5" : ""
                           }`}
                         >
                           <div className="relative">
@@ -129,13 +129,13 @@ export default function TopNav() {
                               <IconComponent className="w-4 h-4" />
                             </div>
                             {!notif.isRead && (
-                              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-error rounded-full border-2 border-surface" />
+                              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-danger rounded-full border-2 border-paper" />
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-on-surface">{notif.title}</p>
-                            <p className="text-xs text-on-surface-variant mt-0.5 leading-relaxed">{notif.message}</p>
-                            <span className="text-[10px] font-bold text-on-surface-variant/50 mt-1 block">{notif.timestamp}</span>
+                            <p className="text-sm font-semibold text-ink">{notif.title}</p>
+                            <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">{notif.message}</p>
+                            <span className="text-[10px] font-bold text-ink-muted/50 mt-1 block">{notif.timestamp}</span>
                           </div>
                         </div>
                       );
@@ -143,9 +143,9 @@ export default function TopNav() {
                   )}
                 </div>
 
-                <div className="p-2 border-t border-outline-variant/10 text-center bg-surface-container-lowest">
+                <div className="p-2 border-t border-line/10 text-center bg-surface">
                   <button
-                    className="text-xs font-bold text-on-surface-variant hover:text-on-surface transition-colors"
+                    className="text-xs font-bold text-ink-muted hover:text-ink transition-colors"
                     onClick={() => setShowNotifications(false)}
                   >
                     Close
@@ -158,7 +158,7 @@ export default function TopNav() {
           <button
             id="topnav-help-btn"
             aria-label="Help"
-            className="hidden sm:flex p-2.5 rounded-xl text-on-surface hover:bg-surface-container-low active:scale-95 transition-all cursor-pointer"
+            className="hidden sm:flex p-2.5 rounded-xl text-ink hover:bg-surface-muted active:scale-95 transition-all cursor-pointer"
           >
             <HelpCircle className="w-5 h-5" strokeWidth={1.75} />
           </button>
@@ -172,7 +172,7 @@ export default function TopNav() {
               }
             }}
             aria-label="Open settings menu"
-            className="ml-1 h-9 w-9 rounded-full bg-linear-to-br from-primary-container to-tertiary-container shrink-0 flex items-center justify-center font-headline font-bold text-sm text-on-primary-container border-2 border-surface-container-lowest shadow-sm cursor-pointer hover:shadow-md hover:scale-105 transition-all"
+            className="ml-1 h-9 w-9 rounded-full bg-linear-to-br from-accent-soft to-accent-soft shrink-0 flex items-center justify-center font-display font-bold text-sm text-accent-hover border-2 border-surface cursor-pointer hover:scale-105 transition-all"
           >
             {user?.name?.charAt(0).toUpperCase() ?? "U"}
           </button>

@@ -14,7 +14,7 @@ const PRODUCT_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-inverse-surface text-on-primary px-5 sm:px-8 lg:px-12 pt-16 pb-8">
+    <footer className="bg-ink text-on-accent px-5 sm:px-8 lg:px-12 pt-16 pb-8">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div className="md:col-span-2 md:pr-8">
@@ -26,8 +26,8 @@ export default function Footer() {
                 height={32}
                 className="w-8 h-8 object-contain brightness-0 invert"
               />
-              <span className="font-headline text-2xl font-black tracking-tighter">
-                Reclaim Pay<span className="text-primary-fixed-dim">.</span>
+              <span className="font-display text-2xl font-bold">
+                Reclaim Pay<span className="text-accent">.</span>
               </span>
             </div>
             <p className="mt-4 text-sm opacity-80 max-w-md leading-relaxed">
@@ -44,7 +44,7 @@ export default function Footer() {
                 <li key={l.href}>
                   <a
                     href={l.href}
-                    className="text-sm opacity-90 hover:opacity-100 hover:text-primary-fixed-dim transition-colors"
+                    className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-colors"
                   >
                     {l.label}
                   </a>
@@ -53,7 +53,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/login"
-                  className="text-sm opacity-90 hover:opacity-100 hover:text-primary-fixed-dim transition-colors"
+                  className="text-sm opacity-90 hover:opacity-100 hover:text-accent transition-colors"
                 >
                   Sign In
                 </Link>

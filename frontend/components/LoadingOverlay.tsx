@@ -15,23 +15,23 @@ export default function LoadingOverlay({ show }: { show: boolean }) {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[10000] bg-surface flex flex-col items-center justify-center animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[10000] bg-paper flex flex-col items-center justify-center animate-in fade-in duration-300">
       {/* Logo */}
       <div className="flex items-center gap-3 mb-2">
         <Image src="/images/logo.svg" alt="Reclaim Logo" width={40} height={40} className="w-10 h-10 object-contain" priority />
-        <h1 className="font-headline text-4xl font-black text-on-surface tracking-tighter select-none">
-          Reclaim<span className="text-primary">.</span>
+        <h1 className="font-display text-4xl font-bold text-ink select-none">
+          Reclaim<span className="text-accent">.</span>
         </h1>
       </div>
 
       {/* Tagline */}
-      <p className="text-sm text-on-surface-variant font-body mb-10 max-w-xs text-center">
+      <p className="text-sm text-ink-muted font-body mb-10 max-w-xs text-center">
         Automation where it's safe, judgment where it matters
       </p>
 
       {/* Slim progress bar */}
-      <div className="w-32 h-0.5 bg-surface-container-high rounded-full overflow-hidden">
-        <div className="h-full bg-primary rounded-full animate-[loading_1.4s_ease-in-out_infinite]" />
+      <div className="w-32 h-0.5 bg-line rounded-full overflow-hidden">
+        <div className="h-full bg-accent rounded-full animate-[loading_1.4s_ease-in-out_infinite]" />
       </div>
 
       <style>{`

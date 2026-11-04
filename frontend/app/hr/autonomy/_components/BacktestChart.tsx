@@ -150,9 +150,9 @@ export default function BacktestChart({ data, currency }: BacktestChartProps) {
 
       {!showTable && (
         <div aria-hidden="true">
-          <h4 className="text-sm font-semibold text-on-surface">Claims paid automatically</h4>
+          <h4 className="text-sm font-semibold text-ink">Claims paid automatically</h4>
           <AgCharts options={automation} modules={MODULES} style={{ height: AUTOMATION_HEIGHT }} />
-          <h4 className="mt-3 text-sm font-semibold text-on-surface">Expected leakage, in {currency}</h4>
+          <h4 className="mt-3 text-sm font-semibold text-ink">Expected leakage, in {currency}</h4>
           <AgCharts options={leakage} modules={MODULES} style={{ height: LEAKAGE_HEIGHT }} />
         </div>
       )}
@@ -162,7 +162,7 @@ export default function BacktestChart({ data, currency }: BacktestChartProps) {
           <table className="w-full text-sm">
             <caption className="sr-only">Back-test by standard employee limit</caption>
             <thead>
-              <tr className="text-left text-on-surface-variant border-b border-outline-variant/40">
+              <tr className="text-left text-ink-muted border-b border-line/40">
                 <th scope="col" className="py-2 pr-4 font-medium">Standard limit</th>
                 <th scope="col" className="py-2 pr-4 font-medium text-right">Paid automatically</th>
                 <th scope="col" className="py-2 font-medium text-right">Expected leakage</th>
@@ -170,13 +170,13 @@ export default function BacktestChart({ data, currency }: BacktestChartProps) {
             </thead>
             <tbody className="tabular-nums">
               {data.points.map((p) => (
-                <tr key={p.limit} className="border-b border-outline-variant/20">
+                <tr key={p.limit} className="border-b border-line/20">
                   <td className="py-2 pr-4">{currency} {p.limit.toLocaleString("en-US")}</td>
                   <td className="py-2 pr-4 text-right">{p.automationPct}%</td>
                   <td className="py-2 text-right">{currency} {p.leakage.toLocaleString("en-US")}</td>
                 </tr>
               ))}
-              <tr className="font-semibold text-primary">
+              <tr className="font-semibold text-accent">
                 <td className="py-2 pr-4">Your setting: {currency} {data.current.limit.toLocaleString("en-US")}</td>
                 <td className="py-2 pr-4 text-right">{data.current.automationPct}%</td>
                 <td className="py-2 text-right">{currency} {data.current.leakage.toLocaleString("en-US")}</td>
@@ -187,8 +187,8 @@ export default function BacktestChart({ data, currency }: BacktestChartProps) {
       )}
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="flex items-center gap-2 text-xs text-on-surface-variant">
-          <span className="inline-block w-3 h-3 rounded-full border-2 border-white shadow-[0_0_0_1px_#4647d3] bg-primary" aria-hidden="true" />
+        <p className="flex items-center gap-2 text-xs text-ink-muted">
+          <span className="inline-block w-3 h-3 rounded-full border-2 border-white bg-accent" aria-hidden="true" />
           Your setting
           <span className="inline-block w-4 h-0.5 ml-3 rounded" style={{ background: LINE }} aria-hidden="true" />
           Other standard limits
@@ -197,7 +197,7 @@ export default function BacktestChart({ data, currency }: BacktestChartProps) {
           type="button"
           onClick={() => setShowTable((v) => !v)}
           aria-pressed={showTable}
-          className="min-h-[44px] px-3 rounded-lg text-sm font-semibold text-primary hover:bg-primary/5 focus-visible:outline-2 focus-visible:outline-primary cursor-pointer"
+          className="min-h-[44px] px-3 rounded-lg text-sm font-semibold text-accent hover:bg-accent/5 focus-visible:outline-2 focus-visible:outline-accent cursor-pointer"
         >
           {showTable ? "Show chart" : "Show as table"}
         </button>

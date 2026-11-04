@@ -90,20 +90,20 @@ export default function PayPalConnectCard() {
   return (
     <section
       aria-labelledby="paypal-heading"
-      className="bg-surface-container-lowest border border-outline-variant/10 rounded-2xl overflow-hidden shadow-sm"
+      className="bg-surface border border-line/10 rounded-2xl overflow-hidden"
     >
-      <div className="p-6 border-b border-outline-variant/10">
-        <h2 id="paypal-heading" className="font-headline font-bold text-lg text-on-surface mb-1">
+      <div className="p-6 border-b border-line/10">
+        <h2 id="paypal-heading" className="font-display font-bold text-lg text-ink mb-1">
           PayPal Payouts
         </h2>
-        <p className="font-body text-sm text-on-surface-variant">
+        <p className="font-body text-sm text-ink-muted">
           Approved claims are paid straight to the PayPal account you link here.
         </p>
       </div>
 
       <div className="p-6 space-y-4" aria-live="polite">
         {loadState === "ready" && pausedUntil && (
-          <p className="flex items-start gap-2 rounded-xl px-4 py-3 bg-amber-50 text-amber-800 text-sm font-body">
+          <p className="flex items-start gap-2 rounded-xl px-4 py-3 bg-warning-soft text-warning text-sm font-body">
             <Clock className="w-4 h-4 mt-0.5 shrink-0" />
             <span>
               You signed in with PayPal, so payout account changes are paused until {formatWhen(pausedUntil)}. Approved
@@ -113,21 +113,21 @@ export default function PayPalConnectCard() {
         )}
 
         {loadState === "loading" && (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-surface-container-low text-sm text-on-surface-variant">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-surface-muted text-sm text-ink-muted">
             <Loader2 className="w-4 h-4 animate-spin" />
             Checking your PayPal account…
           </div>
         )}
 
         {loadState === "error" && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-error/5 border border-error/10">
-            <p className="flex items-center gap-2 text-sm text-error font-body">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-danger/5 border border-danger/10">
+            <p className="flex items-center gap-2 text-sm text-danger font-body">
               <AlertCircle className="w-4 h-4 shrink-0" />
               We couldn&apos;t load your PayPal account.
             </p>
             <button
               onClick={reload}
-              className="min-h-11 px-4 rounded-xl text-sm font-semibold text-on-surface border border-outline-variant/30 hover:bg-surface-container transition-colors focus-visible:outline-2 focus-visible:outline-primary"
+              className="min-h-11 px-4 rounded-xl text-sm font-semibold text-ink border border-line/30 hover:bg-surface-muted transition-colors focus-visible:outline-2 focus-visible:outline-accent"
             >
               Try again
             </button>
@@ -135,14 +135,14 @@ export default function PayPalConnectCard() {
         )}
 
         {loadState === "ready" && status && cardState === "notLinked" && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-outline-variant/20 bg-surface-container-low">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-line/20 bg-surface-muted">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary-container text-on-primary-container rounded-lg">
+              <div className="p-3 bg-accent-soft text-accent-hover rounded-lg">
                 <Wallet className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-headline font-bold text-sm text-on-surface">No PayPal account linked</p>
-                <p className="font-body text-xs text-on-surface-variant">
+                <p className="font-display font-bold text-sm text-ink">No PayPal account linked</p>
+                <p className="font-body text-xs text-ink-muted">
                   Link one to get approved claims paid automatically.
                 </p>
               </div>
@@ -151,7 +151,7 @@ export default function PayPalConnectCard() {
               <button
                 onClick={handleConnect}
                 disabled={connecting}
-                className="min-h-11 flex items-center justify-center gap-2 bg-primary text-on-primary px-5 rounded-xl font-bold text-sm hover:shadow-md active:scale-95 transition-all disabled:opacity-60 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                className="min-h-11 flex items-center justify-center gap-2 bg-accent text-on-accent px-5 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-60 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 {connecting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {connecting ? "Opening PayPal…" : "Connect PayPal"}
@@ -162,22 +162,22 @@ export default function PayPalConnectCard() {
 
         {loadState === "ready" && status && cardState && cardState !== "notLinked" && (
           <>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-outline-variant/20 bg-surface-container-low">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-line/20 bg-surface-muted">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="p-3 bg-primary-container text-on-primary-container rounded-lg">
+                <div className="p-3 bg-accent-soft text-accent-hover rounded-lg">
                   <Wallet className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-headline font-bold text-sm text-on-surface truncate">
+                  <p className="font-display font-bold text-sm text-ink truncate">
                     {status.email_masked ?? "PayPal account"}
                   </p>
                   {status.linked_at && (
-                    <p className="font-body text-xs text-on-surface-variant">Linked {formatWhen(status.linked_at)}</p>
+                    <p className="font-body text-xs text-ink-muted">Linked {formatWhen(status.linked_at)}</p>
                   )}
                 </div>
               </div>
               {cardState === "verified" && (
-                <span className="inline-flex items-center gap-1.5 self-start sm:self-center px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold">
+                <span className="inline-flex items-center gap-1.5 self-start sm:self-center px-3 py-1.5 rounded-lg bg-success-soft text-success text-xs font-bold">
                   <BadgeCheck className="w-4 h-4" />
                   Instant payouts on
                 </span>
@@ -185,14 +185,14 @@ export default function PayPalConnectCard() {
             </div>
 
             {cardState === "coolDown" && status.cooldown_until && (
-              <p className="flex items-start gap-2 rounded-xl px-4 py-3 bg-amber-50 text-amber-800 text-sm font-body">
+              <p className="flex items-start gap-2 rounded-xl px-4 py-3 bg-warning-soft text-warning text-sm font-body">
                 <Clock className="w-4 h-4 mt-0.5 shrink-0" />
                 Payout account changed. Instant payouts resume {formatWhen(status.cooldown_until)}.
               </p>
             )}
 
             {cardState === "unverified" && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl px-4 py-3 bg-amber-50 text-amber-800">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl px-4 py-3 bg-warning-soft text-warning">
                 <p className="flex items-start gap-2 text-sm font-body">
                   <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                   Verify your PayPal account to get instant payouts. Once PayPal has verified it, reconnect here.
@@ -201,7 +201,7 @@ export default function PayPalConnectCard() {
                   <button
                     onClick={handleConnect}
                     disabled={connecting}
-                    className="min-h-11 px-4 rounded-xl text-sm font-semibold bg-amber-800 text-white hover:bg-amber-900 transition-colors disabled:opacity-60 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-800"
+                    className="min-h-11 px-4 rounded-xl text-sm font-semibold bg-warning text-white hover:bg-warning transition-colors disabled:opacity-60 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-warning"
                   >
                     {connecting ? "Opening PayPal…" : "Reconnect PayPal"}
                   </button>
@@ -213,28 +213,28 @@ export default function PayPalConnectCard() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setConfirmingUnlink(true)}
-                  className="min-h-11 px-4 rounded-xl text-sm font-semibold text-on-surface-variant hover:bg-surface-container transition-colors focus-visible:outline-2 focus-visible:outline-primary"
+                  className="min-h-11 px-4 rounded-xl text-sm font-semibold text-ink-muted hover:bg-surface-muted transition-colors focus-visible:outline-2 focus-visible:outline-accent"
                 >
                   Unlink PayPal
                 </button>
               </div>
             ) : (
-              <div className="rounded-xl border border-outline-variant/20 p-4 space-y-3">
-                <p className="font-body text-sm text-on-surface">
+              <div className="rounded-xl border border-line/20 p-4 space-y-3">
+                <p className="font-body text-sm text-ink">
                   Unlinking stops automatic payouts. If you link a PayPal account again, instant payouts pause for 72 hours.
                 </p>
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                   <button
                     onClick={() => setConfirmingUnlink(false)}
                     disabled={unlinking}
-                    className="min-h-11 px-4 rounded-xl text-sm font-semibold text-on-surface hover:bg-surface-container transition-colors focus-visible:outline-2 focus-visible:outline-primary"
+                    className="min-h-11 px-4 rounded-xl text-sm font-semibold text-ink hover:bg-surface-muted transition-colors focus-visible:outline-2 focus-visible:outline-accent"
                   >
                     Keep it linked
                   </button>
                   <button
                     onClick={handleUnlink}
                     disabled={unlinking}
-                    className="min-h-11 px-4 rounded-xl text-sm font-bold bg-error text-on-error hover:bg-error-dim transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error"
+                    className="min-h-11 px-4 rounded-xl text-sm font-bold bg-danger text-on-accent hover:bg-danger transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger"
                   >
                     {unlinking ? "Unlinking…" : "Unlink account"}
                   </button>

@@ -7,7 +7,7 @@ import React from "react";
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse bg-surface-container-high rounded-xl ${className}`}
+      className={`animate-pulse bg-line rounded-xl ${className}`}
     />
   );
 }
@@ -16,7 +16,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
 
 export function SkeletonStatCard() {
   return (
-    <div className="bg-surface-container-low rounded-2xl p-5 flex flex-col gap-3 shadow-[0_4px_20px_-4px_rgba(44,47,49,0.06)]">
+    <div className="bg-surface-muted rounded-2xl p-5 flex flex-col gap-3">
       <Skeleton className="h-3 w-24 rounded-full" />
       <Skeleton className="h-8 w-32 rounded-lg" />
       <Skeleton className="h-3 w-16 rounded-full" />
@@ -28,7 +28,7 @@ export function SkeletonStatCard() {
 
 export function SkeletonTableRow({ cols = 5 }: { cols?: number }) {
   return (
-    <tr className="border-t border-outline-variant/5">
+    <tr className="border-t border-line/5">
       {Array.from({ length: cols }).map((_, i) => (
         <td key={i} className="p-4">
           <Skeleton className={`h-4 rounded-full ${i === 0 ? "w-24" : i === cols - 1 ? "w-16" : "w-full"}`} />
@@ -42,7 +42,7 @@ export function SkeletonTableRow({ cols = 5 }: { cols?: number }) {
 
 export function SkeletonListCard() {
   return (
-    <div className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/10 flex items-center gap-3">
+    <div className="bg-surface p-4 rounded-xl border border-line/10 flex items-center gap-3">
       <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
       <div className="flex-1 flex flex-col gap-2">
         <Skeleton className="h-4 w-40 rounded-full" />
@@ -57,7 +57,7 @@ export function SkeletonListCard() {
 
 export function DashboardPageSkeleton() {
   return (
-    <main className="min-h-dvh pb-24 md:pb-12 bg-surface">
+    <main className="min-h-dvh pb-24 md:pb-12 bg-paper">
       <div className="w-full max-w-screen-2xl mx-auto px-4 md:px-6 pt-6 md:pt-8">
 
         {/* Header */}
@@ -73,17 +73,17 @@ export function DashboardPageSkeleton() {
         </div>
 
         {/* Table card */}
-        <div className="bg-surface-container-low rounded-2xl p-4 md:p-6">
+        <div className="bg-surface-muted rounded-2xl p-4 md:p-6">
           <div className="flex justify-between items-center mb-5">
             <Skeleton className="h-6 w-36 rounded-lg" />
             <Skeleton className="h-5 w-16 rounded-full" />
           </div>
 
           {/* Desktop table */}
-          <div className="hidden md:block overflow-hidden rounded-xl border border-outline-variant/10">
+          <div className="hidden md:block overflow-hidden rounded-xl border border-line/10">
             <table className="w-full">
               <thead>
-                <tr className="bg-surface-container-low">
+                <tr className="bg-surface-muted">
                   {["w-20", "w-24", "w-32", "w-28", "w-20", "w-20"].map((w, i) => (
                     <th key={i} className="p-4">
                       <Skeleton className={`h-3 ${w} rounded-full`} />
@@ -111,7 +111,7 @@ export function DashboardPageSkeleton() {
 
 export function GenericPageSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <main className="min-h-dvh pb-24 md:pb-12 bg-surface">
+    <main className="min-h-dvh pb-24 md:pb-12 bg-paper">
       <div className="w-full max-w-screen-2xl mx-auto px-4 md:px-6 pt-6 md:pt-8">
 
         {/* Header */}
@@ -141,7 +141,7 @@ export function GenericPageSkeleton({ rows = 5 }: { rows?: number }) {
 
 export function ClaimsPageSkeleton() {
   return (
-    <main className="min-h-dvh pb-24 md:pb-12 bg-surface">
+    <main className="min-h-dvh pb-24 md:pb-12 bg-paper">
       <div className="w-full max-w-screen-xl mx-auto px-4 md:px-6 pt-6 md:pt-8 flex flex-col gap-6">
 
         {/* Header */}
@@ -170,7 +170,7 @@ export function ClaimsPageSkeleton() {
 
 export function ReviewPageSkeleton() {
   return (
-    <main className="min-h-dvh pb-24 md:pb-12 bg-surface">
+    <main className="min-h-dvh pb-24 md:pb-12 bg-paper">
       <div className="w-full max-w-screen-xl mx-auto px-4 md:px-6 pt-6 md:pt-8 flex flex-col gap-6">
 
         {/* Back + header */}

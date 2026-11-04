@@ -38,7 +38,7 @@ export default function Header({ user }: { user: User | null }) {
     <header
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "bg-surface/80 backdrop-blur-xl border-b border-surface-container-high/60 shadow-ambient"
+          ? "bg-paper border-b border-line/60"
           : "bg-transparent"
       }`}
     >
@@ -52,8 +52,8 @@ export default function Header({ user }: { user: User | null }) {
             className="w-8 h-8 object-contain"
             priority
           />
-          <span className="font-headline text-xl lg:text-2xl font-black tracking-tighter text-on-surface">
-            Reclaim Pay<span className="text-primary">.</span>
+          <span className="font-display text-xl lg:text-2xl font-bold text-ink">
+            Reclaim Pay<span className="text-accent">.</span>
           </span>
         </Link>
 
@@ -62,10 +62,10 @@ export default function Header({ user }: { user: User | null }) {
             <a
               key={l.href}
               href={l.href}
-              className="relative text-sm font-medium text-on-surface-variant hover:text-on-surface transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded px-1"
+              className="relative text-sm font-medium text-ink-muted hover:text-ink transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 rounded px-1"
             >
               {l.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-accent group-hover:w-full transition-all duration-300" />
             </a>
           ))}
         </nav>
@@ -73,7 +73,7 @@ export default function Header({ user }: { user: User | null }) {
         <div className="hidden lg:flex items-center">
           <Link
             href={ctaHref}
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-primary to-primary-dim text-white rounded-full text-sm font-semibold shadow-ambient hover:shadow-[0_0_24px_rgba(70,71,211,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-accent to-accent-hover text-white rounded-full text-sm font-semibold hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent/30"
           >
             {ctaLabel}
             <ArrowRight className="w-4 h-4" />
@@ -83,7 +83,7 @@ export default function Header({ user }: { user: User | null }) {
         <button
           type="button"
           onClick={() => setMobileOpen((v) => !v)}
-          className="lg:hidden p-2 rounded-lg text-on-surface hover:bg-surface-container-high focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="lg:hidden p-2 rounded-lg text-ink hover:bg-line focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
           aria-label="Toggle menu"
           aria-expanded={mobileOpen}
         >
@@ -97,7 +97,7 @@ export default function Header({ user }: { user: User | null }) {
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.25 }}
-          className="lg:hidden border-t border-surface-container-high bg-surface-container-lowest/95 backdrop-blur-xl overflow-hidden"
+          className="lg:hidden border-t border-line bg-surface/95 overflow-hidden"
         >
           <nav className="flex flex-col px-5 py-4 gap-1">
             {NAV_LINKS.map((l, i) => (
@@ -108,7 +108,7 @@ export default function Header({ user }: { user: User | null }) {
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05, duration: 0.25 }}
-                className="px-3 py-2.5 rounded-lg text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
+                className="px-3 py-2.5 rounded-lg text-sm font-medium text-ink-muted hover:text-ink hover:bg-line transition-colors"
               >
                 {l.label}
               </motion.a>
@@ -116,7 +116,7 @@ export default function Header({ user }: { user: User | null }) {
             <Link
               href={ctaHref}
               onClick={() => setMobileOpen(false)}
-              className="mt-2 inline-flex items-center justify-center gap-1.5 px-5 py-3 bg-gradient-to-r from-primary to-primary-dim text-white rounded-full text-sm font-semibold"
+              className="mt-2 inline-flex items-center justify-center gap-1.5 px-5 py-3 bg-gradient-to-r from-accent to-accent-hover text-white rounded-full text-sm font-semibold"
             >
               {ctaLabel}
               <ArrowRight className="w-4 h-4" />

@@ -10,8 +10,8 @@ import {
 } from "@/lib/hr/evidence";
 import { SignalEvidence } from "./SignalEvidence";
 
-const SHELL = "bg-surface-container-lowest rounded-xl shadow-[0_4px_24px_-8px_rgba(44,47,49,0.08)] overflow-hidden";
-const SUBHEAD = "text-xs font-semibold font-headline text-on-surface-variant mb-2";
+const SHELL = "bg-surface rounded-xl overflow-hidden";
+const SUBHEAD = "text-xs font-semibold font-display text-ink-muted mb-2";
 
 /**
  * "Why this needs you": the autonomy engine's decision with its evidence. It
@@ -30,21 +30,21 @@ export function AutonomyPanel({
   if (!autonomy) {
     return (
       <section aria-labelledby="autonomy-heading" className={SHELL}>
-        <div className="px-6 py-4 border-b border-outline-variant/15">
-          <h3 id="autonomy-heading" className="font-headline font-bold text-base text-on-surface">AI Analysis</h3>
+        <div className="px-6 py-4 border-b border-line/15">
+          <h3 id="autonomy-heading" className="font-display font-bold text-base text-ink">AI Analysis</h3>
         </div>
         <div className="p-6 flex flex-col gap-3">
-          <p className="text-sm font-semibold text-on-surface">No automated decision recorded for this claim</p>
-          <p className="text-sm text-on-surface-variant">
+          <p className="text-sm font-semibold text-ink">No automated decision recorded for this claim</p>
+          <p className="text-sm text-ink-muted">
             There is no tier or risk score to show. Review the receipts and decide below.
           </p>
           {aiVerdict && (
-            <p className="text-sm text-on-surface">
-              <span className="text-on-surface-variant">AI recommendation: </span>
+            <p className="text-sm text-ink">
+              <span className="text-ink-muted">AI recommendation: </span>
               <span className="font-semibold">{aiVerdict}</span>
             </p>
           )}
-          {aiSummary && <p className="text-sm text-on-surface leading-relaxed">{aiSummary}</p>}
+          {aiSummary && <p className="text-sm text-ink leading-relaxed">{aiSummary}</p>}
         </div>
       </section>
     );
@@ -60,8 +60,8 @@ export function AutonomyPanel({
 
   return (
     <section aria-labelledby="autonomy-heading" className={SHELL}>
-      <div className="px-6 py-4 border-b border-outline-variant/15">
-        <h3 id="autonomy-heading" className="font-headline font-bold text-base text-on-surface">
+      <div className="px-6 py-4 border-b border-line/15">
+        <h3 id="autonomy-heading" className="font-display font-bold text-base text-ink">
           {autonomy.tier === "AUTO_PAY" ? "Why this was paid automatically" : "Why this needs you"}
         </h3>
       </div>
@@ -70,16 +70,16 @@ export function AutonomyPanel({
         <div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <TierPill tier={autonomy.tier} />
-            <span className="text-sm font-semibold text-on-surface tabular-nums">Risk {score}/100</span>
+            <span className="text-sm font-semibold text-ink tabular-nums">Risk {score}/100</span>
           </div>
-          <p className="mt-3 text-sm text-on-surface leading-relaxed">{summarySentence(autonomy)}</p>
+          <p className="mt-3 text-sm text-ink leading-relaxed">{summarySentence(autonomy)}</p>
           {progress && (
-            <p className="mt-3 rounded-md bg-surface-container-low px-3 py-2 text-sm font-semibold text-on-surface" role="status">
+            <p className="mt-3 rounded-md bg-surface-muted px-3 py-2 text-sm font-semibold text-ink" role="status">
               {progress}
             </p>
           )}
           {d.audit_selected && (
-            <p className="mt-2 text-sm text-on-surface-variant">Picked for a random audit after payment.</p>
+            <p className="mt-2 text-sm text-ink-muted">Picked for a random audit after payment.</p>
           )}
         </div>
 
@@ -88,7 +88,7 @@ export function AutonomyPanel({
             <h4 className={SUBHEAD}>Why it was not paid automatically</h4>
             <ul className="flex flex-col gap-1.5">
               {stops.map((s) => (
-                <li key={s} className="rounded-md border border-outline-variant/40 px-3 py-1.5 text-sm text-on-surface">
+                <li key={s} className="rounded-md border border-line/40 px-3 py-1.5 text-sm text-ink">
                   {hardStopLabel(s)}
                 </li>
               ))}
@@ -102,17 +102,17 @@ export function AutonomyPanel({
             <dl className="text-sm">
               {breakdown.map((row) => (
                 <div key={row.label} className="flex items-baseline justify-between gap-4 py-0.5">
-                  <dt className="text-on-surface-variant min-w-0">{row.label}</dt>
-                  <dd className="tabular-nums font-medium text-on-surface">+{row.points}</dd>
+                  <dt className="text-ink-muted min-w-0">{row.label}</dt>
+                  <dd className="tabular-nums font-medium text-ink">+{row.points}</dd>
                 </div>
               ))}
-              <div className="mt-1 flex items-baseline justify-between gap-4 border-t border-outline-variant/30 pt-1">
-                <dt className="font-semibold text-on-surface">Risk score{breakdown.reduce((n, r) => n + r.points, 0) > score ? " (capped at 100)" : ""}</dt>
-                <dd className="tabular-nums font-bold text-on-surface">{score}</dd>
+              <div className="mt-1 flex items-baseline justify-between gap-4 border-t border-line/30 pt-1">
+                <dt className="font-semibold text-ink">Risk score{breakdown.reduce((n, r) => n + r.points, 0) > score ? " (capped at 100)" : ""}</dt>
+                <dd className="tabular-nums font-bold text-ink">{score}</dd>
               </div>
             </dl>
             {typeof d.expected_loss === "number" && d.expected_loss > 0 && (
-              <p className="mt-2 text-xs text-on-surface-variant">
+              <p className="mt-2 text-xs text-ink-muted">
                 Expected loss if paid without review: {formatMoney(autonomy.currency, d.expected_loss)}
               </p>
             )}
@@ -133,7 +133,7 @@ export function AutonomyPanel({
         {showAiSummary && (
           <div>
             <h4 className={SUBHEAD}>AI notes</h4>
-            <p className="text-sm text-on-surface leading-relaxed">{aiSummary}</p>
+            <p className="text-sm text-ink leading-relaxed">{aiSummary}</p>
           </div>
         )}
       </div>

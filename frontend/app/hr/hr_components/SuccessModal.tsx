@@ -67,39 +67,39 @@ export function SuccessModal({
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ${
-        visible ? "bg-black/30 backdrop-blur-sm" : "bg-transparent"
+        visible ? "bg-black/30" : "bg-transparent"
       }`}
     >
       <div
-        className={`w-full max-w-md bg-surface-container-lowest rounded-3xl shadow-[0_32px_80px_-16px_rgba(44,47,49,0.25)] border border-outline-variant/15 flex flex-col items-center text-center p-10 transition-all duration-500 ${
+        className={`w-full max-w-md bg-surface rounded-3xl border border-line/15 flex flex-col items-center text-center p-10 transition-all duration-500 ${
           visible ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-6 scale-95"
         }`}
       >
         <div className="relative w-20 h-20 mb-7">
           <div className={`absolute inset-0 rounded-full animate-ping ${
-            colorTheme === "error" ? "bg-error/10" : colorTheme === "amber" ? "bg-amber-500/10" : "bg-green-500/10"
+            colorTheme === "error" ? "bg-danger/10" : colorTheme === "amber" ? "bg-warning/10" : "bg-success/10"
           }`} />
           <div className={`relative w-20 h-20 rounded-full border flex items-center justify-center ${
-            colorTheme === "error" ? "bg-error/15 border-error/30" : colorTheme === "amber" ? "bg-amber-500/15 border-amber-500/30" : "bg-green-500/15 border-green-500/30"
+            colorTheme === "error" ? "bg-danger/15 border-danger/30" : colorTheme === "amber" ? "bg-warning/15 border-warning/30" : "bg-success/15 border-success/30"
           }`}>
             <Icon className={`w-10 h-10 ${
-              colorTheme === "error" ? "text-error" : colorTheme === "amber" ? "text-amber-500" : "text-green-500"
+              colorTheme === "error" ? "text-danger" : colorTheme === "amber" ? "text-warning" : "text-success"
             }`} strokeWidth={1.75} />
           </div>
         </div>
 
-        <h2 className="font-headline text-2xl font-bold text-on-surface tracking-tight mb-3">
+        <h2 className="font-display text-2xl font-bold text-ink mb-3">
           {title}
         </h2>
 
-        <p className="text-sm text-on-surface-variant font-body leading-relaxed max-w-xs mb-8">
+        <p className="text-sm text-ink-muted font-body leading-relaxed max-w-xs mb-8">
           {subtitle}
         </p>
 
         <div className="w-full">
           <Link
             href="/hr/dashboard"
-            className="flex items-center justify-center gap-2 px-5 py-3 w-full rounded-xl font-semibold text-sm font-body bg-primary text-on-primary shadow-[0_4px_16px_rgba(70,71,211,0.3)] hover:bg-primary-dim hover:shadow-[0_6px_24px_rgba(70,71,211,0.4)] hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
+            className="flex items-center justify-center gap-2 px-5 py-3 w-full rounded-xl font-semibold text-sm font-body bg-accent text-on-accent hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.97] transition-all duration-200"
           >
             <LayoutDashboard className="w-4 h-4" strokeWidth={2} />
             Return to Dashboard
