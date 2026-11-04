@@ -90,7 +90,7 @@ Priorities:
 | [x] | Payout ledger endpoint for HR | Should | 2 |
 | [x] | "Sign in with PayPal" on the login page, next to the password: employees only, matched by an already-linked and verified `paypal_payer_id` (never by email), and a PayPal sign-in starts the 72-hour pause before payout details can change. HR stays on password _(built and tested in mock mode; not yet run against live sandbox keys)_ | Should | 3 |
 | [x] | Mock mode, so the frontend can work without sandbox keys | Must | 1 |
-| [ ] | Reconcile payouts against the company's PayPal ledger (PayPal Server SDK) | Could | 3 |
+| [x] | Reconcile payouts against the company's PayPal ledger (PayPal Server SDK) _(built with the Server SDK; not yet run against the live sandbox)_ | Could | 3 |
 
 ### 4.2 Data, autonomy API, approvals, recovery — Chingiz (session B)
 
@@ -101,7 +101,7 @@ Priorities:
 | [x] | Autonomy settings, kill switch, status, and action-log API | Must | 1 |
 | [x] | Tier fields on claims; two-person approval; HR can't approve their own claims; batch approve | Must | 1–2 |
 | [x] | Back-test endpoint (automation rate against expected losses) and the employee trust endpoint | Should | 2 |
-| [x] | Overpayment recovery: notice → dispute window → deduct from the next claim → PayPal invoice through the Agent Toolkit _(API done; HR has no recoveries screen yet, so S8 runs through `demo/scripts/s8_recovery.py`)_ | Should | 2–3 |
+| [x] | Overpayment recovery: notice → dispute window → deduct from the next claim → PayPal invoice through the Agent Toolkit | Should | 2–3 |
 
 ### 4.3 AI and risk — Filbert
 
@@ -114,7 +114,7 @@ Priorities:
 | [x] | Harden the receipt-reading prompts (receipt text is data, never instructions) | Must | 2 |
 | [x] | Wire the decision engine into the compliance agent; remove the `confidence > 0.7` gate and AI-only rejections _(not yet run with the live AI: the local `.env` has placeholder LLM keys)_ | Must | 2 |
 | [x] | Stream timeline events to the employee screen | Must | 2 |
-| [ ] | Channel3 market-price check on equipment receipts | Could | 3 |
+| [x] | Channel3 market-price check on equipment receipts _(built; off until `CHANNEL3_API_KEY` and `FX_TO_USD` are set; no live call made)_ | Could | 3 |
 
 ### 4.4 Employee experience — Michael
 
@@ -125,7 +125,7 @@ Priorities:
 | [x] | Money-flow strip ending in "MYR 48.00 in your PayPal" | Must | 2 |
 | [x] | "Connect PayPal" card in settings (replaces the bank details form) | Must | 2 |
 | [x] | Trust card ("instant payouts up to MYR 100"), plus an overpayment notice with a dispute form | Should | 2–3 |
-| [ ] | Bryntum calendar of claims and payouts | Could | 3 |
+| [x] | Bryntum calendar of claims and payouts _(uses the Bryntum trial, which shows a watermark)_ | Could | 3 |
 
 ### 4.5 HR command center — Christian
 
@@ -134,18 +134,18 @@ Priorities:
 | [x] | AG Grid triage queue with tier tabs, risk bar, signal chips, batch approve | Must | 1 |
 | [x] | Evidence panel on the review page (why the claim was routed, evidence for each signal, two-person approval progress) | Must | 2 |
 | [x] | Autonomy Dial page: limits form, back-test chart (AG Charts), KPI tiles, kill switch | Should | 2 |
-| [ ] | Payouts page: ledger, audit queue, recoveries (invoice preview → send), action log with an "intact" badge _(ledger done; the audit queue, recoveries and agent log tabs aren't built yet)_ | Should | 2–3 |
+| [x] | Payouts page: ledger, audit queue, recoveries (invoice preview → send), action log with an "intact" badge  | Should | 2–3 |
 | [x] | Landing page refresh with a "Built with" strip (only tools that appear in the demo) | Should | 3 |
 
 ### 4.6 Staging, data, QA, demo — Darrell
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
-| [ ] | Render staging (falls back to the existing VM if blocked by Day 1 13:00); public URL given to Chingiz for PayPal | Must | 0–1 |
+| [x] | Render staging (falls back to the existing VM if blocked by Day 1 13:00); public URL given to Chingiz for PayPal _(replaced by Filbert's home server behind a Cloudflare tunnel: https://reclaimai.dev, deployed from `main`. Drop Render from "Built with")_ | Must | 0–1 |
 | [ ] | Demo policy (Transportation, Meals, Accommodations with rank caps, Equipment) uploaded through Policy Studio; without it S1 and S6 fail _(PDF built in `demo/policy/`; not uploaded yet, needs working LLM keys)_ | Must | 1 |
 | [x] | Seed 120 past claims (for the back-test) plus demo users linked to PayPal sandbox accounts | Must | 1 |
 | [x] | Red-team receipts for scenarios S1–S8, plus the "flood" script _(S3 still needs a real AI-generated image with C2PA, see `demo/README.md`)_ | Must | 1 |
-| [ ] | Postman collection with tests, run with Newman; publish a public workspace | Should | 2 |
+| [ ] | Postman collection with tests, run with Newman; publish a public workspace _(collection and Newman run done, 91 requests pass locally; the public workspace still needs a human login)_ | Should | 2 |
 | [ ] | APIMatic: confirm the Context Plugin is installed on everyone's machine, record a clip; optional SDK or docs portal | Should | 2 |
 | [ ] | QA checklist, run Day 2 at 20:00 and Day 3 at 09:00; bugs filed to the file owner | Must | 2–3 |
 | [ ] | Video (3:00), Devpost write-up, README | Must | 3 |
