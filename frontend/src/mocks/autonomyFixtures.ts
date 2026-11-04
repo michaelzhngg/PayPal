@@ -15,6 +15,10 @@ import type {
   AutonomyTier,
   BacktestResult,
 } from "@/lib/api/reclaim-pay-types";
+import { payoutS1 } from "./reclaimPayFixtures";
+import { FIXTURE_HR_USER_ID } from "./triageFixtures";
+
+const FIXTURE_ACTOR_DANIEL = "3b9c1d2e-4f5a-4b6c-8d7e-9f0a1b2c3d4e";
 
 export const DEFAULT_CONFIG: AutonomyConfig = {
   enabled: true,
@@ -156,23 +160,51 @@ interface FixtureState {
 }
 
 let nextActionId = 40;
+let lastHash = "0".repeat(64);
 
-function action(type: AgentAction["action_type"], actor: string, payload: Record<string, unknown>): AgentAction {
+function action(
+  type: AgentAction["action_type"],
+  actor: string,
+  payload: Record<string, unknown>,
+  reimId: string | null = null,
+  minutesAgo = 0,
+): AgentAction {
   nextActionId += 1;
+  // Sample values shaped like the real sha256 chain. Nothing verifies them in fixture mode.
+  const hash = (Math.imul(nextActionId, 2654435761) >>> 0).toString(16).padStart(8, "0").repeat(8);
+  const prevHash = lastHash;
+  lastHash = hash;
   return {
     action_id: nextActionId,
     action_type: type,
     actor,
-    reim_id: null,
+    reim_id: reimId,
     payload,
-    hash: nextActionId.toString(16).padStart(8, "0"),
-    created_at: new Date().toISOString(),
+    prev_hash: prevHash,
+    hash,
+    created_at: new Date(Date.now() - minutesAgo * 60_000).toISOString(),
   };
+}
+
+/** The agent log a demo opens with, oldest first, matching the S1 and S8 claims. */
+function seedActions(): AgentAction[] {
+  const s1 = payoutS1.reim_id;
+  const s8 = "d6f5b4c3-0e9a-4f81-82bd-4e5f6a7b8c93";
+  return [
+    action("DECISION", "agent", { tier: "AUTO_PAY", risk_score: 4, hard_stops: [], signals: [], config_version: 1 }, s1, 190),
+    action("PAYOUT_CREATED", "agent", { amount: "48.00", currency: "MYR", sender_batch_id: "RC-5c2e8f10-1", batch_id: "MOCKB-5C2E8F104A3B" }, s1, 189),
+    action("PAYOUT_STATUS", "agent", { from: "ACCEPTED", to: "SUCCEEDED", paypal_status: "SUCCESS", item_id: "MOCKI-5C2E8F104A3B" }, s1, 188),
+    action("DECISION", "agent", { tier: "AUTO_PAY", risk_score: 8, hard_stops: [], signals: [], config_version: 1 }, s8, 60),
+    action("PAYOUT_CREATED", "agent", { amount: "64.00", currency: "MYR", sender_batch_id: "RC-d6f5b4c3-1", batch_id: "MOCKB-D6F5B4C39E0A" }, s8, 59),
+    action("HR_APPROVAL", FIXTURE_HR_USER_ID, { tier: "HR_QUICK", approvals: 1, required: 1, complete: true, batch: false, amount: 48 }, "c5e4a3b2-9d8f-4e70-b1ac-3d4e5f6a7b82", 40),
+    action("RECOVERY_STATUS", FIXTURE_ACTOR_DANIEL, { recovery_id: "fa000004-0000-4000-8000-000000000004", from: "NOTICE_SENT", to: "DISPUTED" }, "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d", 25),
+    action("CONFIG_CHANGED", FIXTURE_HR_USER_ID, { version: 1, changed: ["auto_limit_standard"], old: { auto_limit_standard: 80 }, new: { auto_limit_standard: 100 }, reason: "Raising the standard limit after the Q3 audit" }, null, 15),
+  ];
 }
 
 function initialState(): FixtureState {
   const breaker = process.env.RECLAIM_PAY_FIXTURE_BREAKER === "1";
-  const actions: AgentAction[] = [];
+  const actions: AgentAction[] = process.env.RECLAIM_PAY_FIXTURE_PAYOUTS === "empty" ? [] : seedActions().reverse();
   if (breaker) {
     actions.unshift(action("BREAKER_TRIPPED", "agent", {
       reason: "6 of the last 20 decisions had a HIGH signal.",
@@ -208,14 +240,14 @@ export function fixtureSaveSettings(next: AutonomyConfig, reason: string): Auton
   );
   state.config = { ...next, enabled: state.config.enabled };
   state.version += 1;
-  state.actions.unshift(action("CONFIG_CHANGED", "demo-hr", { version: state.version, changed, reason }));
+  state.actions.unshift(action("CONFIG_CHANGED", FIXTURE_HR_USER_ID, { version: state.version, changed, reason }));
   return settingsOut();
 }
 
 export function fixtureKillSwitch(enabled: boolean, reason: string): AutonomySettings {
   const previous = state.config.enabled;
   state.config = { ...state.config, enabled };
-  state.actions.unshift(action("KILL_SWITCH", "demo-hr", { enabled, previous, reason }));
+  state.actions.unshift(action("KILL_SWITCH", FIXTURE_HR_USER_ID, { enabled, previous, reason }));
   return settingsOut();
 }
 
@@ -229,6 +261,20 @@ export function fixtureStatus(): AutonomyStatus {
   };
 }
 
+/** RECLAIM_PAY_FIXTURE_CHAIN=broken shows the agent log's tamper warning. */
 export function fixtureActions(limit: number): AgentActionsResult {
-  return { chain_valid: true, actions: state.actions.slice(0, limit) };
+  return { chain_valid: process.env.RECLAIM_PAY_FIXTURE_CHAIN !== "broken", actions: state.actions.slice(0, limit) };
+}
+
+export function fixtureActorNames(): Record<string, string> {
+  return { [FIXTURE_HR_USER_ID]: "Demo HR", [FIXTURE_ACTOR_DANIEL]: "Daniel Lim" };
+}
+
+export function recordFixtureAction(
+  type: AgentAction["action_type"],
+  actor: string,
+  reimId: string | null,
+  payload: Record<string, unknown>,
+): void {
+  state.actions.unshift(action(type, actor, payload, reimId));
 }

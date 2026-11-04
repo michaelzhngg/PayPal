@@ -207,7 +207,7 @@ export function verdictLabel(verdict: ReimbursementRaw["judgment"]): string {
   return VERDICT_LABEL[verdict] ?? verdict;
 }
 
-const STATUS_LABEL: Record<ReimbursementRaw["status"], string> = {
+export const STATUS_LABEL: Record<ReimbursementRaw["status"], string> = {
   PENDING: "Analysing",
   REVIEW: "Needs review",
   APPROVED: "Approved",

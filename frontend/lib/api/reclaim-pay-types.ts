@@ -233,6 +233,18 @@ export interface Recovery {
   updated_at: string;
 }
 
+/** What POST /recoveries/{id}/execute would do right now. */
+export type RecoveryPath = "WAIT" | "OFFSET" | "INVOICE";
+
+/** GET /recoveries/{id}/invoice-preview */
+export interface RecoveryInvoicePreview {
+  note: string;
+  amount: number;
+  currency: string;
+  recipient_email_masked: string;
+  path: RecoveryPath;
+}
+
 /** The autonomy engine's tunable limits (DETAIL-PLAN §7.1). `enabled` and `version` are server-owned on save. */
 export interface AutonomyConfig {
   enabled: boolean;
