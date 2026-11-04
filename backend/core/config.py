@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
     VISION_MODEL: str = "qwen/qwen3.5-flash-02-23"
     EMBEDDING_MODEL: str = "openai/text-embedding-3-small"
+    # Optional separate endpoint for the vision model (e.g. Gemini's OpenAI-compatible API).
+    # Empty means OpenRouter.
+    VISION_BASE_URL: str = ""
+    VISION_API_KEY: str = ""
 
     # PayPal (sandbox by default; mock mode needs no keys)
     PAYPAL_MOCK_MODE: bool = True

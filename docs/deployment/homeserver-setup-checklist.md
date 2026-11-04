@@ -51,30 +51,22 @@ Also keep it on the charger (the battery was at 72%).
 
 ## Step 4: Fill in the API keys ✅
 
-Done. `~/reclaim/.env` has `OPENROUTER_API_KEY` and `LANGCHAIN_API_KEY`. ILMU is
-skipped: the main chat model runs on OpenRouter too.
-
-| Model | Setting in `.env` | Value |
+| Model | Provider | Settings in `.env` |
 |---|---|---|
-| Chat (policy, compliance, agent) | `LLM_BASE_URL`, `LLM_API_KEY`, `CHAT_MODEL` | `https://openrouter.ai/api/v1`, `${OPENROUTER_API_KEY}` (refers to the key, not a copy), `google/gemini-3.8-flash` |
-| Chat fallback | hard-coded in `backend/engine/llm.py` | OpenRouter `google/gemini-3.1-flash-lite-preview` |
-| Receipt vision | `VISION_MODEL` | OpenRouter `qwen/qwen3.5-flash-02-23` |
-| Embeddings | `EMBEDDING_MODEL` | OpenRouter `openai/text-embedding-3-small` |
+| Chat (policy, compliance, agent) | Gemini API, `gemini-3.8-flash` | `LLM_BASE_URL`, `LLM_API_KEY=${GEMINI_API_KEY}`, `CHAT_MODEL` |
+| Receipt vision | Gemini API, `gemini-3.8-flash` | `VISION_BASE_URL`, `VISION_API_KEY=${GEMINI_API_KEY}`, `VISION_MODEL` |
+| Chat fallback | OpenRouter, `google/gemini-3.1-flash-lite-preview` | hard-coded in `backend/engine/llm.py`, uses `OPENROUTER_API_KEY` |
+| Embeddings | OpenRouter, `openai/text-embedding-3-small` | `EMBEDDING_MODEL`, `OPENROUTER_API_KEY` |
 
-`LLM_API_KEY=${OPENROUTER_API_KEY}` must stay **below** the `OPENROUTER_API_KEY` line.
+ILMU is not used. Lines like `LLM_API_KEY=${GEMINI_API_KEY}` refer to the key instead of
+copying it, and must come **after** the line that defines the key.
+`VISION_BASE_URL`/`VISION_API_KEY` need a backend that includes PR "vision endpoint
+config"; on older releases vision stays on OpenRouter whatever they say.
 
-### Later: Gemini API as the main model
-
-1. Get a key at https://aistudio.google.com/apikey.
-2. `ssh homelab 'nano ~/reclaim/.env'` and change the three chat lines to:
-   ```bash
-   LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
-   LLM_API_KEY=<your Gemini key>
-   CHAT_MODEL=<model id from AI Studio, e.g. gemini-…-flash, no "google/" prefix>
-   ```
-3. Apply: `ssh homelab '~/reclaim/bin/deploy.sh apply'`.
-
-Vision, embeddings and the fallback keep using OpenRouter, so keep that key.
+To go back to OpenRouter for chat: `LLM_BASE_URL=https://openrouter.ai/api/v1`,
+`LLM_API_KEY=${OPENROUTER_API_KEY}`, `CHAT_MODEL=google/gemini-3.8-flash`. For vision,
+empty `VISION_BASE_URL` and `VISION_API_KEY`, and set `VISION_MODEL` to an OpenRouter id.
+Apply with `~/reclaim/bin/deploy.sh apply`.
 
 Don't change:
 - `POSTGRES_PASSWORD`: after the first deploy it's stored in the database volume, and
