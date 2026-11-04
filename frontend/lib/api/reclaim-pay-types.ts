@@ -1,6 +1,6 @@
 // ─── Reclaim Pay Types ───────────────────────────────────────────────────────
 // Mirrors the backend contracts in docs/superpowers/specs/2026-11-02-reclaim-pay-hackathon-design.md.
-// Recovery, settings and back-test types join this file when their endpoints land.
+// Settings and back-test types join this file when their endpoints land.
 // ──────────────────────────────────────────────────────────────────────────────
 
 export type AutonomyTier = "AUTO_PAY" | "HR_QUICK" | "HR_REVIEW" | "DUAL_REVIEW";
@@ -190,6 +190,44 @@ export type BatchSkipReason = "NOT_HR_QUICK" | "NOT_IN_REVIEW" | "SELF_APPROVAL"
 export interface BatchApproveResult {
   approved: string[];
   skipped: { reim_id: string; reason: BatchSkipReason }[];
+}
+
+// ─── Employee trust and recoveries ───────────────────────────────────────────
+
+/** GET /autonomy/me (employee). Holds no risk scores or signals. */
+export interface TrustInfo {
+  trust_tier: TrustTier;
+  auto_limit: number;
+  paid_claims: number;
+  /** null at the top tier. */
+  next_tier: TrustTier | null;
+  /** null at the top tier. */
+  claims_to_next_tier: number | null;
+  reasons: string[];
+  /** Not in the spec yet; the card falls back to the tier name when it is missing. */
+  currency?: string;
+  next_limit?: number | null;
+  /** When a recent correction holds the employee at NEW, the date that ends. Not in the spec yet. */
+  limited_until?: string | null;
+}
+
+export type RecoveryStatus = "NOTICE_SENT" | "DISPUTED" | "OFFSET" | "INVOICED" | "RECOVERED" | "WAIVED";
+
+/** GET /recoveries, POST /recoveries/{id}/dispute */
+export interface Recovery {
+  recovery_id: string;
+  reim_id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  reason: string;
+  status: RecoveryStatus;
+  dispute_until: string;
+  dispute_note: string | null;
+  offset_reim_id: string | null;
+  paypal_invoice_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 /** Formats an amount the way the backend writes it in notifications, e.g. "MYR 48.00". */
