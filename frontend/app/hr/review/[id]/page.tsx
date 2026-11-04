@@ -6,7 +6,7 @@ import { ArrowLeft, AlertTriangle, Clock, ShieldCheck, ShieldX, ChevronDown, Zoo
 import type { ClaimBundle } from "@/lib/api/types";
 import { formatClaimRef, formatMoney } from "@/lib/format";
 import { MOCK_BUNDLES } from "../../hr_components/mockData";
-import { SuccessModal } from "../../hr_components/SuccessModal";
+import { SuccessModal, isAwaitingSecondApproval } from "../../hr_components/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
 import { getHRClaimBundle, updateReimbursementStatus } from "@/lib/actions/hr";
 import { FIXTURES_ON } from "@/lib/api/fixtures";
@@ -333,6 +333,7 @@ export default function ReviewPage() {
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [showFormModal, setShowFormModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [awaitingSecond, setAwaitingSecond] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [payoutSubmitting, setPayoutSubmitting] = useState(false);
@@ -412,12 +413,16 @@ export default function ReviewPage() {
       setSubmitError(res.error ? approvalErrorMessage(res.error) : "Failed to update status.");
       return;
     }
-    setReviewedStatus(status);
+    // First of two approvals on a two-person claim: the claim stays in review and nothing is paid.
+    const awaiting = isAwaitingSecondApproval(res.data);
+    setAwaitingSecond(awaiting);
+    setReviewedStatus(awaiting ? (res.data?.status ?? "REVIEW") : status);
     if (status === "APPROVED") {
       setDecision(null);
     }
     setShowSuccessModal(true);
-    router.push("/hr/dashboard");
+    // Stay on the page so the approver reads that a second approval is still needed.
+    if (!awaiting) router.push("/hr/dashboard");
   }
 
   async function handleTriggerPayout() {
@@ -824,7 +829,7 @@ export default function ReviewPage() {
         />
       )}
 
-      {showSuccessModal && <SuccessModal decision={decision} id={formatClaimRef(bundle.id)} />}
+      {showSuccessModal && <SuccessModal decision={decision} id={formatClaimRef(bundle.id)} awaitingSecondApproval={awaitingSecond} />}
     </div>
   );
 }

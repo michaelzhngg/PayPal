@@ -1,12 +1,26 @@
 "use client";
 
-import { CheckCircle2, LayoutDashboard, ShieldX, AlertTriangle } from "lucide-react";
+import { CheckCircle2, LayoutDashboard, ShieldX, AlertTriangle, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export type HRDecision = "approve_full" | "approve_adjusted" | "reject" | "confirm" | "flag" | null;
 
-export function SuccessModal({ decision, id }: { decision: HRDecision, id: string }) {
+/** True when the backend recorded the first of two approvals on a two-person (DUAL_REVIEW) claim. */
+export function isAwaitingSecondApproval(data: unknown): boolean {
+  return !!data && typeof data === "object" && (data as { awaiting_second_approval?: unknown }).awaiting_second_approval === true;
+}
+
+export function SuccessModal({
+  decision,
+  id,
+  awaitingSecondApproval = false,
+}: {
+  decision: HRDecision;
+  id: string;
+  /** First approval of two: nothing is paid yet, so the modal must not say the claim is done. */
+  awaitingSecondApproval?: boolean;
+}) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -32,11 +46,15 @@ export function SuccessModal({ decision, id }: { decision: HRDecision, id: strin
     subtitle = `Claim bundle ${id} has been flagged for re-review.`;
   }
 
+  if (awaitingSecondApproval) {
+    title = "Approval recorded";
+    subtitle = "A second HR member must approve before the payout is sent.";
+  }
+
   const isError = decision === "reject";
   const isWarning = decision === "flag";
-  const isSuccess = !isError && !isWarning;
 
-  let Icon = CheckCircle2;
+  let Icon = awaitingSecondApproval ? UserCheck : CheckCircle2;
   let colorTheme = "green";
   if (isError) {
     Icon = ShieldX;
