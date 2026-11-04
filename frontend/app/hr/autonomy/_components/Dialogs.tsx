@@ -28,7 +28,7 @@ function ReasonField({
         rows={2}
         maxLength={500}
         placeholder={placeholder}
-        className="mt-1.5 w-full rounded-lg border border-line/60 bg-surface px-3 py-2 text-sm placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
+        className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
       />
     </div>
   );
@@ -69,7 +69,7 @@ export function SaveDialog({
               <th scope="col" className="pb-1 font-medium text-right">After</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-line/20">
+          <tbody className="divide-y divide-line">
             {changes.map((c) => (
               <tr key={c.key}>
                 <th scope="row" className="py-2 pr-3 text-left font-medium">{c.label}</th>
@@ -84,7 +84,7 @@ export function SaveDialog({
         <ReasonField id="save-reason" value={reason} onChange={setReason} placeholder="For example: raising limits after the Q3 audit" />
         <ErrorLine error={error} />
       </div>
-      <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line/20 sm:flex-row sm:justify-end">
+      <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line sm:flex-row sm:justify-end">
         <button type="button" onClick={onClose} disabled={busy} className={`${btnBase} text-ink hover:bg-surface-muted focus-visible:outline-accent`}>
           Keep editing
         </button>
@@ -159,13 +159,13 @@ export function KillSwitchDialog({
               onChange={(e) => setTyped(e.target.value)}
               autoComplete="off"
               spellCheck={false}
-              className="mt-1.5 w-full min-h-[44px] rounded-lg border border-line/60 bg-surface px-3 text-sm font-mono uppercase focus-visible:outline-2 focus-visible:outline-accent"
+              className="mt-1.5 w-full min-h-[44px] rounded-lg border border-line bg-surface px-3 text-sm font-mono uppercase focus-visible:outline-2 focus-visible:outline-accent"
             />
           </div>
         )}
         <ErrorLine error={error} />
       </div>
-      <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line/20 sm:flex-row sm:justify-end">
+      <footer className="flex flex-col-reverse gap-2 px-5 py-4 border-t border-line sm:flex-row sm:justify-end">
         <button type="button" onClick={onClose} disabled={busy} className={`${btnBase} text-ink hover:bg-surface-muted focus-visible:outline-accent`}>
           Cancel
         </button>

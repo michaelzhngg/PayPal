@@ -38,7 +38,7 @@ import { AUTONOMY_CHANGED_EVENT } from "../hr_components/AutonomyBanner";
 // AG Charts draws on a canvas, so it only renders in the browser.
 const BacktestChart = dynamic(() => import("./_components/BacktestChart"), {
   ssr: false,
-  loading: () => <div className="h-[420px] rounded-xl bg-surface-muted animate-pulse" aria-hidden="true" />,
+  loading: () => <div className="h-[420px] rounded-card bg-surface-muted animate-pulse" aria-hidden="true" />,
 });
 
 const DEBOUNCE_MS = 400;
@@ -81,13 +81,13 @@ function StatusStrip({
   return (
     <section
       aria-label="Auto-pay status"
-      className={`rounded-2xl border px-4 py-4 sm:px-5 ${
-        paused ? "border-danger/40 bg-danger/5" : "border-line/30 bg-surface"
+      className={`rounded-card border px-4 py-4 sm:px-5 ${
+        paused ? "border-danger/40 bg-danger-soft" : "border-line bg-surface"
       }`}
     >
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 font-display font-bold text-lg">
+          <p className="flex items-center gap-2 font-display font-semibold text-lg">
             {paused ? (
               <PauseCircle className="w-5 h-5 text-danger shrink-0" aria-hidden="true" />
             ) : breaker ? (
@@ -118,7 +118,7 @@ function StatusStrip({
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-ink-muted">
               <AlertCircle className="w-4 h-4 text-danger" aria-hidden="true" />
               Couldn&apos;t load today&apos;s totals.
-              <button type="button" onClick={onRetryStatus} className="min-h-[44px] px-2 font-semibold text-accent rounded-lg focus-visible:outline-2 focus-visible:outline-accent cursor-pointer">
+              <button type="button" onClick={onRetryStatus} className="min-h-[44px] px-2 font-semibold text-ink underline underline-offset-2 rounded-control focus-visible:outline-2 focus-visible:outline-accent cursor-pointer">
                 Try again
               </button>
             </p>
@@ -126,18 +126,18 @@ function StatusStrip({
             <div className="mt-3 max-w-md">
               <p className="text-sm text-ink-muted">
                 Auto-paid today{" "}
-                <span className="font-semibold text-ink">{money(currency, status.auto_paid_today)}</span> of{" "}
-                {money(currency, status.agent_daily_budget)} company budget
+                <span className="font-mono font-medium text-ink">{money(currency, status.auto_paid_today)}</span> of{" "}
+                <span className="font-mono">{money(currency, status.agent_daily_budget)}</span> company budget
               </p>
               <div
-                className="mt-1.5 h-2 rounded-full bg-accent/15 overflow-hidden"
+                className="mt-1.5 h-2 rounded-full bg-surface-muted ring-1 ring-inset ring-line overflow-hidden"
                 role="meter"
                 aria-label="Company auto-pay budget used today"
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={Math.round(pct)}
               >
-                <div className={`h-full rounded-full ${pct >= 90 ? "bg-danger" : "bg-accent"}`} style={{ width: `${pct}%` }} />
+                <div className={`h-full rounded-full ${pct >= 90 ? "bg-danger" : "bg-ink-muted"}`} style={{ width: `${pct}%` }} />
               </div>
               <p className="mt-2 text-xs text-ink-muted">
                 Today: {tiers.AUTO_PAY ?? 0} auto-paid · {tiers.HR_QUICK ?? 0} quick approval · {tiers.HR_REVIEW ?? 0} HR
@@ -145,7 +145,7 @@ function StatusStrip({
               </p>
             </div>
           ) : (
-            <div className="mt-3 h-10 max-w-md rounded-lg bg-surface-muted animate-pulse" aria-hidden="true" />
+            <div className="mt-3 h-10 max-w-md rounded-control bg-surface-muted animate-pulse" aria-hidden="true" />
           )}
         </div>
 
@@ -156,7 +156,7 @@ function StatusStrip({
             aria-checked={paused}
             aria-describedby="kill-switch-state"
             onClick={onToggle}
-            className="group inline-flex items-center gap-3 min-h-[44px] rounded-xl px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger cursor-pointer"
+            className="group inline-flex items-center gap-3 min-h-[44px] rounded-control px-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger cursor-pointer"
           >
             <span className="font-semibold text-sm">Kill switch</span>
             <span
@@ -166,7 +166,7 @@ function StatusStrip({
               }`}
             >
               <span
-                className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                className={`inline-block h-5 w-5 rounded-full bg-surface transition-transform ${
                   paused ? "translate-x-[22px]" : "translate-x-[2px]"
                 }`}
               />
@@ -185,9 +185,9 @@ function StatusStrip({
 
 function Tile({ label, value, was }: { label: string; value: string | null; was?: string | null }) {
   return (
-    <div className="rounded-xl border border-line/30 bg-surface px-4 py-3 min-w-0">
+    <div className="rounded-card border border-line bg-surface px-4 py-3 min-w-0">
       <p className="text-xs font-medium text-ink-muted">{label}</p>
-      <p className="mt-1 font-display font-bold text-2xl text-ink truncate">{value ?? "–"}</p>
+      <p className="mt-1 font-mono font-medium text-xl sm:text-2xl text-ink truncate">{value ?? "Not set"}</p>
       <p className="mt-0.5 text-xs text-ink-muted min-h-[1rem]">{was ? `Saved settings: ${was}` : null}</p>
     </div>
   );
@@ -352,7 +352,7 @@ export default function AutonomyPage() {
     return (
       <div className="min-h-full px-4 py-6 sm:px-6 md:px-8 md:py-10">
         <PageHeader />
-        <div role="alert" className="max-w-xl rounded-2xl border border-danger/30 bg-danger/5 px-5 py-6">
+        <div role="alert" className="max-w-xl rounded-card border border-danger/30 bg-danger-soft px-5 py-6">
           <p className="flex items-center gap-2 font-semibold text-ink">
             <AlertCircle className="w-5 h-5 text-danger" aria-hidden="true" />
             Couldn&apos;t load the autonomy settings.
@@ -361,7 +361,7 @@ export default function AutonomyPage() {
           <button
             type="button"
             onClick={() => void loadAll()}
-            className="mt-4 inline-flex items-center gap-2 min-h-[44px] px-4 rounded-xl bg-accent text-on-accent text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent cursor-pointer"
+            className="mt-4 inline-flex items-center gap-2 min-h-[44px] px-4 rounded-control bg-accent text-on-accent text-sm font-semibold hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" aria-hidden="true" />
             Try again
@@ -377,13 +377,13 @@ export default function AutonomyPage() {
         <PageHeader />
         <p className="sr-only">Loading autonomy settings…</p>
         <div className="flex flex-col gap-4" aria-hidden="true">
-          <div className="h-28 rounded-2xl bg-surface-muted animate-pulse" />
+          <div className="h-28 rounded-card bg-surface-muted animate-pulse" />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="h-24 rounded-xl bg-surface-muted animate-pulse" />
+              <div key={i} className="h-24 rounded-card bg-surface-muted animate-pulse" />
             ))}
           </div>
-          <div className="h-96 rounded-2xl bg-surface-muted animate-pulse" />
+          <div className="h-96 rounded-card bg-surface-muted animate-pulse" />
         </div>
       </div>
     );
@@ -427,14 +427,14 @@ export default function AutonomyPage() {
               e.preventDefault();
               if (changes.length && !hasErrors) openDialog("save");
             }}
-            className="rounded-2xl border border-line/30 bg-surface px-4 py-5 sm:px-5"
+            className="rounded-card border border-line bg-surface px-4 py-5 sm:px-5"
             aria-labelledby="limits-title"
             noValidate
           >
             <h3 id="limits-title" className="sr-only">Limits and caps</h3>
             <LimitsForm register={register} errors={formState.errors} saved={saved} dirtyKeys={dirtyKeys} currency={currency} />
 
-            <div className="mt-6 pt-4 border-t border-line/20 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-6 pt-4 border-t border-line flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-ink-muted" aria-live="polite">
                 {hasErrors
                   ? "Fix the highlighted fields to see the impact and save."
@@ -447,14 +447,14 @@ export default function AutonomyPage() {
                   type="button"
                   onClick={() => reset(saved)}
                   disabled={!changes.length && !hasErrors}
-                  className="min-h-[44px] px-4 rounded-xl text-sm font-semibold text-ink hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-accent cursor-pointer"
+                  className="min-h-[44px] px-4 rounded-control text-sm font-semibold text-ink hover:bg-surface-muted disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-accent cursor-pointer"
                 >
                   Undo changes
                 </button>
                 <button
                   type="submit"
                   disabled={!changes.length || hasErrors}
-                  className="min-h-[44px] px-4 rounded-xl bg-accent text-on-accent text-sm font-semibold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent cursor-pointer"
+                  className="min-h-[44px] px-4 rounded-control bg-ink text-paper text-sm font-semibold hover:bg-ink/85 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent cursor-pointer"
                 >
                   Review and save
                 </button>
@@ -464,11 +464,11 @@ export default function AutonomyPage() {
 
           <section
             aria-labelledby="impact-title"
-            className="rounded-2xl border border-line/30 bg-surface px-4 py-5 sm:px-5 lg:sticky lg:top-4"
+            className="rounded-card border border-line bg-surface px-4 py-5 sm:px-5 lg:sticky lg:top-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 id="impact-title" className="font-display font-bold text-base text-ink">
+                <h3 id="impact-title" className="font-display font-semibold text-base text-ink">
                   What these limits would have done
                 </h3>
                 <p className="text-sm text-ink-muted mt-1">
@@ -484,7 +484,7 @@ export default function AutonomyPage() {
 
             <div className="mt-4">
               {backtest.kind === "unavailable" ? (
-                <div className="rounded-xl bg-surface-muted px-4 py-6 text-sm">
+                <div className="rounded-card bg-surface-muted px-4 py-6 text-sm">
                   <p className="font-semibold text-ink">Back-test unavailable</p>
                   <p className="mt-1 text-ink-muted">
                     This server can&apos;t replay past claims yet. You can still change and save limits; they apply to new
@@ -492,7 +492,7 @@ export default function AutonomyPage() {
                   </p>
                 </div>
               ) : shown && shown.total_claims === 0 ? (
-                <div className="rounded-xl bg-surface-muted px-4 py-6 text-sm">
+                <div className="rounded-card bg-surface-muted px-4 py-6 text-sm">
                   <p className="font-semibold text-ink">No claims to replay yet</p>
                   <p className="mt-1 text-ink-muted">
                     The back-test uses claims from the last 90 days. Once employees submit a few, their impact shows here.
@@ -503,7 +503,7 @@ export default function AutonomyPage() {
                   <BacktestChart data={chartData} currency={currency} />
                 </div>
               ) : backtest.kind === "error" ? null : (
-                <div className="h-[420px] rounded-xl bg-surface-muted animate-pulse" aria-hidden="true" />
+                <div className="h-[420px] rounded-card bg-surface-muted animate-pulse" aria-hidden="true" />
               )}
 
               {backtest.kind === "error" && (
@@ -513,7 +513,7 @@ export default function AutonomyPage() {
                   <button
                     type="button"
                     onClick={() => setRetry((n) => n + 1)}
-                    className="min-h-[44px] px-2 font-semibold text-accent rounded-lg focus-visible:outline-2 focus-visible:outline-accent cursor-pointer"
+                    className="min-h-[44px] px-2 font-semibold text-ink underline underline-offset-2 rounded-control focus-visible:outline-2 focus-visible:outline-accent cursor-pointer"
                   >
                     Try again
                   </button>
@@ -559,7 +559,7 @@ export default function AutonomyPage() {
 function PageHeader() {
   return (
     <header className="mb-6 max-w-3xl">
-      <h2 className="font-display font-bold text-ink text-3xl md:text-4xl">Autonomy</h2>
+      <h1 className="font-display font-semibold text-ink text-2xl md:text-3xl">Autonomy</h1>
       <p className="text-ink-muted text-base font-body mt-2">
         Decide which claims Reclaim Pay pays to PayPal on its own, and see what each limit would have done to recent claims
         before you save it.
