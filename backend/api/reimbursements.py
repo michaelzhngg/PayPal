@@ -327,16 +327,26 @@ def _decided_line_item(li: LineItem, override: Optional[float], approving: bool)
     amount, judgment = li.approved_amount, li.judgment
     if override is not None:
         amount, judgment = override, JudgmentResult.APPROVED if override > 0 else JudgmentResult.REJECTED
-    # When HR approves the whole claim, auto-override any rejected line items
-    if approving and judgment == JudgmentResult.REJECTED:
+    # Approving without a figure for this line accepts it in full. HR's explicit figure, even 0, stands.
+    elif approving and judgment == JudgmentResult.REJECTED:
         amount, judgment = li.claimed_amount, JudgmentResult.APPROVED
     return amount, judgment
+
+
+def _check_overrides(line_items: list, overrides: Optional[list]) -> None:
+    """HR can reduce a line but can't approve more than the employee claimed on it."""
+    claimed = {li.line_item_id: float(li.claimed_amount or 0) for li in line_items}
+    for adjustment in overrides or []:
+        limit = claimed.get(adjustment.line_item_id)
+        if limit is not None and adjustment.approved_amount > limit + 0.005:
+            raise HTTPException(status_code=422, detail="AMOUNT_ABOVE_CLAIMED")
 
 
 def _has_amount_to_pay(db: Session, r: Reimbursement, overrides: Optional[list] = None) -> bool:
     """False when approving would leave MYR 0 approved, as on a claim with no line items."""
     override_map = {li.line_item_id: li.approved_amount for li in overrides or []}
     line_items = db.exec(select(LineItem).where(LineItem.reim_id == r.reim_id)).all()
+    _check_overrides(line_items, overrides)
     return any(
         float(_decided_line_item(li, override_map.get(li.line_item_id), True)[0] or 0) > 0 for li in line_items
     )
@@ -355,6 +365,7 @@ def _apply_status(
         select(LineItem).where(LineItem.reim_id == r.reim_id)
     ).all()
 
+    _check_overrides(line_items, line_item_overrides)
     override_map = {li.line_item_id: li.approved_amount for li in line_item_overrides or []}
     approving = new_status == ReimbursementStatus.APPROVED
     for li in line_items:

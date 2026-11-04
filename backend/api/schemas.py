@@ -268,7 +268,7 @@ class ReimbursementResponse(BaseModel):
 
 class LineItemAdjustment(BaseModel):
     line_item_id: UUID
-    approved_amount: float
+    approved_amount: float = Field(ge=0, allow_inf_nan=False)
 
 
 class StatusUpdateRequest(BaseModel):
