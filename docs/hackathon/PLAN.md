@@ -4,7 +4,7 @@
 **Team:** Bogosort — Michael, Christian, Darrell, Filbert, Chingiz
 **Submission deadline:** 12 Nov 2026. **Our target:** submit by 11 Nov.
 **Build window:** 3 days (Day 1–3), plus Day 0 tonight for setup.
-**Status:** Draft. The team approves this on the Day 0 call.
+**Status:** Build complete on `hackathon/reclaim-pay`, tested with mocks and stand-ins. Live S1–S8 run still to do. Updated 4 Nov.
 
 This is the one page to keep open. Each section links to the detailed documents:
 
@@ -81,8 +81,8 @@ Priorities:
 
 | ✓ | Item | Priority | Day |
 |---|---|---|---|
-| [ ] | Sandbox app, a business account (sender) and two personal accounts (receivers); one payout made by hand with curl; decide MYR or USD _(sandbox app keys verified 3 Nov; the manual curl payout and MYR/USD decision are still open)_ | Must | 0 |
-| [x] | PayPal client: login token, payout, payout status, webhook signature check, "Log in with PayPal" exchange, with tests _(built and unit-tested against mock mode; not yet run against live sandbox keys)_ | Must | 1 |
+| [ ] | Sandbox app, a business account (sender) and two personal accounts (receivers); one payout made by hand with curl; decide MYR or USD _(sandbox keys verified; webhook registered for 10 events; Log in with PayPal reaches our callback on the sandbox. Still open: first real payout, MYR/USD decision)_ | Must | 0 |
+| [x] | PayPal client: login token, payout, payout status, webhook signature check, "Log in with PayPal" exchange, with tests _(code exchange and userinfo work on the live sandbox; payouts not yet run there)_ | Must | 1 |
 | [x] | Payouts that can't be sent twice (`sender_batch_id = RC-{claim}-{attempt}`) | Must | 1 |
 | [x] | Replace the Xendit mock with PayPal in `payout_service` | Must | 1–2 |
 | [x] | Signed webhook endpoint, plus a status refresh as a fallback _(signature check is skipped only when `PAYPAL_MOCK_MODE=true`)_ | Must | 2 |
@@ -137,6 +137,16 @@ Priorities:
 | [x] | Payouts page: ledger, audit queue, recoveries (invoice preview → send), action log with an "intact" badge  | Should | 2–3 |
 | [x] | Landing page refresh with a "Built with" strip (only tools that appear in the demo) | Should | 3 |
 
+### 4.5a Security fixes found in review
+
+| ✓ | Item | Priority | Day |
+|---|---|---|---|
+| [x] | User creation is HR-only; inactive users can't log in; autonomy limits are range-checked | Must | 2 |
+| [x] | Close the two-person approval bypass; claims that skip `decide()` need two approvers; no PAID without money moved | Must | 2 |
+| [x] | Owner-only claim progress stream; no edit-risk count to employees; only resolved recoveries lower trust | Must | 2 |
+| [x] | HR's explicit MYR 0 on a line stands; approved amounts can't exceed the claim | Must | 2 |
+| [ ] | Deploy these fixes to the live site (commits on `hackathon/reclaim-pay`, not yet on `main`) | Must | 2 |
+
 ### 4.6 Staging, data, QA, demo — Darrell
 
 | ✓ | Item | Priority | Day |
@@ -147,8 +157,8 @@ Priorities:
 | [x] | Red-team receipts for scenarios S1–S8, plus the "flood" script _(S3 still needs a real AI-generated image with C2PA, see `demo/README.md`)_ | Must | 1 |
 | [ ] | Postman collection with tests, run with Newman; publish a public workspace _(collection and Newman run done, 91 requests pass locally; the public workspace still needs a human login)_ | Should | 2 |
 | [ ] | APIMatic: confirm the Context Plugin is installed on everyone's machine, record a clip; optional SDK or docs portal | Should | 2 |
-| [ ] | QA checklist, run Day 2 at 20:00 and Day 3 at 09:00; bugs filed to the file owner | Must | 2–3 |
-| [ ] | Video (3:00), Devpost write-up, README | Must | 3 |
+| [ ] | QA checklist, run Day 2 at 20:00 and Day 3 at 09:00; bugs filed to the file owner _(not run yet: blocked on AI keys, demo policy and the S3 image)_ | Must | 2–3 |
+| [ ] | Video (3:00), Devpost write-up, README _(README and `DEVPOST.md` drafted, to be finalised after the live S1–S8 run; video waits for the team's call)_ | Must | 3 |
 
 ---
 
@@ -298,7 +308,7 @@ We link features to each judge's company and role only. Don't mention judges' pe
 - [ ] Devpost: Inspiration, What it does, How we built it, Built with (each tool and how it's used), Challenges, **What's new since the original Reclaim (April 2026)**, What's next, and the sandbox note
 - [ ] README: demo link, video, architecture diagram, how to run with sandbox keys, Postman link
 - [ ] Public Postman workspace link
-- [ ] Repository is public, or judges have access
+- [x] Repository is public, or judges have access
 - [ ] All payments shown are sandbox, and this is stated
 - [ ] Every sponsor tool listed actually appears in the demo
 - [ ] Submitted by 11 Nov; confirmation screenshot saved
