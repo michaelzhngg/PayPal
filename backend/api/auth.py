@@ -29,7 +29,7 @@ def login_access_token(
     statement = select(User).where(User.email == form_data.username)
     user = db.exec(statement).first()
     
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
+    if not user or not user.is_active or not security.verify_password(form_data.password, user.hashed_password):
         logging.warning(f"Login failed: Invalid credentials for email {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -51,10 +51,11 @@ def login_access_token(
 def register_user(
     request: Request,
     user_in: schemas.UserCreate,
-    db: Session = Depends(deps.get_db)
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_hr_user),
 ) -> Any:
     """
-    Register a new user.
+    Create a user. HR only: an open route would let anyone create an HR account.
     """
     statement = select(User).where(User.email == user_in.email)
     user = db.exec(statement).first()

@@ -40,7 +40,7 @@ def get_current_user(
     from core.models import User
     statement = select(User).where(User.email == token_data.email)
     user = db.exec(statement).first()
-    if user is None:
+    if user is None or not user.is_active:
         raise credentials_exception
     # Unlinking from a password session, or a role change, ends any PayPal session at once.
     if security.is_paypal_session(payload) and security.paypal_signin_rejection(user, payload.get("paypal_payer_id")):

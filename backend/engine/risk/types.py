@@ -3,11 +3,12 @@
 Pure data only: no DB, settings or LLM imports, so every module in engine/risk can be tested in isolation.
 """
 
+import math
 from datetime import date, datetime
 from enum import Enum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class AutonomyTier(str, Enum):
@@ -134,6 +135,24 @@ class AutonomyConfig(BaseModel):
     breaker_pause_minutes: int = 60
     dispute_window_hours: int = 120
     version: int = 1
+
+    @model_validator(mode="after")
+    def _check_ranges(self) -> "AutonomyConfig":
+        amounts = (
+            self.auto_limit_new, self.auto_limit_standard, self.auto_limit_trusted,
+            self.dual_approval_above, self.employee_daily_cap, self.employee_monthly_cap,
+            self.agent_daily_budget, self.review_cost,
+        )
+        if any(not math.isfinite(a) or a < 0 for a in amounts):
+            raise ValueError("limits and costs must be zero or more")
+        if not 0 <= self.quick_min_score <= self.review_min_score <= self.dual_min_score <= 100:
+            raise ValueError("score bands must rise in order between 0 and 100")
+        if any(not 0 <= r <= 1 for r in (self.recovery_rate, self.audit_sample_rate, self.breaker_high_ratio)):
+            raise ValueError("rates must be between 0 and 1")
+        if min(self.review_minutes, self.payee_cooldown_hours, self.breaker_window,
+               self.breaker_pause_minutes, self.dispute_window_hours) < 0:
+            raise ValueError("durations must be zero or more")
+        return self
 
 
 class AutonomyDecision(BaseModel):
