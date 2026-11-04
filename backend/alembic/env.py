@@ -1,9 +1,10 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, inspect, text
 from sqlalchemy import pool
 
 from alembic import context
+from alembic.script import ScriptDirectory
 
 from sqlmodel import SQLModel
 from core.config import settings
@@ -53,6 +54,11 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def _is_empty_database_going_to_head(connection) -> bool:
+    target = context.get_context().opts.get("destination_rev")
+    return target in ("head", "heads") and not inspect(connection).get_table_names()
+
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -72,7 +78,13 @@ def run_migrations_online() -> None:
         )
 
         with context.begin_transaction():
-            context.run_migrations()
+            if _is_empty_database_going_to_head(connection):
+                # The chain starts from a schema the old create_all flow built, so it can't run on an empty database.
+                connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+                target_metadata.create_all(connection)
+                context.get_context().stamp(ScriptDirectory.from_config(config), "head")
+            else:
+                context.run_migrations()
 
 
 if context.is_offline_mode():
