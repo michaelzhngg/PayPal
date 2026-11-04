@@ -682,7 +682,7 @@ async def analyze_reimbursement(
 
     # === Create task and launch background processing ===
     tracker = ProgressTracker()
-    task_id = tracker.create_task()
+    task_id = tracker.create_task(owner_id=current_user.user_id)
     logger.info("[API_ANALYZE] Created task_id=%s for background compliance", task_id)
 
     loop = asyncio.get_running_loop()
@@ -851,10 +851,19 @@ async def analyze_reimbursement(
 
 
 @router.get("/analyze/progress/{task_id}")
-async def analyze_progress(task_id: str):
-    """SSE endpoint: stream progress events for a compliance analysis task."""
+async def analyze_progress(
+    task_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
+):
+    """SSE endpoint: stream progress events for a compliance analysis task, to its owner only."""
     logger.info("[API_SSE] Client connected to reimbursements/analyze/progress/%s", task_id)
     tracker = ProgressTracker()
+    owner_id = tracker.owner_of(task_id)
+    if owner_id is not None and owner_id != current_user.user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    # The stream can run for minutes; don't hold a pooled connection that long.
+    db.close()
 
     async def event_generator():
         try:
