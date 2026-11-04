@@ -7,6 +7,7 @@ import { formatClaimRef, formatMoney } from "@/lib/format";
 import { SuccessModal, isAwaitingSecondApproval } from "../../hr_components/SuccessModal";
 import { useAuth } from "@/context/AuthContext";
 import { getHRClaimBundle, updateReimbursementStatus } from "@/lib/actions/hr";
+import { approvalErrorMessage } from "@/lib/hr/evidence";
 
 const STATUS_CHIP: Record<string, string> = {
   APPROVED: "bg-emerald-50 text-emerald-700",
@@ -359,7 +360,7 @@ export default function ViewPage() {
     });
     setSubmitting(false);
     if (!res.ok) {
-      setSubmitError(res.error ?? "Failed to update status.");
+      setSubmitError(res.error ? approvalErrorMessage(res.error) : "Failed to update status.");
       return;
     }
 

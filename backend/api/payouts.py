@@ -153,7 +153,7 @@ async def create_payout(
     employee = db.get(User, reim.user_id)
     existing = db.exec(select(Payout).where(Payout.reim_id == body.reim_id)).all()
     _require_genuine_approval(reim, current_user, existing)
-    net_amount, _ = offset_for_reim(db, reim)
+    net_amount, applied_offsets = offset_for_reim(db, reim)
     action, _, _ = payout_plan(
         reim.status, net_amount, [p.status for p in existing],
         bool(employee and employee.paypal_verified and employee.paypal_payer_id),
@@ -161,6 +161,8 @@ async def create_payout(
     if action in _SKIP_DETAIL:
         raise HTTPException(status_code=400, detail=_SKIP_DETAIL[action])
     if action == "SKIP_ZERO":
+        if not applied_offsets:
+            raise HTTPException(status_code=400, detail="Nothing to pay: no amount was approved on this claim.")
         await initiate_payout_async(body.reim_id, db)
         raise HTTPException(status_code=400, detail="Nothing to pay: the claim was settled against an earlier overpayment.")
 

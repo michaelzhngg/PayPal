@@ -72,6 +72,7 @@ export const SKIP_REASON_LABEL: Record<BatchSkipReason, string> = {
   NOT_HR_QUICK: "not a quick-approval claim",
   NOT_IN_REVIEW: "already decided",
   SELF_APPROVAL: "your own claim",
+  NOTHING_TO_PAY: "no approved amount",
 };
 
 const SEVERITY_RANK: Record<Severity, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };

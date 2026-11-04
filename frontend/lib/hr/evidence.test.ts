@@ -127,6 +127,7 @@ describe("approvalErrorMessage", () => {
   it("turns approval conflict codes into sentences", () => {
     expect(approvalErrorMessage("ALREADY_APPROVED")).toBe("You already approved. A second HR member has to approve this claim.");
     expect(approvalErrorMessage("SELF_APPROVAL")).toContain("your own claim");
+    expect(approvalErrorMessage("NOTHING_TO_PAY")).toContain("no approved amount");
     expect(approvalErrorMessage("Reimbursement not found")).toBe("Reimbursement not found");
   });
 });

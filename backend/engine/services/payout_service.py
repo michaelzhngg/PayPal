@@ -102,7 +102,11 @@ def _handle_skip(db: Session, reim: Reimbursement | None, action: str, existing:
     if action == "SKIP_EXISTING":
         return next(p for p in reversed(existing) if p.status in _LIVE_STATUSES)
     if action == "SKIP_ZERO" and reim is not None:
-        _settle_without_payout(db, reim)
+        # PAID needs money moved or an offset that covered it. Nothing approved is neither, so the status stays.
+        if offset_for_reim(db, reim)[1]:
+            _settle_without_payout(db, reim)
+        else:
+            logger.warning("[AUTO_PAYOUT] Nothing approved on reim=%s, not marking it paid", reim.reim_id)
     elif action == "SKIP_NO_PAYEE" and reim is not None:
         logger.info("[AUTO_PAYOUT] Skipping reim=%s — employee has no verified PayPal account", reim.reim_id)
     return None
