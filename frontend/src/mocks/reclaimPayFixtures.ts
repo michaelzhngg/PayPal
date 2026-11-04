@@ -147,6 +147,7 @@ const LABELS: Record<TimelineStepId, string> = {
   "shield.provenance": "Checking where the image came from",
   "shield.arithmetic": "Checking the totals add up",
   "shield.split": "Checking for split claims",
+  "shield.price": "Comparing prices with the market",
   "totals.aggregate": "Calculating totals",
   "judgment.final": "AI recommendation",
   "autonomy.decide": "Deciding: pay now or ask HR",
