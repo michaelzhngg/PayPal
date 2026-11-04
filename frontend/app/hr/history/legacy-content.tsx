@@ -22,10 +22,6 @@ export default function SettingsLegacyContent() {
 
         {/* ── Header ── */}
         <header className="mb-8">
-          <div className="flex items-center gap-2 text-accent mb-2">
-            <Settings className="w-5 h-5" />
-            <span className="font-body font-bold tracking-widest uppercase text-xs">Preferences</span>
-          </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-ink">
             Settings
           </h1>
@@ -65,12 +61,12 @@ export default function SettingsLegacyContent() {
             {/* Profile Section */}
             <section className="bg-surface border border-line rounded-2xl overflow-hidden">
               <div className="p-6 border-b border-line">
-                <h2 className="font-display font-bold text-lg text-ink mb-1">Profile Information</h2>
+                <h2 className="font-display font-semibold text-lg text-ink mb-1">Profile Information</h2>
                 <p className="font-body text-sm text-ink-muted">Update your personal details below.</p>
               </div>
               <div className="p-6 space-y-5">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-surface-muted border border-line flex items-center justify-center font-display font-bold text-xl text-ink">
+                  <div className="w-16 h-16 rounded-full bg-surface-muted border border-line flex items-center justify-center font-display font-semibold text-xl text-ink">
                     {user?.name?.charAt(0) || "E"}
                   </div>
                   <button className="px-4 py-2 border border-line rounded-control text-sm font-semibold text-ink hover:bg-surface-muted transition-colors">
@@ -103,7 +99,7 @@ export default function SettingsLegacyContent() {
             {/* Banking MVP Section */}
             <section className="bg-surface border border-line rounded-2xl overflow-hidden">
               <div className="p-6 border-b border-line">
-                <h2 className="font-display font-bold text-lg text-ink mb-1">Banking & Payouts</h2>
+                <h2 className="font-display font-semibold text-lg text-ink mb-1">Banking & Payouts</h2>
                 <p className="font-body text-sm text-ink-muted">Where should we send your reimbursements?</p>
               </div>
               <div className="p-6">
@@ -113,7 +109,7 @@ export default function SettingsLegacyContent() {
                       <Wallet className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-display font-bold text-sm text-ink">
+                      <p className="font-display font-semibold text-sm text-ink">
                         {banking?.bank_code
                           ? `${banking.bank_code} ${banking.bank_account_number ? '•••• ' + banking.bank_account_number.slice(-4) : ''}`
                           : "No bank account set up"}
@@ -123,7 +119,7 @@ export default function SettingsLegacyContent() {
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-ink-muted group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight className="w-5 h-5 text-ink-muted" />
                 </div>
               </div>
             </section>
@@ -137,11 +133,11 @@ export default function SettingsLegacyContent() {
                       <LifeBuoy className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-display font-bold text-sm text-ink">Help & Support</p>
+                      <p className="font-display font-semibold text-sm text-ink">Help & Support</p>
                       <p className="font-body text-xs text-ink-muted">Access FAQs or contact HR</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-ink-muted group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight className="w-5 h-5 text-ink-muted" />
                 </Link>
               </div>
             </section>

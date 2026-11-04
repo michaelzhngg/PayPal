@@ -28,7 +28,7 @@ function ReasonField({
         rows={2}
         maxLength={500}
         placeholder={placeholder}
-        className="mt-1.5 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
+        className="mt-1.5 w-full rounded-control border border-line-strong bg-surface px-3 py-2 text-sm placeholder:text-ink-muted focus-visible:outline-2 focus-visible:outline-accent"
       />
     </div>
   );
@@ -73,10 +73,10 @@ export function SaveDialog({
             {changes.map((c) => (
               <tr key={c.key}>
                 <th scope="row" className="py-2 pr-3 text-left font-medium">{c.label}</th>
-                <td className="py-2 pl-2 text-right tabular-nums text-ink-muted whitespace-nowrap">
+                <td className="py-2 pl-2 text-right font-mono text-ink-muted whitespace-nowrap">
                   <s>{c.before}</s>
                 </td>
-                <td className="py-2 pl-2 text-right tabular-nums font-semibold whitespace-nowrap">{c.after}</td>
+                <td className="py-2 pl-2 text-right font-mono font-semibold whitespace-nowrap">{c.after}</td>
               </tr>
             ))}
           </tbody>
@@ -159,7 +159,7 @@ export function KillSwitchDialog({
               onChange={(e) => setTyped(e.target.value)}
               autoComplete="off"
               spellCheck={false}
-              className="mt-1.5 w-full min-h-[44px] rounded-lg border border-line bg-surface px-3 text-sm font-mono uppercase focus-visible:outline-2 focus-visible:outline-accent"
+              className="mt-1.5 w-full min-h-[44px] rounded-control border border-line-strong bg-surface px-3 text-sm font-mono uppercase focus-visible:outline-2 focus-visible:outline-accent"
             />
           </div>
         )}

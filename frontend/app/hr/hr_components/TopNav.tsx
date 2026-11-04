@@ -98,7 +98,7 @@ export default function TopNav() {
             {showNotifications && (
               <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-surface border border-line rounded-card shadow-overlay overflow-hidden z-70">
                 <div className="flex items-center justify-between pl-4 pr-2 py-1 border-b border-line">
-                  <h3 className="font-display font-bold text-sm text-ink">Notifications</h3>
+                  <h3 className="font-display font-semibold text-sm text-ink">Notifications</h3>
                   <button
                     type="button"
                     className="min-h-[44px] px-2 rounded-control text-xs font-semibold text-ink hover:underline cursor-pointer"
